@@ -35,41 +35,49 @@ export const ColorSelector = ({
         </div>
 
         {/* COLUMNA DERECHA: Grilla de Dots */}
-        <div className="grid grid-cols-5 gap-3 justify-items-end">
-          {casesApi.map((c) => {
-            /**
-             * Comparamos el ID seleccionado con el ID del objeto actual.
-             */
-            const isSelected = selectedCaseId === c.id;
-            const isWhite = 
-              c.colour?.hex_code?.toLowerCase() === '#ffffff' || 
-              c.colour?.hex_code?.toLowerCase() === '#fff';
+        <div className="grid grid-cols-5 gap-x-6 gap-y-4 justify-items-center w-full max-w-sm mx-auto">
+  {casesApi.map((c) => {
+    /**
+     * Comparamos el ID seleccionado con el ID del objeto actual.
+     */
+    const isSelected = selectedCaseId === c.id;
+    const isWhite =
+      c.colour?.hex_code?.toLowerCase() === '#ffffff' ||
+      c.colour?.hex_code?.toLowerCase() === '#fff';
 
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => onCaseChange(c)}
-                className="relative flex items-center justify-center outline-none group"
-              >
-                {/* Anillo exterior (Indicador de selección) */}
-                <div 
-                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 border-[2.5px]
-                    ${isSelected ? "border-slate-900 scale-110 shadow-sm" : "border-transparent"}
-                  `}
-                >
-                  {/* Círculo de color (Dot) */}
-                  <div 
-                    style={{ backgroundColor: c.colour?.hex_code }}
-                    className={`w-7 h-7 rounded-full transition-all duration-200 shadow-inner
-                      ${isWhite ? "border border-slate-200" : ""}
-                    `}
-                  />
-                </div>
-              </button>
-            );
-          })}
+    return (
+      <button
+        key={c.id}
+        type="button"
+        onClick={() => onCaseChange(c)}
+        className="relative flex items-center justify-center outline-none group"
+      >
+        {/* Anillo exterior (Indicador de selección y Hover) */}
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border-[2px]
+            ${isSelected 
+              ? "border-slate-900 scale-110 shadow-sm" 
+              : "border-transparent group-hover:border-slate-200"}
+          `}
+        >
+          {/* Círculo de color (Dot) */}
+          <div
+            style={{ backgroundColor: c.colour?.hex_code }}
+            className={`w-7 h-7 rounded-full transition-all duration-200 shadow-inner
+              ${isWhite ? "border border-slate-200" : ""}
+              ${isSelected ? "scale-90" : "group-hover:scale-105"}
+            `}
+          />
         </div>
+        
+        {/* Tooltip opcional con el nombre del color (Desktop) */}
+        <span className="absolute -top-8 scale-0 transition-all rounded bg-slate-800 p-1 text-xs text-white group-hover:scale-100">
+          {c.colour?.name}
+        </span>
+      </button>
+    );
+  })}
+</div>
       </div>
     </div>
   )

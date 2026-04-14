@@ -75,11 +75,11 @@ export default function ImageSelector() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (activeTab !== selection.imageSourceType) {
-      updateSelection({ imageSourceType: activeTab as "brand" | "custom" });
-    }
-  }, [activeTab, selection.imageSourceType, updateSelection]);
+  // Lógica técnica corregida: Actualizar store en el evento, no en un useEffect
+  const handleTabChange = (tabId: "brand" | "custom") => {
+    setActiveTab(tabId);
+    updateSelection({ imageSourceType: tabId });
+  };
 
   const currentGalleryImages = useMemo(() => {
     if (!selectedBrand) return [];
@@ -100,7 +100,6 @@ export default function ImageSelector() {
   ) => {
     const colorData = selection.availableColors.find((c) => c.caseId === caseId);
 
-    // 1. Precio de la licencia actual (solo si el target es brand)
     const newBrandPrice = editorTarget?.type === "brand" 
       ? (parseFloat(selectedBrand?.price) || 0) 
       : 0;
@@ -208,7 +207,6 @@ export default function ImageSelector() {
                 const currentLicense = selection.imageBrandPrice || 0;
 
                 if (isBrand) {
-                  // Si borramos la licencia, restamos el precio del total
                   const resetConfig = {
                     ...selection.config,
                     prices: { 
@@ -226,7 +224,6 @@ export default function ImageSelector() {
                     config: resetConfig
                   });
                 } else {
-                  // Si borramos personal, NO tocamos imageBrandPrice ni el total UV
                   updateSelection({
                     imageCustomUrl: null,
                     capturedCustomPreview: null,
@@ -280,7 +277,7 @@ export default function ImageSelector() {
         ].map((t) => (
           <button
             key={t.id}
-            onClick={() => setActiveTab(t.id as any)}
+            onClick={() => handleTabChange(t.id as any)}
             className={`flex-1 py-4 text-[16px] font-semibold relative transition-colors ${
               activeTab === t.id ? "text-[#722296]" : "text-slate-400"
             }`}
@@ -296,83 +293,91 @@ export default function ImageSelector() {
         ))}
       </div>
 
-      <main className="flex-1 overflow-y-auto pb-32 no-scrollbar">
-        <AnimatePresence mode="wait">
-          {activeTab === "brand" ? (
-            <motion.div key="brand" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {selection.catalog_image ? (
-                renderPreviewState("brand")
-              ) : (
-                <div className="grid gap-3 p-6">
-                  {isLoading ? (
-                    <div className="flex justify-center py-20">
-                      <Loader2 className="animate-spin text-[#722296]" />
-                    </div>
-                  ) : (
-                    offerings.map((brand) => (
-                      <button
-                        key={brand.id}
-                        onClick={() => {
-                          setSelectedBrand(brand);
-                          setFlowView("gallery");
-                        }}
-                        className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98] transition-transform"
-                      >
-                        <div className="relative h-8 w-24">
-                          <Image
-                            src={getImageUrl(brand.icon || "")}
-                            alt={brand.name}
-                            fill
-                            className="object-contain grayscale opacity-50"
-                            unoptimized
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[14px] font-semibold uppercase text-slate-600">
-                            + {brand.price}
-                          </span>
-                          <ChevronIcon size={18} className="text-slate-300" />
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div key="custom" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {selection.imageCustomUrl ? (
-                renderPreviewState("custom")
-              ) : (
-                <div className="flex flex-col gap-6 p-6">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full aspect-video rounded-[14px] bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 hover:border-[#722296]/30 transition-colors"
-                  >
-                    <ImageIcon size={32} />
-                    <span className="text-[14px] font-semibold text-center">
-                      Subir Foto o Imagen
-                    </span>
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const optimizedBase64 = await resizeTo600(file);
-                        setEditorTarget({ url: optimizedBase64, type: "custom" });
-                        setIsEditorOpen(true);
-                        e.target.value = "";
-                      }
-                    }}
-                  />
-                </div>
-              )}
-            </motion.div>
-          )}
+      <main className="flex-1 overflow-y-auto pb-32 no-scrollbar relative">
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div 
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full"
+          >
+            {activeTab === "brand" ? (
+              <div key="brand-content">
+                {selection.catalog_image ? (
+                  renderPreviewState("brand")
+                ) : (
+                  <div className="grid gap-3 p-6">
+                    {isLoading ? (
+                      <div className="flex justify-center py-20">
+                        <Loader2 className="animate-spin text-[#722296]" />
+                      </div>
+                    ) : (
+                      offerings.map((brand) => (
+                        <button
+                          key={brand.id}
+                          onClick={() => {
+                            setSelectedBrand(brand);
+                            setFlowView("gallery");
+                          }}
+                          className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98] transition-transform"
+                        >
+                          <div className="relative h-8 w-24">
+                            <Image
+                              src={getImageUrl(brand.icon || "")}
+                              alt={brand.name}
+                              fill
+                              className="object-contain grayscale opacity-50"
+                              unoptimized
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[14px] font-semibold uppercase text-slate-600">
+                              + {brand.price}
+                            </span>
+                            <ChevronIcon size={18} className="text-slate-300" />
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div key="custom-content">
+                {selection.imageCustomUrl ? (
+                  renderPreviewState("custom")
+                ) : (
+                  <div className="flex flex-col gap-6 p-6">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full aspect-video rounded-[14px] bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 hover:border-[#722296]/30 transition-colors"
+                    >
+                      <ImageIcon size={32} />
+                      <span className="text-[14px] font-semibold text-center">
+                        Subir Foto o Imagen
+                      </span>
+                    </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const optimizedBase64 = await resizeTo600(file);
+                          setEditorTarget({ url: optimizedBase64, type: "custom" });
+                          setIsEditorOpen(true);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
         </AnimatePresence>
       </main>
 
@@ -403,8 +408,7 @@ export default function ImageSelector() {
                         }}
                         className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-sm active:scale-95 transition-transform bg-slate-50 border border-slate-100"
                       >
-                        <Image src={`${img.url}?width=200`}
-alt="option" fill className="object-cover" unoptimized />
+                        <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
                       </button>
                     ))}
                   </div>

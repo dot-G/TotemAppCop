@@ -6,7 +6,7 @@ import { ColorSelector } from "../shared/color-selector2";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { RotateCw, X, Loader2 } from "lucide-react";
-import { toJpeg } from "html-to-image";
+import { toPng } from "html-to-image"; // Cambiado a toPng para preservar transparencia
 
 export interface EditorTransform {
   x: number;
@@ -60,7 +60,6 @@ export function PhoneCaseEditor({
 
   const smartphoneRef = useRef<HTMLDivElement>(null);
 
-  // Sincronización inicial con el Store global
   useEffect(() => {
     if (isOpen) {
       const current =
@@ -91,13 +90,12 @@ export function PhoneCaseEditor({
       const width = smartphoneRef.current.offsetWidth;
       const height = smartphoneRef.current.offsetHeight;
 
-      const dataUrl = await toJpeg(smartphoneRef.current, {
-        quality: 0.9,
+      // Captura en PNG para que los bordes y la transparencia sean reales
+      const dataUrl = await toPng(smartphoneRef.current, {
         canvasWidth: width * 3,
         canvasHeight: height * 3,
         pixelRatio: 1,
         cacheBust: true,
-        backgroundColor: "#ffffff",
       });
 
       if (!dataUrl || dataUrl === "data:,") throw new Error("Captura fallida");
@@ -123,13 +121,8 @@ export function PhoneCaseEditor({
 
   if (!isOpen) return null;
 
-  /**
-   * MAPEO SIMPLIFICADO:
-   * Como ahora el ColorSelector es consistente y usa '.id' para todo,
-   * solo necesitamos pasar el 'caseId' como el identificador principal.
-   */
   const colorOptionsForSelector = availableColors.map((c) => ({
-    id: c.caseId, // Identificador único para el anillo y el label
+    id: c.caseId,
     colourId: c.colourId,
     colour: {
       name: c.name,
@@ -141,7 +134,7 @@ export function PhoneCaseEditor({
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[120] p-4 backdrop-blur-sm">
       <div className="bg-white rounded-[32px] p-6 max-w-sm w-full shadow-2xl overflow-hidden border border-white/20">
         
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Editor</span>
             <h3 className="text-[12px] font-bold text-slate-900">Ajusta tu diseño</h3>
@@ -153,16 +146,11 @@ export function PhoneCaseEditor({
           )}
         </div>
 
-        <div className="flex justify-center bg-white rounded-2xl mb-6 overflow-hidden border border-slate-50">
+        <div className="flex justify-center bg-white rounded-2xl mb-6 overflow-hidden">
           <div
             ref={smartphoneRef}
-            className="bg-white p-6 flex items-center justify-center"
-            style={{
-              width: "100%",
-              maxWidth: "260px",
-              aspectRatio: "9 / 19",
-              display: "flex",
-            }}
+            className="bg-white pt-6 flex items-center justify-center"
+            style={{ width: "100%", maxWidth: "240px", display: "flex" }}
           >
             <SmartphoneCaseSimple
               frameColor={selectedCase?.hex || "#000000"}
@@ -177,9 +165,33 @@ export function PhoneCaseEditor({
           </div>
         </div>
 
-        <div className="space-y-5">
-          {/* Al usar selectedCase?.caseId, ColorSelector encontrará el match
-              automáticamente con la propiedad .id que mapeamos arriba. */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            {/* CORRECCIÓN: Eliminado el % 360 para que la rotación sea continua e infinita visualmente */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-14 w-14 rounded-2xl border-slate-200 shrink-0"
+              onClick={() => setImageRotation((r) => r + 90)}
+            >
+              <RotateCw className="w-5 h-5 text-slate-600" />
+            </Button>
+
+            <div className="flex-1 flex items-center gap-3 bg-slate-50 h-14 px-4 rounded-2xl border border-slate-100">
+              <span className="text-[10px] font-black uppercase text-slate-400 w-8 text-center">
+                Zoom
+              </span>
+              <Slider
+                value={[imageScale]}
+                onValueChange={(v) => setImageScale(v[0])}
+                min={0.5}
+                max={4}
+                step={0.1}
+                className="flex-1"
+              />
+            </div>
+          </div>
+
           <ColorSelector
             casesApi={colorOptionsForSelector}
             selectedCaseId={selectedCase?.caseId || null}
@@ -193,31 +205,13 @@ export function PhoneCaseEditor({
             }
           />
 
-          <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <span className="text-[10px] font-black uppercase text-slate-400 w-10 text-center">Zoom</span>
-            <Slider
-              value={[imageScale]}
-              onValueChange={(v) => setImageScale(v[0])}
-              min={0.5} max={4} step={0.1}
-              className="flex-1"
-            />
-          </div>
-
           <div className="flex gap-3 pt-2">
             <Button
-              variant="outline" size="icon"
-              className="h-14 w-14 rounded-2xl border-slate-200"
-              onClick={() => setImageRotation((r) => (r + 90) % 360)}
-            >
-              <RotateCw className="w-5 h-5 text-slate-600" />
-            </Button>
-
-            <Button
-              className="h-14 flex-1 rounded-2xl bg-slate-900 text-white font-bold"
+              className="h-14 flex-1 rounded-[14px] bg-[#6b21a8] text-[16px] text-white font-semibold"
               onClick={handleAccept}
               disabled={isCapturing}
             >
-              {isCapturing ? <Loader2 className="w-5 h-5 animate-spin" /> : "GUARDAR CAMBIOS"}
+              {isCapturing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Elegir Diseño"}
             </Button>
           </div>
         </div>

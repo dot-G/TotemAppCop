@@ -29,6 +29,8 @@ export interface CreateOrderImageBody {
   personal_image?: string | null; 
   image_size: "small" | "medium" | "large";
   image_orientation_degrees: number; 
+
+  preview_image: string | null; 
   
   final_combo_price: number;
 }
