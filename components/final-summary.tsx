@@ -15,7 +15,7 @@ export default function FinalSummary() {
   
   const [orderStatus, setOrderStatus] = useState<'processing' | 'success' | 'completed'>('processing')
 
-  // Usamos el número de orden real devuelto por la API en el paso anterior
+  // Referencia SKU real de la orden creada
   const reference = selection.orderSku  || "---"
 
   useEffect(() => {
@@ -52,22 +52,27 @@ export default function FinalSummary() {
       })
     }
 
-    // 3. IMAGEN (CATÁLOGO O PERSONAL)
-    // 3. IMAGEN (CATÁLOGO O PERSONAL)
+    // 3. IMAGEN + SERVICIO DE IMPRESIÓN UV
     if (selection.config?.includes_uv_print) {
       const isCustom = selection.imageSourceType === "custom"
       
-      // Determinamos el ID de la imagen:
-      // Si es custom, usamos el ID que guardamos al subir (orderCustomImage)
-      // Si es catálogo, usamos el catalog_image
+      // La imagen de preview: si es custom usamos el ID subido (orderCustomImage), 
+      // si es brand usamos el catalog_image.
       const imageId = isCustom 
         ? selection.orderCustomImage 
         : selection.catalog_image
 
+      // LÓGICA DE PRECIO:
+      // Usamos directamente selection.config.prices.uv porque ya contiene el cálculo:
+      // (Precio Base UV - Licencia Anterior) + Licencia Actual
+      const totalImageStepPrice = selection.config.prices.uv || 0
+
       items.push({
-        title: isCustom ? "Imagen personal" : "Diseño de catálogo",
-        price: isCustom ? selection.imageCustomPrice : selection.imageBrandPrice,
-        desc: isCustom ? "Tu foto personalizada." : "Arte seleccionado.",
+        title: isCustom ? "Imagen personal + Impresión" : "Diseño catálogo + Impresión",
+        price: totalImageStepPrice,
+        desc: isCustom 
+          ? "Tu foto con acabado UV de alta resistencia." 
+          : "Arte seleccionado con acabado UV premium.",
         preview: imageId ? getImageUrl(imageId) : "/icons/image-placeholder.png"
       })
     }
@@ -88,7 +93,6 @@ export default function FinalSummary() {
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               Referencia: <span className="text-[#6b21a8] uppercase">{reference}</span>
             </h2>
-            {/* Círculos decorativos para efecto ticket */}
             <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-[#f8fafc] rounded-full border border-slate-100" />
             <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-[#f8fafc] rounded-full border border-slate-100" />
           </div>
@@ -127,7 +131,7 @@ export default function FinalSummary() {
 
           {/* Footer del Ticket: Total */}
           <div className="p-6 mt-4 bg-slate-50/50 border-t border-dashed border-slate-100 flex justify-between items-center">
-            <span className="text-xl font-semibold text-slate-900">Precio paquete</span>
+            <span className="text-xl font-semibold text-slate-900">Total a pagar</span>
             <span className="text-4xl font-semibold text-[#6b21a8] tracking-tighter">${totalPrice}</span>
           </div>
         </div>
@@ -157,8 +161,8 @@ export default function FinalSummary() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic">Confirmando</h2>
-                    <p className="text-slate-400 font-bold text-[10px] tracking-[0.3em] uppercase">Preparando tu resumen final</p>
+                    <h2 className="text-[28px] font-semibold text-slate-900">Confirmando...</h2>
+                    <p className="text-slate-400 font-semibold text-[10px] tracking-[0.3em]">Preparando tu resumen final</p>
                   </div>
                 </motion.div>
               ) : (
@@ -166,9 +170,9 @@ export default function FinalSummary() {
                   <div className="w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-400 flex items-center justify-center mb-10 shadow-xl shadow-emerald-100">
                     <CheckCircle2 className="w-12 h-12 text-emerald-500" strokeWidth={2.5} />
                   </div>
-                  <h2 className="text-[36px] leading-none font-black text-slate-900 mb-6 uppercase tracking-tighter italic">¡Pedido enviado!</h2>
+                  <h2 className="text-[28px] leading-none font-semibold text-slate-900 mb-6">¡Pedido enviado!</h2>
                   <p className="text-slate-500 text-lg font-medium leading-tight">
-                    Tu orden <span className="text-[#6b21a8] font-bold">#{reference}</span> ha sido procesada correctamente.
+                    Tu orden <span className="text-[#6b21a8] font-semibold">#{reference}</span> ha sido procesada correctamente.
                   </p>
                 </motion.div>
               )}

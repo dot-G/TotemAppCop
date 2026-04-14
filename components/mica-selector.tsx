@@ -149,7 +149,7 @@ export default function MicaSelector() {
             const isActive = activeIdx === idx;
             const priceVal = parseFloat(mica.price) || 0;
             const priceDifference = priceVal - micaDefault;
-            const priceLabel = priceDifference <= 0 ? "Incluida" : `+$${Math.round(priceDifference)}`;
+            const priceLabel = priceDifference <= 0 ? "" : `+$${Math.round(priceDifference)}`;
             const isPrivacy = mica.name.toLowerCase().includes("privacy") || mica.code?.includes("PRIVA");
             const isPremium = mica.name.toLowerCase().includes("premium") || mica.code?.includes("PREMI");
 
@@ -170,7 +170,7 @@ export default function MicaSelector() {
                     </div>
                   )}
 
-                  <div className="relative aspect-[16/10] w-full bg-slate-100 rounded-[8px] mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-[4/3] w-full bg-slate-100 rounded-[8px] mb-2 overflow-hidden flex items-center justify-center">
                     {(mica.featured_image || mica.icon) ? (
                       <Image
                         src={getImageUrl(mica.featured_image || mica.icon || "")}
@@ -187,9 +187,9 @@ export default function MicaSelector() {
 
                   <div className="px-1 flex flex-col">
                     <div className="flex justify-between items-baseline mb-0.5">
-                      <h3 className="text-[16px] font-bold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
+                      <h3 className="text-[18px] font-semibold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
                       {/* El precio ahora es estable gracias al debounce y validación de ID */}
-                      <span className="text-[18px] font-bold text-[#1d1d1f]">{priceLabel}</span>
+                      <span className="text-[22px] font-semibold text-[#1d1d1f]">{priceLabel}</span>
                     </div>
                     {/* ... Resto de la UI igual ... */}
                     <p className="text-[12px] text-slate-500 mb-3 leading-tight">

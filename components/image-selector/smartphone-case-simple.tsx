@@ -40,7 +40,7 @@ export function SmartphoneCaseSimple({
   const offset = externalOffset ?? internalOffset
   const setOffset = onImageOffsetChange ?? setInternalOffset
 
-  const height = width * 2.1
+  const height = width * 2
   const borderRadius = width * 0.12
   const framePadding = width * 0.03
 
