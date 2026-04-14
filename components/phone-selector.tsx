@@ -1,204 +1,405 @@
-"use client"
+"use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react"
-import { Search, ChevronRight, Smartphone, Trash2, ArrowLeft } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import { useApp } from "@/hooks/use-app"
-import { useAtom } from "jotai"
-import { missingBrandsAtom, missingModelsAtom } from "@/lib/store"
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Search,
+  ChevronRight,
+  Smartphone,
+  Trash2,
+  ArrowLeft,
+  Check,
+  X,
+  Loader2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAtom } from "jotai";
+import Image from "next/image"; // Importamos Image
+import {
+  selectionAtom,
+  missingBrandsAtom,
+  missingModelsAtom,
+} from "@/lib/store";
+import { useBrands } from "@/hooks/use-brands";
+import { getImageUrl } from "@/lib/image-directus";
 
-const PHONE_DATA = {
-  "Samsung": ["Galaxy S24 Ultra", "Galaxy A54", "Galaxy S23"],
-  "Apple - iPhone": ["17 Pro", "16 Plus", "iPhone 15 Pro Max"],
-  "Motorola": ["Moto G84", "Edge 40 Neo"],
-  "Xiaomi": ["Redmi Note 13 Pro", "Xiaomi 14"]
+// --- 1. ALGORITMO SMART ---
+const SMART_ALIASES: Record<string, string> = {
+  ifon: "Apple",
+  ifone: "Apple",
+  aifon: "Apple",
+  iphon: "Apple",
+  apple: "Apple",
+  saam: "Samsung",
+  samsun: "Samsung",
+  sansun: "Samsung",
+  sam: "Samsung",
+  yomi: "Xiaomi",
+  shaomi: "Xiaomi",
+  ziomi: "Xiaomi",
+  redmi: "Xiaomi",
+  poko: "Xiaomi",
+  moto: "Motorola",
+  motrola: "Motorola",
+};
+
+const normalize = (str: string) => {
+  if (!str) return "";
+  let n = str
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return n.replace(/(.)\1+/g, "$1");
+};
+
+function humanSearch<T extends { name: string }>(
+  searchTerm: string,
+  items: T[]
+) {
+  const s = normalize(searchTerm);
+  if (!s) return items.map((i) => ({ item: i, layer: null }));
+  const aliasTarget =
+    SMART_ALIASES[s] || SMART_ALIASES[searchTerm.toLowerCase().trim()];
+  const filtered = items.filter((obj) => {
+    const t = normalize(obj.name);
+    if (aliasTarget && t.includes(normalize(aliasTarget))) return true;
+    if (t.includes(s)) return true;
+    if (s.length >= 2 && t.startsWith(s)) return true;
+    return false;
+  });
+  const layerOf = (name: string) => {
+    const t = normalize(name);
+    if (aliasTarget && t.includes(normalize(aliasTarget))) return 0;
+    if (t.startsWith(s)) return 1;
+    return 2;
+  };
+  return filtered
+    .sort((a, b) => layerOf(a.name) - layerOf(b.name))
+    .map((item) => ({ item, layer: layerOf(item.name) }));
 }
 
 export default function PhoneSelectorPage() {
-  const { selection, updateSelection, isHydrated } = useApp()
-  const [activePanel, setActivePanel] = useState<"none" | "brand" | "model">("none")
-  const [search, setSearch] = useState("")
-  
-  const [, setMissingBrands] = useAtom(missingBrandsAtom)
-  const [, setMissingModels] = useAtom(missingModelsAtom)
+  const [selection, setSelection] = useAtom(selectionAtom);
+  const [missingBrands, setMissingBrands] = useAtom(missingBrandsAtom);
+  const [missingModels, setMissingModels] = useAtom(missingModelsAtom);
+  const [activePanel, setActivePanel] = useState<"none" | "brand" | "model">(
+    "none"
+  );
+  const [search, setSearch] = useState("");
 
-  // Referencia para no repetir el último término guardado en esta sesión
-  const lastLoggedTerm = useRef("")
+  const { data: brands, isLoading } = useBrands();
+  const brandSelected = selection.brand;
+  const modelSelected = selection.model;
 
-  const brandSelected = selection.brand
-  const modelSelected = selection.model
+  // Filtrado de resultados incluyendo el campo logo
+  const filteredResults = useMemo(() => {
+    if (!brands) return [];
 
-  const filteredItems = useMemo(() => {
-    if (activePanel === "brand") {
-      return Object.keys(PHONE_DATA).filter(b => b.toLowerCase().includes(search.toLowerCase()))
-    }
-    if (activePanel === "model" && brandSelected) {
-      return (PHONE_DATA[brandSelected as keyof typeof PHONE_DATA] || []).filter(m => 
-        m.toLowerCase().includes(search.toLowerCase())
-      )
-    }
-    return []
-  }, [activePanel, search, brandSelected])
-
-  // Lógica inteligente de registro
-  const logMissingSearch = (termToLog: string) => {
-    const term = termToLog.trim();
-    
-    // Validaciones: 
-    // 1. Al menos 3 caracteres
-    // 2. Que no haya resultados reales
-    // 3. Que no sea lo mismo que acabamos de guardar
-    if (term.length < 3 || filteredItems.length > 0 || term === lastLoggedTerm.current) return;
+    // CAMBIO AQUÍ: logo: string | null
+    let source: { id: string; name: string; logo: string | null }[] = [];
 
     if (activePanel === "brand") {
-      setMissingBrands(prev => prev.includes(term) ? prev : [...prev, term]);
-      lastLoggedTerm.current = term;
+      source = brands.map((b) => ({
+        id: b.id,
+        name: b.name,
+        logo: b.logo || null, // Aseguramos que si no hay logo sea null
+      }));
     } else if (activePanel === "model" && brandSelected) {
-      const entry = `${brandSelected}: ${term}`;
-      setMissingModels(prev => prev.includes(entry) ? prev : [...prev, entry]);
-      lastLoggedTerm.current = term; // Evitamos duplicar en el próximo borrado
+      const targetBrand = brands.find((b) => b.name === brandSelected);
+      source = targetBrand
+        ? targetBrand.models.map((m) => ({
+            id: m.id,
+            name: m.name,
+            logo: null, // Los modelos no suelen tener logo individual
+          }))
+        : [];
     }
-  };
+    return humanSearch(search, source);
+  }, [activePanel, search, brandSelected, brands]);
 
-  // EFECTO INTELIGENTE: Debounce
-  // Si el usuario deja de escribir por 1.5 segundos y no hay resultados, guardamos.
+  // Buscamos el logo de la marca seleccionada para la Card principal
+  const selectedBrandLogo = useMemo(() => {
+    return brands?.find((b) => b.name === brandSelected)?.logo;
+  }, [brands, brandSelected]);
+
   useEffect(() => {
-    if (search.length >= 3 && filteredItems.length === 0) {
-      const timer = setTimeout(() => {
-        logMissingSearch(search);
-      }, 1500); 
-      return () => clearTimeout(timer);
-    }
-  }, [search, filteredItems.length]);
+    if (
+      !search ||
+      search.length < 3 ||
+      filteredResults.length > 0 ||
+      activePanel === "none"
+    )
+      return;
+    const handler = setTimeout(() => {
+      if (activePanel === "brand") {
+        if (!missingBrands.includes(search))
+          setMissingBrands([...missingBrands, search]);
+      } else if (activePanel === "model" && brandSelected) {
+        const exists = missingModels.some(
+          (m) => m.brand === brandSelected && m.model === search
+        );
+        if (!exists)
+          setMissingModels([
+            ...missingModels,
+            {
+              brand: brandSelected,
+              model: search,
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+      }
+    }, 1500);
+    return () => clearTimeout(handler);
+  }, [
+    search,
+    filteredResults.length,
+    activePanel,
+    brandSelected,
+    missingBrands,
+    missingModels,
+    setMissingBrands,
+    setMissingModels,
+  ]);
 
-  if (!isHydrated) return null
-
-  const handleClose = () => {
-    if (search) logMissingSearch(search);
-    setActivePanel("none");
-    setSearch("");
-    lastLoggedTerm.current = ""; // Reset al cerrar
-  };
+  if (isLoading) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4 bg-white">
+        <Loader2 className="animate-spin text-purple-600 w-10 h-10" />
+        <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">
+          Cargando Catálogo
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden">
-      <main className="flex-1 p-5 space-y-4 overflow-y-auto">
-        {/* Selector de Marca */}
-        <div 
-          onClick={() => { setActivePanel("brand"); lastLoggedTerm.current = ""; }} 
-          className={`bg-white p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-2 
-            ${brandSelected ? "border-[#6b21a8] ring-1 ring-[#6b21a8]/20 shadow-md" : "border-slate-100 shadow-sm"}`}
+    <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden font-sans">
+      <main className="flex-1 p-5 space-y-4 overflow-y-auto no-scrollbar">
+        {/* CARD MARCA */}
+        <div
+          onClick={() => setActivePanel("brand")}
+          className={`bg-[#F6F7F9] p-4 rounded-[14px] border transition-all cursor-pointer flex flex-col gap-3 
+    ${
+      brandSelected
+        ? "border-[#0B4488] ring-1 ring-[#0B4488]" // Borde azul + un pequeño anillo para mayor definición
+        : "border-transparent shadow-sm"
+    }`}
         >
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-xl ${brandSelected ? "bg-purple-50 text-[#6b21a8]" : "bg-slate-50 text-slate-400"}`}>
+          <div className="flex items-center gap-4">
+            <div className="text-black">
               <Smartphone className="w-5 h-5" />
             </div>
-            <span className="font-bold text-slate-800 flex-1 text-sm uppercase tracking-wide">Marca</span>
-            <ChevronRight className="text-[#6b21a8] w-5 h-5" />
+            <span className="font-semibold text-black flex-1 text-[16px]">
+              Selecciona la marca
+            </span>
+            <ChevronRight
+              className={`transition-transform ${
+                brandSelected ? "text-[#0B4488]" : "text-slate-300"
+              }`}
+            />
           </div>
+
           {brandSelected && (
-            <div className="bg-purple-50 text-[#6b21a8] px-4 py-2 rounded-2xl text-sm font-bold w-fit border border-purple-100 flex items-center gap-3 animate-in fade-in slide-in-from-left-2">
-              {brandSelected} 
-              <button onClick={(e) => { 
-                e.stopPropagation(); 
-                updateSelection({ brand: null, model: null }); 
-              }}>
-                <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600" />
+            <div className="bg-white text-[#0B4488] px-4 py-2 rounded-3xl text-[13px] font-bold w-fit border border-blue-100 flex items-center gap-3 animate-in fade-in zoom-in duration-300">
+              {selectedBrandLogo && (
+                <Image
+                  src={getImageUrl(selectedBrandLogo)}
+                  alt={brandSelected}
+                  width={20}
+                  height={20}
+                  className="object-contain"
+                  unoptimized
+                />
+              )}
+              <span className="font-normal text-[14px]">{brandSelected}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelection({
+                    ...selection,
+                    brand: null,
+                    brandId: "",
+                    model: null,
+                    modelId: "",
+                  });
+                }}
+                className="p-1 hover:bg-red-50 rounded-full transition-colors group"
+              >
+                <Trash2 className="w-4 h-4 text-[#0B4488] group-hover:text-red-500" />
               </button>
             </div>
           )}
         </div>
 
-        {/* Selector de Modelo */}
-        <div 
-          onClick={() => { if(brandSelected) { setActivePanel("model"); lastLoggedTerm.current = ""; } }} 
-          className={`bg-white p-5 rounded-3xl border-2 transition-all flex flex-col gap-2 
-            ${modelSelected ? "border-[#6b21a8] ring-1 ring-[#6b21a8]/20 shadow-md" : "border-slate-100 shadow-sm"} 
-            ${!brandSelected && "opacity-40 cursor-not-allowed"}`}
+        {/* CARD MODELO */}
+        <div
+          onClick={() => brandSelected && setActivePanel("model")}
+          className={`bg-[#F6F7F9] p-4 rounded-[14px] border transition-all flex flex-col gap-3 
+    ${
+      modelSelected
+        ? "border-[#0B4488] ring-1 ring-[#0B4488]"
+        : "border-transparent shadow-sm"
+    } 
+    ${!brandSelected && "opacity-40 grayscale pointer-events-none"}`}
         >
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-xl ${modelSelected ? "bg-purple-50 text-[#6b21a8]" : "bg-slate-50 text-slate-400"}`}>
+          <div className="flex items-center gap-4">
+            <div className="text-black">
               <Smartphone className="w-5 h-5" />
             </div>
-            <span className="font-bold text-slate-800 flex-1 text-sm uppercase tracking-wide">Modelo</span>
-            <ChevronRight className="text-[#6b21a8] w-5 h-5" />
+            <span className="font-semibold text-black flex-1 text-[16px]">
+              Selecciona el modelo
+            </span>
+            <ChevronRight
+              className={`transition-transform ${
+                modelSelected ? "text-[#0B4488]" : "text-slate-300"
+              }`}
+            />
           </div>
+
           {modelSelected && (
-            <div className="bg-purple-50 text-[#6b21a8] px-4 py-2 rounded-2xl text-sm font-bold w-fit border border-purple-100 flex items-center gap-3 animate-in fade-in slide-in-from-left-2">
-              {modelSelected} 
-              <button onClick={(e) => { 
-                e.stopPropagation(); 
-                updateSelection({ model: null }); 
-              }}>
-                <Trash2 className="w-4 h-4 text-red-400 hover:text-red-600" />
+            <div className="bg-white text-[#0B4488] px-4 py-2 rounded-3xl text-[14px] font-normal w-fit border border-blue-100 flex items-center gap-3 animate-in fade-in zoom-in duration-300">
+              <span className="tracking-tight">{modelSelected}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelection({ ...selection, model: null, modelId: "" });
+                }}
+                className="p-1 hover:bg-red-50 rounded-full transition-colors group"
+              >
+                <Trash2 className="w-4 h-4 text-[#0B4488] group-hover:text-red-500" />
               </button>
             </div>
           )}
         </div>
       </main>
 
+      {/* PANEL DE BÚSQUEDA FLOTANTE */}
       <AnimatePresence>
         {activePanel !== "none" && (
-          <motion.div 
-            initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} 
-            transition={{ type: "spring", damping: 25, stiffness: 200 }} 
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 32, stiffness: 350 }}
             className="fixed inset-0 z-[100] bg-white flex flex-col"
           >
-            <div className="p-4 flex items-center gap-4 border-b pt-10">
-              <button onClick={handleClose} className="p-2 bg-slate-50 rounded-full">
-                 <ArrowLeft className="w-6 h-6 text-slate-600" />
+            <div className="p-4 flex items-center gap-4 border-b pt-12 shrink-0">
+              <button
+                onClick={() => {
+                  setActivePanel("none");
+                  setSearch("");
+                }}
+                className="p-3 bg-slate-100 rounded-full active:scale-90 transition-transform"
+              >
+                <ArrowLeft className="w-6 h-6 text-slate-600" />
               </button>
-              <h3 className="text-xl font-black flex-1 text-center pr-10 text-slate-900">
-                {activePanel === "brand" ? "Marcas" : "Modelos"}
+              <h3 className="text-xl font-semibold flex-1 text-center pr-12 text-slate-900">
+                {activePanel === "brand"
+                  ? "Selecciona la Marca"
+                  : `Selecciona el modelo de ${brandSelected}`}
               </h3>
             </div>
-            
-            <div className="p-5 flex-1 overflow-y-auto space-y-3">
+
+            <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
               <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <input 
-                  autoFocus 
-                  placeholder={`Buscar ${activePanel === "brand" ? "marca" : "modelo"}...`}
-                  className="w-full bg-slate-50 rounded-2xl py-4 pl-12 pr-4 font-bold text-slate-700 outline-none border border-slate-100 focus:ring-2 focus:ring-purple-200" 
-                  value={search} 
-                  onChange={(e) => setSearch(e.target.value)} 
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#B7B7B7] w-5 h-5" />
+                <input
+                  autoFocus
+                  placeholder={`Busca ${
+                    activePanel === "brand" ? "la marca" : "el modelo"
+                  }...`}
+                  className="w-full bg-white rounded-[14px] py-5 pl-16 pr-14 font-semibold text-[#B7B7B7] outline-none border border-[#B7B7B7] focus:ring-1 focus:ring-[#B7B7B7] transition-all placeholder:text-[#B7B7B7]"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
-              </div>
-              
-              <div className="grid gap-3">
-                {filteredItems.map(item => (
-                  <button 
-                    key={item} 
-                    onClick={() => { 
-                      if(activePanel === "brand") {
-                        updateSelection({ brand: item, model: null });
-                      } else {
-                        updateSelection({ model: item });
-                      }
-                      setActivePanel("none"); 
-                      setSearch(""); 
-                    }} 
-                    className="w-full text-left p-5 rounded-2xl bg-white border border-slate-100 font-bold text-slate-800 flex justify-between items-center group"
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-[full]"
                   >
-                    {item} 
-                    <div className="w-6 h-6 rounded-full border-2 border-slate-200 group-hover:border-[#6b21a8] transition-colors" />
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="grid gap-3 pb-24">
+                {filteredResults.map(({ item, layer }) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (activePanel === "brand") {
+                        setSelection({
+                          ...selection,
+                          brand: item.name,
+                          brandId: item.id,
+                          model: null,
+                          modelId: "",
+                        });
+                        setSearch("");
+                        setActivePanel("model");
+                      } else {
+                        setSelection({
+                          ...selection,
+                          model: item.name,
+                          modelId: item.id,
+                        });
+                        setActivePanel("none");
+                        setSearch("");
+                      }
+                    }}
+                    className={`w-full text-left p-4 rounded-[14px] border transition-all flex justify-between items-center active:scale-95 
+                      ${
+                        brandSelected === item.name ||
+                        modelSelected === item.name
+                          ? "bg-white border-[#0B4488]"
+                          : "bg-white border-slate-100 shadow-sm"
+                      }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {item.logo && (
+                        <div className="w-12 h-12 bg-slate-50 rounded-sm p-2 flex items-center justify-center overflow-hidden">
+                          <Image
+                            src={getImageUrl(item.logo)}
+                            alt={item.name}
+                            width={32}
+                            height={32}
+                            className="object-contain"
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-slate-800 text-[16px]">
+                          {item.name}
+                        </span>
+                        {layer === 0 && (
+                          <span className="text-[8px] text-purple-600 font-black tracking-[0.2em] uppercase">
+                            Sugerencia
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all 
+                      ${
+                        brandSelected === item.name ||
+                        modelSelected === item.name
+                          ? "border-[#0B4488] bg-[#0B4488]"
+                          : "border-slate-100"
+                      }`}
+                    >
+                      {(brandSelected === item.name ||
+                        modelSelected === item.name) && (
+                        <Check className="w-4 h-4 text-white stroke-[4]" />
+                      )}
+                    </div>
                   </button>
                 ))}
-
-                {search.length >= 3 && filteredItems.length === 0 && (
-                   <div className="p-10 text-center animate-in fade-in zoom-in duration-300">
-                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Search className="w-8 h-8 text-slate-200" />
-                     </div>
-                     <p className="text-slate-400 font-bold text-sm">No encontramos "{search}"</p>
-                     <p className="text-slate-300 text-[10px] uppercase mt-1 tracking-widest">Lo anotaremos para conseguirlo</p>
-                   </div>
-                )}
+                {/* ... Sin resultados ... */}
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

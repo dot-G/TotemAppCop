@@ -1,123 +1,275 @@
-"use client"
+"use client";
 
-import { atom } from 'jotai'
-import { atomWithStorage, createJSONStorage } from 'jotai/utils'
+import { atom } from "jotai";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 
-// 1. Tipos de Pasos (Integrando el estado PROMPT solicitado)
-export type StepType = 
-  | "onboarding" 
-  | "phone-selector" 
-  | "combo-selector" 
-  | "mica-selector" 
-  | "case-selector" 
-  | "image-selector" 
-  | "contact-form" 
+// --- 1. TIPOS Y ENUMS ---
+export type StepType =
+  | "onboarding"
+  | "phone-selector"
+  | "combo-selector"
+  | "mica-selector"
+  | "case-selector"
+  | "image-selector"
+  | "contact-form"
   | "final-summary"
+  | "payment";
 
-export type ImageSourceType = 'brand' | 'custom' | null;
+export type ImageSourceType = "brand" | "custom" | null;
+export type ImageSize = "Pequeña" | "Mediana" | "Grande";
 
-// 2. Interfaz del Estado de Selección
+export interface EditorTransform {
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+}
+
+export interface AvailableColor {
+  caseId: string;
+  colourId: string; 
+  name: string; 
+  hex: string;  
+}
+
+export interface ImageConfig {
+  rotation: number;
+  size: ImageSize;
+}
+
+export interface MissingModelEntry {
+  brand: string;
+  model: string;
+  timestamp: string;
+}
+
+// Estructura de Precios Crítica para la persistencia
+export interface ComboPrices {
+  micaDefault: number;
+  mica: number;
+  case: number;
+  uv: number;
+}
+
+export interface ComboConfig {
+  includes_mica: boolean;
+  includes_case: boolean;
+  includes_uv_print: boolean;
+  prices: ComboPrices;
+}
+
+// --- 2. INTERFAZ DEL ESTADO DE SELECCIÓN ---
 export interface SelectionState {
   brand: string | null;
+  brandId: string | null;
   model: string | null;
+  modelId: string | null;
+
   comboId: string;
+  config: ComboConfig; // Eliminado el null para asegurar consistencia en el spread
+  
   micaId: string | null;
+  micaImage: string | null;
+  micaName: string | null;
   caseId: string | null;
-  caseColor: string;
-  caseType: string;
+  uvPrintId: string | null;
+  
+  mica_combo_content: string | null;
+  case_combo_content: string | null;
+  uv_print_combo_content: string | null;
+  catalog_image_combo_content: string | null;
+
+  caseImage: string | null;
+  caseName: string | null;
+  caseColor: string | null;
+  caseTypeId: string | null; 
+  colourId: string | null;   
+  colourHex: string | null;
+
+  availableColors: AvailableColor[];
+
+  capturedBrandPreview: string | null;
+  capturedCustomPreview: string | null;
+  brandTransform: EditorTransform | null;
+  customTransform: EditorTransform | null;
+
   imageSourceType: ImageSourceType;
-  imageBrandId: string | null;
-  imageBrandConfig: any | null;
+  catalogId: string | null;    
+  catalog_image: string | null; 
   selectedBrandTag: string | null;
+  imageBrandConfig: ImageConfig;
+  imageBrandPrice: number;
+  orderCustomImage: string | null;
+
   imageCustomUrl: string | null;
-  imageCustomConfig: any | null;
-  promptText: string; // Para el estado PROMPT
-  image: {
-    url: string | null;
-    x: number;
-    y: number;
-    scale: number;
-    rotate: number;
+  imageCustomConfig: ImageConfig;
+  imageCustomPrice: number;
+  acceptedTerms: boolean;
+
+  contact: {
+    name: string;
+    email: string;
+    phone: string;
   };
-  contact: { name: string; email: string; phone: string };
+
+  orderId: string | null;
+  orderNumber: string | null;
+  orderSku: string | null;
+  orderPrice: number | null;
 }
 
-// 3. Configuración de Rutas (PROMPT incluido en combos con personalización de imagen)
-export const COMBO_STEPS: Record<string, StepType[]> = {
-  "combo1": ["onboarding", "phone-selector", "combo-selector", "mica-selector", "case-selector", "image-selector", "contact-form", "final-summary"],
-  "combo2": ["onboarding", "phone-selector", "combo-selector", "mica-selector", "case-selector", "contact-form", "final-summary"],
-  "combo3": ["onboarding", "phone-selector", "combo-selector", "case-selector", "image-selector", "contact-form", "final-summary"],
-  "combo4": ["onboarding", "phone-selector", "combo-selector", "mica-selector", "contact-form", "final-summary"],
-  "combo5": ["onboarding", "phone-selector", "combo-selector", "case-selector", "contact-form", "final-summary"],
-}
+const storage = createJSONStorage<any>(() =>
+  typeof window !== "undefined" ? localStorage : ({} as Storage)
+);
 
-const storage = createJSONStorage<any>(() => (typeof window !== 'undefined' ? localStorage : ({} as Storage)))
-
-// 4. Estado Inicial
+// --- 3. ESTADO INICIAL ---
 export const initialSelection: SelectionState = {
   brand: null,
+  brandId: null,
   model: null,
-  comboId: "combo1",
+  modelId: null,
+  comboId: "",
+ 
+  config: {
+    includes_mica: false,
+    includes_case: false,
+    includes_uv_print: false,
+    prices: {
+      micaDefault: 0, 
+      mica: 0,
+      case: 0,
+      uv: 0,
+    },
+  },
+  
   micaId: null,
+  micaImage: null,
+  micaName: null,
   caseId: null,
-  caseColor: "Naranja",
-  caseType: "Flexi",
+  caseImage: null,
+  uvPrintId: null,
+  mica_combo_content: null,
+  case_combo_content: null,
+  uv_print_combo_content: null,
+  catalog_image_combo_content: null,
+  caseName: null,  
+  caseColor: null,
+  colourHex: null,
+  caseTypeId: null,
+  colourId: null,
+  
+  availableColors: [],
+
   imageSourceType: null,
-  imageBrandId: null,
-  imageBrandConfig: null,
+  orderCustomImage: null,
+  catalogId: null,
+  catalog_image: null,
   selectedBrandTag: null,
+
+  capturedBrandPreview: null,
+  capturedCustomPreview: null,
+  brandTransform: null,
+  customTransform: null,
+
+  imageBrandConfig: { rotation: 0, size: "Grande" },
+  imageBrandPrice: 0,
+  acceptedTerms: false,
   imageCustomUrl: null,
-  imageCustomConfig: null,
-  promptText: "",
-  image: { url: null, x: 0, y: 0, scale: 1, rotate: 0 },
-  contact: { name: "", email: "", phone: "" }
-}
+  imageCustomConfig: { rotation: 0, size: "Grande" },
+  imageCustomPrice: 0,
+  contact: { name: "", email: "", phone: "" },
 
-// 5. Átomos Principales
-export const selectionAtom = atomWithStorage<SelectionState>('telcel_selection', initialSelection, storage)
-export const currentStepAtom = atomWithStorage<StepType>('telcel_step', 'onboarding', storage)
+  orderId: null,
+  orderNumber: null,
+  orderSku: null,
+  orderPrice: null,
+};
 
-// 6. REGISTRO DE DEMANDA (Format: "Marca: Busqueda")
-// Aquí se guardarán los strings combinados que definimos en el PhoneSelector
-export const missingBrandsAtom = atomWithStorage<string[]>('no-results-brand', [], storage)
-export const missingModelsAtom = atomWithStorage<string[]>('no-results-model', [], storage)
+// --- 4. ÁTOMOS PERSISTENTES ---
+export const selectionAtom = atomWithStorage<SelectionState>(
+  "telcel_selection",
+  initialSelection,
+  storage
+);
 
-// 7. Átomos Auxiliares
-export const activeImageTabAtom = atom<"Licencias" | "Imagen personal">("Licencias")
+export const currentStepAtom = atomWithStorage<StepType>(
+  "telcel_step",
+  "onboarding",
+  storage
+);
 
-// 8. Selectores Derivados
+export const missingBrandsAtom = atomWithStorage<string[]>(
+  "no-results-brand",
+  [],
+  storage
+);
+
+export const missingModelsAtom = atomWithStorage<MissingModelEntry[]>(
+  "no-results-model",
+  [],
+  storage
+);
+
+// --- 5. ÁTOMOS DE UI ---
+export const activeImageTabAtom = atom<"brand" | "custom">("brand");
+
+// --- 6. ÁTOMOS DERIVADOS ---
 export const stepsPathAtom = atom((get) => {
-  const selection = get(selectionAtom)
-  return COMBO_STEPS[selection?.comboId] || COMBO_STEPS["combo1"]
-})
+  const selection = get(selectionAtom);
+  const steps: StepType[] = ["onboarding", "phone-selector", "combo-selector"];
+
+  if (selection.config) {
+    if (selection.config.includes_mica) steps.push("mica-selector");
+    if (selection.config.includes_case) steps.push("case-selector");
+    if (selection.config.includes_uv_print) steps.push("image-selector");
+  }
+
+  steps.push("contact-form", "final-summary", "payment");
+  return steps;
+});
 
 export const stepProgressAtom = atom((get) => {
-  const steps = get(stepsPathAtom) || []
-  const currentStep = get(currentStepAtom)
-  const currentIndex = steps.indexOf(currentStep)
+  const steps = get(stepsPathAtom);
+  const currentStep = get(currentStepAtom);
+  const currentIndex = steps.indexOf(currentStep);
 
-  let visualStep = 0
-  if (currentStep === "phone-selector") visualStep = 1
-  else if (currentStep === "combo-selector") visualStep = 2
-  else if (["mica-selector", "case-selector", "PROMPT", "image-selector"].includes(currentStep)) visualStep = 3
-  else if (currentStep === "contact-form" || currentStep === "final-summary") visualStep = 4
+  let visualStep = 1;
+  if (currentStep === "phone-selector") visualStep = 1;
+  else if (currentStep === "combo-selector") visualStep = 2;
+  else if (["mica-selector", "case-selector", "image-selector"].includes(currentStep))
+    visualStep = 3;
+  else if (["contact-form", "final-summary", "payment"].includes(currentStep))
+    visualStep = 4;
 
   return {
     current: visualStep,
     total: 4,
     currentIndex,
     previous: (currentIndex > 0 ? steps[currentIndex - 1] : "onboarding") as StepType,
-    next: (currentIndex < steps.length - 1 && currentIndex !== -1 ? steps[currentIndex + 1] : "final-summary") as StepType,
-  }
-})
+    next: (currentIndex < steps.length - 1 ? steps[currentIndex + 1] : "payment") as StepType,
+  };
+});
 
 export const totalSelectionPriceAtom = atom((get) => {
-  const selection = get(selectionAtom);
-  const comboPrices: Record<string, number> = {
-    combo1: 899, combo2: 699, combo3: 599, combo4: 299, combo5: 399
-  };
-  const micaPrices: Record<string, number> = { m1: 0, m2: 150, m3: 200 };
-  const basePrice = comboPrices[selection.comboId] || 0;
-  const extraMica = selection.micaId ? (micaPrices[selection.micaId as string] || 0) : 0;
-  return basePrice + extraMica;
+  const s = get(selectionAtom);
+  if (!s.brandId || !s.modelId) return 0;
+
+  // Acceso seguro a los precios base del combo
+  const pMica = Number(s.config?.prices?.mica || 0);
+  const pCase = Number(s.config?.prices?.case || 0);
+  
+  /**
+   * EXPLICACIÓN DEL CAMBIO:
+   * El precio 'uv' en tu handleEditorAccept ya incluye:
+   * (Precio Base UV del Combo) + (imageBrandPrice si es tipo brand).
+   * * Por lo tanto, NO debemos sumar 'imageBrandPrice' aparte, 
+   * de lo contrario cobraríamos la licencia dos veces.
+   */
+  const pUv = Number(s.config?.prices?.uv || 0);
+
+  // El imageCustomPrice suele ser 0, pero lo dejamos por si en el futuro
+  // cobras un extra por "Subida Personalizada".
+  const pCustomExtra = s.imageSourceType === "custom" ? Number(s.imageCustomPrice || 0) : 0;
+
+  return Math.round(pMica + pCase + pUv + pCustomExtra);
 });

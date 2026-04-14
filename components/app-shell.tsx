@@ -1,44 +1,69 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useApp } from "@/hooks/use-app"
-import { AnimatePresence, motion } from "framer-motion"
-import { TelcelHeader } from "@/components/shared/telcel-header"
-import { StepHeader } from "@/components/shared/step-header"
-import { UnifiedFooter } from "@/components/shared/unified-footer"
-import { ExitModal } from "@/components/shared/exit-modal"
-import { StepIndicator } from "@/components/shared/step-indicator"
-import { StepType } from "@/lib/store"
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useApp } from "@/hooks/use-app";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePrefetchBrands, BRANDS_KEY } from "@/hooks/use-brands";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { Onboarding } from "./onboarding"
-import PhoneSelectorPage from "./phone-selector"
-import ComboSelector from "./combo-selector"
-import MicaSelector from "./mica-selector"
-import CaseSelector from "./case-selector"
-import ImageSelector from "./image-selector"
-import ContactForm from "./contact-form"
+// UI Components
+import { TelcelHeader } from "@/components/shared/telcel-header";
+import { StepHeader } from "@/components/shared/step-header";
+import { SimpleHeader } from "@/components/shared/simple-header";
+import { UnifiedFooter } from "@/components/shared/unified-footer";
+import { ExitModal } from "@/components/shared/exit-modal";
+import { StepIndicator } from "@/components/shared/step-indicator";
+
+// Steps
+import { Onboarding } from "./onboarding";
+import PhoneSelectorPage from "./phone-selector";
+import ComboSelector from "./combo-selector";
+import MicaSelector from "./mica-selector";
+import CaseSelector from "./case-selector";
+import ImageSelector from "./image-selector2";
+import ContactForm from "./contact-form";
+import FinalSummary from "./final-summary";
+import Payment from "./payment";
 
 export function AppShell() {
-  const { currentStep, isHydrated, progress, resetApp } = useApp()
-  const [isExitModalOpen, setIsExitModalOpen] = useState(false)
-
-  if (!isHydrated) return null 
-
-  const isOnboarding = currentStep === "onboarding"
+  const { currentStep, isHydrated, progress, resetApp } = useApp();
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   
-  // Tu lógica: Mostrar solo en pasos de personalización
-  const showSubSteps = ["mica-selector", "case-selector", "image-selector"].includes(currentStep)
+  const queryClient = useQueryClient();
+  const prefetch = usePrefetchBrands();
 
-  const stepNames: Record<StepType, string> = {
-    "onboarding": "Inicio",
-    "phone-selector": "Tu celular",
-    "combo-selector": "Tu combo",
-    "mica-selector": "Protector",
-    "case-selector": "Tu funda",
-    "image-selector": "Diseño",
-    "contact-form": "Contacto",
-    "final-summary": "Resumen"
-  }
+  useEffect(() => {
+    if (isHydrated) prefetch();
+  }, [isHydrated, prefetch]);
+
+  const handleFullReset = useCallback(() => {
+    setIsExitModalOpen(false);
+    resetApp();
+    queryClient.invalidateQueries({ queryKey: BRANDS_KEY });
+  }, [resetApp, queryClient]);
+
+  // --- MAPEO DE COMPONENTES ---
+  const ActiveStep = useMemo(() => {
+    switch (currentStep) {
+      case "onboarding":     return Onboarding;
+      case "phone-selector": return PhoneSelectorPage;
+      case "combo-selector": return ComboSelector;
+      case "mica-selector":  return MicaSelector;
+      case "case-selector":  return CaseSelector;
+      case "image-selector": return ImageSelector;
+      case "contact-form":   return ContactForm;
+      case "final-summary":  return FinalSummary;
+      case "payment":        return Payment;
+      default:               return Onboarding;
+    }
+  }, [currentStep]);
+
+  if (!isHydrated) return null;
+
+  const isOnboarding = currentStep === "onboarding";
+  const isSummary = currentStep === "final-summary";
+  const isPayment = currentStep === "payment";
+  const showSubSteps = ["mica-selector", "case-selector", "image-selector"].includes(currentStep);
 
   const stepConfig: Record<string, { title: string }> = {
     "phone-selector": { title: "Selecciona tu celular" },
@@ -46,87 +71,102 @@ export function AppShell() {
     "mica-selector": { title: "Protector de pantalla" },
     "case-selector": { title: "Funda de celular" },
     "image-selector": { title: "Personaliza tu diseño" },
-    "contact-form": { title: "Datos de contacto" },
-  }
+    "contact-form": { title: "Enviar a producción" },
+  };
 
-  const currentConfig = stepConfig[currentStep] || { title: "" }
+  const stepNames: Record<string, string> = {
+    onboarding: "Inicio",
+    "phone-selector": "Tu celular",
+    "combo-selector": "Tu combo",
+    "mica-selector": "Protector",
+    "case-selector": "Tu funda",
+    "image-selector": "Diseño",
+    "contact-form": "Contacto",
+    "final-summary": "Resumen",
+    payment: "Cupón de Pago",
+  };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex justify-center overflow-hidden">
-      <div className="w-full max-w-[480px] h-[100dvh] bg-white relative overflow-hidden shadow-2xl flex flex-col">
+    <div className="min-h-screen bg-[#f8fafc] flex justify-center overflow-hidden font-sans">
+      <div className="w-full max-w-[480px] h-[100dvh] relative overflow-hidden shadow-2xl flex flex-col">
         
-        {/* HEADER AREA */}
-        <AnimatePresence>
+        {/* HEADER */}
+        <AnimatePresence mode="wait">
           {!isOnboarding && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="shrink-0 z-[60] bg-white"
+            <motion.header
+              key="app-header"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="shrink-0 z-[60]"
             >
               <TelcelHeader />
-              <StepHeader 
-                currentStepNumber={progress.current}
-                totalSteps={progress.total}
-                title={currentConfig.title}
-                subtitle={`Siguiente: ${stepNames[progress.next]}`}
-                backTo={progress.previous}
-                onExitClick={() => setIsExitModalOpen(true)}
-              />
+              {isPayment || isSummary ? (
+                <SimpleHeader
+                  title={isPayment ? "Cupón de Pago" : "Resumen de pedido"}
+                  subtitle={isSummary ? "Referencia: A3B5C7D9" : ""}
+                  onExitClick={() => setIsExitModalOpen(true)}
+                />
+              ) : (
+                <StepHeader
+                  currentStepNumber={progress.current}
+                  totalSteps={progress.total}
+                  title={stepConfig[currentStep]?.title || ""}
+                  subtitle={`Siguiente: ${stepNames[progress.next] || "Finalizar"}`}
+                  backTo={progress.previous}
+                  onExitClick={() => setIsExitModalOpen(true)}
+                />
+              )}
 
-              {/* Tu StepIndicator con animación de altura */}
               <AnimatePresence>
                 {showSubSteps && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden border-b border-slate-50"
+                    className="overflow-hidden bg-slate-50/50"
                   >
                     <StepIndicator />
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+            </motion.header>
           )}
         </AnimatePresence>
 
-        {/* CONTENT AREA */}
-        <div className="flex-1 relative overflow-hidden bg-[#f8fafc]">
-          <AnimatePresence mode="wait">
+        {/* CONTENIDO: Transición suave y SCROLL INTERNO */}
+        <main className="flex-1 relative overflow-hidden bg-[#f8fafc]">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentStep}
-              initial={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, x: isOnboarding ? 0 : 30 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="absolute inset-0 w-full h-full flex flex-col"
+              exit={{ opacity: 0, x: isOnboarding ? 0 : -30 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 400, 
+                damping: 35,
+                opacity: { duration: 0.25 } 
+              }}
+              className="absolute inset-0 w-full h-full"
             >
-              <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar">
-                {currentStep === "onboarding" && <Onboarding />}
-                {currentStep === "phone-selector" && <PhoneSelectorPage />}
-                {currentStep === "combo-selector" && <ComboSelector />}
-                {currentStep === "mica-selector" && <MicaSelector />}
-                {currentStep === "case-selector" && <CaseSelector />}
-                {currentStep === "image-selector" && <ImageSelector />}
-                {currentStep === "contact-form" && <ContactForm />}
+              {/* Este es el contenedor real del scroll */}
+              <div className="h-full w-full overflow-y-auto no-scrollbar overscroll-contain">
+                 <ActiveStep />
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
+        </main>
 
-        {/* FOOTER AREA */}
-        <UnifiedFooter />
+        {!isSummary && <UnifiedFooter />}
 
-        {/* MODAL GLOBAL */}
-        <ExitModal 
-          isOpen={isExitModalOpen} 
-          onClose={() => setIsExitModalOpen(false)} 
-          onConfirm={() => {
-            setIsExitModalOpen(false)
-            resetApp()
-          }}
+        <ExitModal
+          isOpen={isExitModalOpen}
+          onClose={() => setIsExitModalOpen(false)}
+          onConfirm={handleFullReset}
         />
       </div>
     </div>
-  )
+  );
 }

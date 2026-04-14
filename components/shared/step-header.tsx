@@ -25,26 +25,33 @@ export function StepHeader({
 }: StepHeaderProps) {
   const { setStep, isHydrated } = useApp()
 
-  if (!isHydrated) return <div className="h-[88px] bg-white border-b border-slate-50" />;
+  if (!isHydrated) return <div className="h-[88px]" />;
 
   // Porcentaje para el círculo de progreso
   const percentage = Math.min(Math.max((currentStepNumber / totalSteps) * 100, 0), 100)
 
   return (
-    <header className="bg-white p-4 shadow-sm flex items-center gap-4 shrink-0 border-b border-slate-50 rounded-b-[2rem] z-[50] relative">
+    <div className="bg-white py-4 px-3 flex items-center gap-3 shrink-0 border-b rounded-[14px] z-[50] relative">
       
-      {/* Botón Atrás */}
-      <button 
-        onClick={() => setStep(backTo)} 
-        className="w-9 h-9 rounded-full border-2 border-slate-100 flex items-center justify-center text-slate-600 active:scale-90 transition-all hover:bg-slate-50"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+  {/* Botón Atrás */}
+  <button 
+    onClick={() => setStep(backTo)} 
+    className="w-9 h-9 rounded-full border-2 border-[#0D51A1] flex items-center justify-center text-[#0D51A1] active:scale-90 transition-all shrink-0"
+  >
+    <ArrowLeft className="w-5 h-5" />
+  </button>
+  
+  <div className="flex items-center gap-2 flex-1 min-w-0">
+    {/* Barrita Izquierda - Reducido gap a 2 */}
+    <div className="w-[1px] h-10 bg-slate-200 shrink-0" />
+
+    {/* Contenido Central: Progreso + Títulos */}
+    <div className="flex flex-1 items-center gap-2.5 min-w-0">
       
       {/* Progreso Circular */}
-      <div className="relative w-12 h-12 shrink-0">
+      <div className="relative w-11 h-11 shrink-0">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="16" fill="none" className="text-slate-100" strokeWidth="3" />
+          <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" className="text-slate-100" strokeWidth="3" />
           <motion.circle 
             cx="18" cy="18" r="16"
             fill="none"
@@ -53,43 +60,48 @@ export function StepHeader({
             transition={{ duration: 0.8, ease: "easeOut" }}
             strokeWidth="3" 
             strokeLinecap="round" 
-            stroke="#1e62c1"
+            stroke="#71E5FF"
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-slate-800">
+        <div className="absolute inset-0 flex items-center justify-center text-[17px] font-semibold text-black">
           {currentStepNumber}/{totalSteps}
         </div>
       </div>
       
-      {/* Títulos con Animación de cambio de paso */}
+      {/* Títulos con Animación */}
       <div className="flex-1 overflow-hidden relative h-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={title}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 flex flex-col justify-center"
+            className="absolute inset-0 flex flex-col justify-center text-right"
           >
-            <h2 className="text-base font-bold text-slate-900 leading-tight truncate">
+            <h2 className="text-[18px] font-semibold text-black leading-tight truncate tracking-tight">
               {title}
             </h2>
-            <p className="text-[10px] text-[#1e62c1] font-black uppercase tracking-wider truncate">
+            <p className="text-[13px] text-[#606166] font-medium truncate">
               {subtitle}
             </p>
           </motion.div>
         </AnimatePresence>
       </div>
+    </div>
 
-      {/* Botón Salir (Llama a la función del AppShell) */}
-      <button 
-        onClick={onExitClick} 
-        className="flex flex-col items-center gap-0.5 text-slate-400 hover:text-[#f87171] transition-colors active:scale-95"
-      >
-        <LogOut className="w-5 h-5" />
-        <span className="text-[9px] font-black uppercase tracking-tighter">Salir</span>
-      </button>
-    </header>
+    {/* Barrita Derecha */}
+    <div className="w-[1px] h-10 bg-slate-200 shrink-0" />
+  </div>
+
+  {/* Botón Salir */}
+  <button 
+    onClick={onExitClick} 
+    className="flex flex-col items-center justify-center min-w-[40px] text-[#0D51A1] transition-colors active:scale-95 shrink-0"
+  >
+    <LogOut className="w-5 h-5" />
+    <span className="text-[13px]  text-[#0D51A1] font-normal">Salir</span>
+  </button>
+</div>
   )
 }
