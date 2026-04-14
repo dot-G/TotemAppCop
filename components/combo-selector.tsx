@@ -1,146 +1,270 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react"
-import { Check, ShieldCheck, Smartphone, Image as ImageIcon } from "lucide-react"
-import { useApp } from "@/hooks/use-app"
-
-const COMBOS = [
-  { id: "combo1", name: "Combo 1", price: 899, image: "https://images.unsplash.com/photo-1601784551446-20c9e07cdbea?q=80&w=400", desc: "Mica + Case + Imagen", includes: ["Mica", "Case", "Imagen"] },
-  { id: "combo2", name: "Combo 2", price: 699, image: "https://images.unsplash.com/photo-1556656793-062ff98782ee?q=80&w=400", desc: "Mica + Case", includes: ["Mica", "Case"] },
-  { id: "combo3", name: "Combo 3", price: 599, image: "https://images.unsplash.com/photo-1541140532154-b024d715b909?q=80&w=400", desc: "Case + Imagen", includes: ["Case", "Imagen"] },
-  { id: "combo4", name: "Combo 4", price: 299, image: "https://images.unsplash.com/photo-1616348436168-de43ad0db179?q=80&w=400", desc: "Solo Mica", includes: ["Mica"] },
-  { id: "combo5", name: "Combo 5", price: 399, image: "https://images.unsplash.com/photo-1592890288564-76628a30a657?q=80&w=400", desc: "Solo Case", includes: ["Case"] }
-]
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  Check,
+  ShieldCheck,
+  Smartphone,
+  Image as ImageIcon,
+  Loader2,
+} from "lucide-react";
+import { useApp } from "@/hooks/use-app";
+import { useCombos } from "@/hooks/use-combo";
+import { getImageUrl } from "@/lib/image-directus";
+import Image from "next/image";
 
 export default function ComboSelector() {
-  const { selection, updateSelection, isHydrated } = useApp()
-  const [activeIdx, setActiveIdx] = useState(() => {
-    const idx = COMBOS.findIndex(c => c.id === selection.comboId)
-    return idx === -1 ? 0 : idx
-  })
-  
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const cardsRef = useRef<(HTMLDivElement | null)[]>([])
-  const isInitialMounted = useRef(false)
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+  const { selection, updateSelection, isHydrated } = useApp();
+  const { data: combosApi = [], isLoading } = useCombos();
 
-  const centerCard = useCallback((index: number, behavior: ScrollBehavior = "smooth") => {
-    const container = scrollRef.current
-    const card = cardsRef.current[index]
-    if (container && card) {
-      const targetScroll = card.offsetLeft - (container.offsetWidth / 2) + (card.offsetWidth / 2)
-      container.scrollTo({ left: targetScroll, behavior })
-    }
-  }, [])
+  const [activeIdx, setActiveIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const isInitialMounted = useRef(false);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleComboChange = useCallback(
+    (index: number) => {
+      const combo = combosApi[index];
+      if (!combo) return;
+
+      const pMica = parseFloat(String(combo.mica_combo_content?.price || 0));
+      const pCase = parseFloat(String(combo.case_combo_content?.price || 0));
+      const pUv = parseFloat(String(combo.uv_print_combo_content?.price || 0));
+
+      updateSelection({
+        ...selection, // Importante: Mantener estado anterior
+        case_combo_content: combo.case_combo_content?.id,
+        mica_combo_content: combo.mica_combo_content?.id,
+        uv_print_combo_content: combo.uv_print_combo_content?.id,
+        comboId: String(combo.id),
+        config: {
+          includes_mica: !!combo.includes_mica,
+          includes_case: !!combo.includes_case,
+          includes_uv_print: !!combo.includes_uv_print,
+          prices: {
+            micaDefault: pMica, // Se guarda la primera vez
+            mica: pMica, // Es igual al default al inicio
+            case: pCase,
+            uv: pUv,
+          },
+        },
+        // ... (el resto de tus campos de IDs)
+      });
+    },
+    [combosApi, selection, updateSelection]
+  );
+
+  const centerCard = useCallback(
+    (index: number, behavior: ScrollBehavior = "smooth") => {
+      const container = scrollRef.current;
+      const card = cardsRef.current[index];
+      if (container && card) {
+        const targetScroll =
+          card.offsetLeft - container.offsetWidth / 2 + card.offsetWidth / 2;
+        container.scrollTo({ left: targetScroll, behavior });
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    if (isHydrated && !isInitialMounted.current) {
-      const savedIdx = COMBOS.findIndex(c => c.id === selection.comboId)
-      const targetIdx = savedIdx === -1 ? 0 : savedIdx
-      centerCard(targetIdx, "instant")
-      isInitialMounted.current = true
+    if (
+      isHydrated &&
+      !isLoading &&
+      combosApi.length > 0 &&
+      !isInitialMounted.current
+    ) {
+      const savedIdx = combosApi.findIndex(
+        (c) => String(c.id) === String(selection.comboId)
+      );
+      const targetIdx = savedIdx === -1 ? 0 : savedIdx;
+
+      setActiveIdx(targetIdx);
+
+      // Solo actualizamos si no hay nada guardado para evitar "pisar" cambios del usuario
+      if (!selection.comboId) {
+        handleComboChange(targetIdx);
+      }
+
+      const timer = setTimeout(() => centerCard(targetIdx, "instant"), 50);
+      isInitialMounted.current = true;
+      return () => clearTimeout(timer);
     }
-  }, [isHydrated, centerCard, selection.comboId])
+  }, [
+    isHydrated,
+    isLoading,
+    combosApi,
+    selection.comboId,
+    centerCard,
+    handleComboChange,
+  ]);
 
   const handleScroll = () => {
-    if (!scrollRef.current) return
-    const container = scrollRef.current
-    const centerPoint = container.scrollLeft + (container.offsetWidth / 2)
-    
-    let closestIdx = 0
-    let minDistance = Infinity
+    if (!scrollRef.current || combosApi.length === 0) return;
+    const container = scrollRef.current;
+    const centerPoint = container.scrollLeft + container.offsetWidth / 2;
+
+    let closestIdx = 0;
+    let minDistance = Infinity;
 
     cardsRef.current.forEach((card, idx) => {
       if (card) {
-        const cardCenter = card.offsetLeft + (card.offsetWidth / 2)
-        const distance = Math.abs(centerPoint - cardCenter)
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const distance = Math.abs(centerPoint - cardCenter);
         if (distance < minDistance) {
-          minDistance = distance
-          closestIdx = idx
+          minDistance = distance;
+          closestIdx = idx;
         }
       }
-    })
+    });
 
     if (closestIdx !== activeIdx) {
-      setActiveIdx(closestIdx)
-      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+      setActiveIdx(closestIdx);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
       debounceTimer.current = setTimeout(() => {
-        updateSelection({ comboId: COMBOS[closestIdx].id })
-      }, 150)
+        handleComboChange(closestIdx);
+      }, 150);
     }
-  }
+  };
 
-  if (!isHydrated) return null
+  if (!isHydrated || isLoading)
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#f8fafc]">
+        <Loader2 className="w-10 h-10 animate-spin text-[#6b21a8]" />
+      </div>
+    );
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden">
-      {/* Estilos para ocultar el scrollbar */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
-
+    <div className="flex flex-col overflow-hidden font-sans">
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `.hide-scrollbar::-webkit-scrollbar { display: none; }`,
+        }}
+      />
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden pt-4">
-        <div 
+        <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex-1 flex overflow-x-auto snap-x snap-mandatory hide-scrollbar items-stretch px-[15%] py-4 scroll-smooth"
+          className="flex-1 flex overflow-x-auto snap-x snap-mandatory hide-scrollbar items-stretch px-[12%] py-6 scroll-smooth"
         >
-          {COMBOS.map((combo, idx) => (
-            <div 
-              key={combo.id}
-              ref={(el) => { cardsRef.current[idx] = el }}
-              onClick={() => centerCard(idx)} 
-              className="min-w-[85%] flex justify-center px-3 snap-center cursor-pointer touch-pan-x"
-            >
-              <div className={`relative w-full bg-white rounded-[2.5rem] p-5 shadow-md border-2 transition-all duration-300 flex flex-col h-full
-                ${activeIdx === idx ? "border-[#6b21a8] scale-100 z-10 shadow-xl" : "border-transparent scale-90 opacity-40"}`}
+          {combosApi.map((combo, idx) => {
+            const totalPrice = (
+              parseFloat(String(combo.mica_combo_content?.price || 0)) +
+              parseFloat(String(combo.case_combo_content?.price || 0)) +
+              parseFloat(String(combo.uv_print_combo_content?.price || 0))
+            ).toFixed(0);
+            const isActive = activeIdx === idx;
+            return (
+              <div
+                key={combo.id}
+                ref={(el) => {
+                  cardsRef.current[idx] = el;
+                }}
+                className="min-w-[95%] flex flex-col px-2 snap-center cursor-pointer"
+                onClick={() => centerCard(idx)}
               >
-                {activeIdx === idx && (
-                  <div className="absolute top-4 right-4 z-20 bg-[#6b21a8] text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
-                    <Check className="w-5 h-5" strokeWidth={4} />
-                  </div>
-                )}
-                
-                <div className="h-32 bg-slate-50 rounded-3xl mb-4 overflow-hidden border border-slate-100 shrink-0">
-                  <img src={combo.image} className="w-full h-full object-cover" alt={combo.name} />
-                </div>
-                
-                <div className="flex justify-between items-start mb-2 shrink-0 px-1">
-                  <div>
-                    <h3 className="font-black text-xl text-slate-900 leading-tight">{combo.name}</h3>
-                    <p className="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">{combo.desc}</p>
-                  </div>
-                  <span className="font-black text-xl text-[#6b21a8]">${combo.price}</span>
-                </div>
-
-                <div className="mt-4 space-y-2.5 flex-1 overflow-y-auto hide-scrollbar">
-                  {combo.includes.map((item) => (
-                    <div key={item} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="w-8 h-8 rounded-xl bg-white text-[#6b21a8] flex items-center justify-center shadow-sm shrink-0">
-                         {item === "Mica" && <ShieldCheck className="w-5 h-5" />}
-                         {item === "Case" && <Smartphone className="w-5 h-5" />}
-                         {item === "Imagen" && <ImageIcon className="w-5 h-5" />}
-                      </div>
-                      <span className="text-xs font-black text-slate-700 uppercase tracking-tight">{item} Incluida</span>
+                <div
+                  className={`relative w-full flex-1 bg-white rounded-[8px] p-2 transition-all duration-500 flex flex-col shadow-purple-500 ${
+                    isActive
+                      ? "border-[#6b21a8] scale-105 z-10 shadow-purple-200"
+                      : "border-transparent scale-90 opacity-40 grayscale"
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute top-5 right-5 bg-[#0D51A1] text-white rounded-full p-2 shadow-xl animate-in zoom-in duration-300 z-20">
+                      <Check className="w-5 h-5" strokeWidth={2} />
                     </div>
-                  ))}
+                  )}
+                  <div className="relative aspect-[16/10] w-full bg-slate-100 rounded-[8px] mb-3 overflow-hidden shrink-0 border border-slate-100">
+                    {combo.featured_image ? (
+                      <Image
+                        src={`${getImageUrl(combo.featured_image)}?width=400`}
+                        alt={combo.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        priority={idx === 0}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="text-slate-300 w-12 h-12" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-2 pb-2 flex-1 flex flex-col">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="text-[18px] font-semibold leading-tight text-[#1d1d1f] tracking-tight">
+                        {combo.name}
+                      </h3>
+                      <span className="text-[22px] font-semibold text-[#1d1d1f]">
+                        ${totalPrice}
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-slate-500 leading-snug mb-1 font-normal">
+                      {combo.description ||
+                        "Selección premium diseñada para la máxima protección de tu dispositivo."}
+                    </p>
+                    <div className="space-y-1">
+                      <span className="text-[13px]">Incluye:</span>
+                      {combo.includes_mica && (
+                        <BenefitItem
+                          icon={<ShieldCheck className="w-5 h-5" />}
+                          label="Mica de Protección"
+                        />
+                      )}
+                      {combo.includes_case && (
+                        <BenefitItem
+                          icon={<Smartphone className="w-5 h-5" />}
+                          label="Case a Medida"
+                        />
+                      )}
+                      {combo.includes_uv_print && (
+                        <BenefitItem
+                          icon={<ImageIcon className="w-5 h-5" />}
+                          label="Personalización UV"
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        
-        <div className="flex justify-center gap-2.5 py-6 shrink-0">
-          {COMBOS.map((_, i) => (
-            <button 
-              key={i} 
-              onClick={() => centerCard(i)} 
-              className={`h-2 rounded-full transition-all duration-300 ${activeIdx === i ? "w-8 bg-[#6b21a8]" : "w-2 bg-slate-300"}`} 
+        <div className="flex justify-center gap-3 py-2">
+          {combosApi.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => centerCard(i)}
+              className={`h-2.5 rounded-full transition-all duration-300 ${
+                activeIdx === i ? "w-10 bg-[#0D51A1]" : "w-2.5 bg-slate-300"
+              }`}
             />
           ))}
         </div>
       </main>
     </div>
-  )
+  );
+}
+
+function BenefitItem({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center transition-all group hover:bg-white hover:border-purple-100">
+      <div className="w-6 h-6 text-[#0D51A1] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+        {icon}
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[14px] font-semibold text-slate-800 tracking-tight leading-none mb-1 px-1">
+          {label}
+        </span>
+      </div>
+    </div>
+  );
 }

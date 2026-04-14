@@ -37,7 +37,7 @@ export function ColorSelector({ layout = "flex" }: ColorSelectorProps) {
             key={color.name}
             type="button"
             onClick={() => updateSelection({ caseColor: color.name })}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 ${
               selectedColorName === color.name 
                 ? "ring-2 ring-offset-2 ring-red-400 scale-110 shadow-lg" 
                 : "scale-100 opacity-80"

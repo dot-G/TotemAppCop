@@ -10,6 +10,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // Esto hace que 'font-sans' use Source Sans 3
+        sans: ["var(--font-source-sans)", "ui-sans-serif", "system-ui"],
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

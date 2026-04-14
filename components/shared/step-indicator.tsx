@@ -7,42 +7,62 @@ import { useApp } from "@/hooks/use-app"
 export function StepIndicator() {
   const { currentStep, stepsPath } = useApp()
 
-  const personalizableSteps = [
+  // 1. Definimos los pasos que pertenecen a la "Fase de Configuración"
+  const configStepIds = ["mica-selector", "case-selector", "image-selector"]
+  
+  // 2. Filtramos para ver cuáles de esos pasos existen en el combo actual
+  const visibleSteps = [
     { id: "mica-selector", label: "Mica", icon: ShieldCheck },
     { id: "case-selector", label: "Case", icon: Smartphone },
     { id: "image-selector", label: "Imagen", icon: ImageIcon },
-  ]
+  ].filter(step => stepsPath.includes(step.id as any))
 
-  // Filtramos los pasos que realmente existen en el combo actual
-  const visibleSteps = personalizableSteps.filter(step => 
-    stepsPath.includes(step.id as any)
-  )
-
-  // Si el combo tiene 1 o menos pasos de personalización, no mostrar nada
-  if (visibleSteps.length <= 1) return null
+  // 3. REGLA DE ORO: Solo mostrar si el usuario está DENTRO de uno de estos pasos
+  // y si el combo tiene más de un paso personalizable (si es solo 1, no hace falta indicador)
+  const isInsideConfig = configStepIds.includes(currentStep)
+  if (!isInsideConfig || visibleSteps.length <= 1) return null
 
   const globalIndex = stepsPath.indexOf(currentStep)
 
   return (
-    <div className="flex justify-around px-12 py-4 bg-white/50 relative shrink-0">
-      <div className="absolute top-[1.6rem] left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-slate-100 -z-0" />
+    <div className="relative flex justify-around items-center px-10 pt-4 bg-[#f8fafc] shrink-0">
+      
+      {/* Línea de fondo (conectora) dinámica */}
+      <div className="absolute top-[2rem] left-[15%] right-[15%] h-[1px] bg-slate-300 -z-0" />
+
       {visibleSteps.map((step) => {
-        const stepIndex = stepsPath.indexOf(step.id as any)
+        const stepIndexInPath = stepsPath.indexOf(step.id as any)
         const isActive = currentStep === step.id
-        const isCompleted = globalIndex > stepIndex
+        const isCompleted = globalIndex > stepIndexInPath
         const Icon = step.icon
 
         return (
-          <div key={step.id} className="flex flex-col items-center gap-1.5 z-10">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all 
-              ${isActive ? "bg-[#6b21a8] border-[#6b21a8] shadow-lg shadow-purple-200" : 
-                isCompleted ? "bg-slate-900 border-slate-900" : "bg-white border-slate-200"}`}>
-              {isCompleted ? <Check className="w-4 h-4 text-white" strokeWidth={3} /> : 
-              <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-300"}`} />}
+          <div key={step.id} className="relative flex flex-col items-center gap-1 z-10 transition-all duration-500">
+            {/* Círculo del Icono */}
+            <div className={`
+              w-8 h-8 rounded-2xl flex items-center justify-center transition-all duration-300
+              ${isActive 
+                ? "bg-[#0D51A1]" 
+                : isCompleted 
+                  ? "bg-[#0D51A1]" 
+                  : "bg-white"
+              }
+            `}>
+              {isCompleted ? (
+                <Check className="w-4 h-4 text-white" strokeWidth={2} />
+              ) : (
+                <Icon className={`w-4 h-4 transition-colors ${isActive ? "text-white" : "text-slate-300"}`} />
+              )}
             </div>
-            <span className={`text-[9px] font-black uppercase ${isActive ? "text-[#6b21a8]" : "text-slate-400"}`}>
+
+            {/* Etiqueta */}
+            <span className={`
+              text-[13px] font-normal transition-colors
+              ${isActive ? "text-[#0D51A1]" : isCompleted ? "text-[#0D51A1]" : "text-slate-400"}
+            `}>
               {step.label}
             </span>
+
           </div>
         )
       })}
