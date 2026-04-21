@@ -277,12 +277,27 @@ export default function PhoneSelectorPage() {
       <AnimatePresence>
         {activePanel !== "none" && (
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 32, stiffness: 350 }}
-            className="fixed inset-0 z-[100] bg-white flex flex-col"
-          >
+          initial={{ y: "100%", x: "-50%" }} // Mantenemos el centrado en X durante la animación
+          animate={{ y: 0, x: "-50%" }}
+          exit={{ y: "100%", x: "-50%" }}
+          transition={{ type: "spring", damping: 32, stiffness: 350 }}
+          className="
+            fixed 
+            top-0 
+            left-1/2 
+            -translate-x-1/2 
+            w-full 
+            max-w-[380px] 
+            h-[100dvh] 
+            z-[100] 
+            bg-white 
+            flex 
+            flex-col 
+            shadow-2xl
+            overflow-hidden
+          "
+        >
+         
             <div className="p-4 flex items-center gap-4 border-b pt-12 shrink-0">
               <button
                 onClick={() => {
