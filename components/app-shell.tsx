@@ -88,7 +88,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex justify-center overflow-hidden font-sans">
-      <div className="w-full max-w-[480px] h-[100dvh] relative overflow-hidden shadow-2xl flex flex-col">
+      <div className="w-full max-w-[380px] h-[100dvh] relative overflow-hidden shadow-2xl flex flex-col">
         
         {/* HEADER */}
         <AnimatePresence mode="wait">
@@ -136,7 +136,7 @@ export function AppShell() {
         </AnimatePresence>
 
         {/* CONTENIDO: Transición suave y SCROLL INTERNO */}
-        <main className="flex-1 relative overflow-hidden bg-[#f8fafc]">
+        <main className="flex-1 max-w-[380px] h-[100dvh] relative overflow-hidden bg-[#f8fafc]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentStep}
