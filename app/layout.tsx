@@ -16,8 +16,8 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: 'CaseShop - Fundas Premium para tu Smartphone',
-  description: 'Descubre las mejores fundas para tu smartphone con diseños exclusivos y protección premium. Envío gratis en compras mayores a $500 MXN.',
+  title: 'CaseShop - Cases Premium para tu Smartphone',
+  description: 'Descubre los mejores cases para tu smartphone con diseños exclusivos y protección premium. Envío gratis en compras mayores a $500 MXN.',
   generator: 'v0.app',
 }
 
