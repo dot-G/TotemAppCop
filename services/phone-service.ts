@@ -7,6 +7,8 @@ export interface PhoneModel {
   segment: string;
   status: string;
   sort: number | null;
+  has_mica: boolean;
+  has_case: boolean;
 }
 
 export interface Brand {
@@ -28,7 +30,7 @@ export const getBrandsAndModels = async (): Promise<Brand[]> => {
     throw new Error('No se encontró sesión activa');
   }
 
-  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment,models.status,models.sort&deep[models][_filter][status][_eq]=active&deep[models][_sort]=sort`;
+  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment, models.has_mica,models.has_case ,models.status,models.sort`;
 
   const response = await fetch(endpoint, {
     method: 'GET',

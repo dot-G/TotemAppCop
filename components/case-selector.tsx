@@ -122,7 +122,7 @@ export default function CaseSelector() {
           <h3 className="text-[30px] font-semibold text-[#1d1d1f] leading-tight tracking-tight">
             {selectedCase?.name}
           </h3>
-          <span className="text-[28px] font-semibold text-[#1d1d1f] mb-4 block">
+          <span className="text-[28px] hidden font-semibold text-[#1d1d1f] mb-4 block">
             ${parseFloat(selectedCase?.case_cut_type?.offerings?.[0]?.price || "0").toFixed(0)}
           </span>
           <p className="text-[14px] text-slate-500 leading-relaxed font-normal mb-6">

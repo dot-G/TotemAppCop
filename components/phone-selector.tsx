@@ -107,12 +107,17 @@ export default function PhoneSelectorPage() {
     } else if (activePanel === "model" && brandSelected) {
       const targetBrand = brands.find((b) => b.name === brandSelected);
       source = targetBrand
-        ? targetBrand.models.map((m) => ({
+      ? targetBrand.models
+          // --- FILTRO AÑADIDO AQUÍ ---
+          // Solo incluimos modelos que tengan AL MENOS uno de los dos accesorios
+          .filter((m) => m.has_mica === true || m.has_case === true)
+          // ---------------------------
+          .map((m) => ({
             id: m.id,
             name: m.name,
-            logo: null, // Los modelos no suelen tener logo individual
+            logo: null,
           }))
-        : [];
+      : [];
     }
     return humanSearch(search, source);
   }, [activePanel, search, brandSelected, brands]);

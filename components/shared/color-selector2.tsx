@@ -27,7 +27,7 @@ export const ColorSelector = ({
         {/* COLUMNA IZQUIERDA: Texto informativo */}
         <div className="flex flex-col">
           <label className="text-[15px] font-semibold text-[#1d1d1f]">
-            Color del case
+            Color del Case
           </label>
           <span className="text-[15px] font-medium text-slate-400">
             {currentCase?.colour?.name || "Seleccionar"}
