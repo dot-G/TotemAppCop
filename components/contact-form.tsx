@@ -6,17 +6,22 @@ import { Label } from "@/components/ui/label";
 import { Loader2, AlertCircle, Smartphone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/hooks/use-app";
-import { uploadImageToDirectus } from "@/services/upload";
+import { uploadImageToDirectus } from "@/services/upload2";
 import { createOrder } from "@/services/order";
 import { createOrderImage } from "@/services/order-image";
 
-export default function ContactForm() {
+interface ContactFormProps {
+  token: string | null; // El componente ahora recibe el token
+}
+
+export default function ContactForm({ token }: ContactFormProps) {
   const {
     selection,
     isHydrated,
     updateSelection,
     setStep,
     totalSelectionPrice,
+    storeCode,
   } = useApp();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +43,8 @@ export default function ContactForm() {
     });
   };
 
-  // Helper para convertir base64/blob a File y subirlo
-  const uploadBase64OrBlob = async (url: string, prefix: string) => {
+  // Helper actualizado para recibir y pasar el token
+  const uploadBase64OrBlob = async (url: string, prefix: string, authToken: string | null) => {
     const res = await fetch(url);
     const blob = await res.blob();
     const extension = blob.type.split("/")[1] || "png";
@@ -48,7 +53,10 @@ export default function ContactForm() {
       `${prefix}-${Date.now()}.${extension}`,
       { type: blob.type }
     );
-    const uploadedFile = await uploadImageToDirectus(file);
+
+    // Pasamos el token al servicio de Axios que configuramos antes
+    const uploadedFile = await uploadImageToDirectus(file, authToken);
+
     if (!uploadedFile?.id) throw new Error("Error al obtener ID de archivo");
     return uploadedFile.id;
   };
@@ -69,25 +77,24 @@ export default function ContactForm() {
       let finalPersonalImageId = null;
       let finalPreviewImageId = null;
 
-      // 1. PROCESAMIENTO DE PREVIEW (Captura del editor)
-      // Se sube tanto para Brand como para Custom si existe la captura
-      const previewToUpload = selection.imageSourceType === "brand" 
-        ? selection.capturedBrandPreview 
+      // 1. PROCESAMIENTO DE PREVIEW
+      const previewToUpload = selection.imageSourceType === "brand"
+        ? selection.capturedBrandPreview
         : selection.capturedCustomPreview;
 
       if (previewToUpload) {
         try {
-          finalPreviewImageId = await uploadBase64OrBlob(previewToUpload, "preview-capture");
+          finalPreviewImageId = await uploadBase64OrBlob(previewToUpload, "preview-capture", token);
         } catch (err) {
           console.error("Error subiendo preview:", err);
           throw new Error("Error al procesar la vista previa del diseño.");
         }
       }
 
-      // 2. PROCESAMIENTO DE IMAGEN ORIGINAL (Solo si es Custom)
+      // 2. PROCESAMIENTO DE IMAGEN ORIGINAL
       if (selection.imageSourceType === "custom" && selection.imageCustomUrl) {
         try {
-          finalPersonalImageId = await uploadBase64OrBlob(selection.imageCustomUrl, "custom-original");
+          finalPersonalImageId = await uploadBase64OrBlob(selection.imageCustomUrl, "custom-original", token);
           if (selection.imageCustomUrl.startsWith("blob:")) {
             URL.revokeObjectURL(selection.imageCustomUrl);
           }
@@ -97,7 +104,7 @@ export default function ContactForm() {
         }
       }
 
-      // 3. CREACIÓN DE LA ORDEN
+      // 3. CREACIÓN DE LA ORDEN (Pasando el token a los servicios de orden)
       const hasImage = selection.imageSourceType !== null || selection.config?.includes_uv_print;
       let orderResponse;
 
@@ -123,15 +130,16 @@ export default function ContactForm() {
           catalog_image: selection.imageSourceType === "brand" ? selection.catalog_image : null,
           image_source_type: selection.imageSourceType === "brand" ? "catalog" : "personal",
           personal_image: selection.imageSourceType === "custom" ? finalPersonalImageId : null,
-          preview_image: finalPreviewImageId, // Enviamos el ID de la captura subida
+          preview_image: finalPreviewImageId,
           image_size: selection.imageSourceType === "brand"
-              ? mapSize(selection.imageBrandConfig.size)
-              : mapSize(selection.imageCustomConfig.size),
+            ? mapSize(selection.imageBrandConfig.size)
+            : mapSize(selection.imageCustomConfig.size),
           image_orientation_degrees: selection.imageSourceType === "brand"
-              ? selection.imageBrandConfig.rotation
-              : selection.imageCustomConfig.rotation,
+            ? selection.imageBrandConfig.rotation
+            : selection.imageCustomConfig.rotation,
           final_combo_price: totalSelectionPrice,
-        });
+          store_code: storeCode,
+        }, token); // Asegúrate que createOrderImage acepte el token como 2do param
       } else {
         orderResponse = await createOrder({
           brand: selection.brandId || "",
@@ -150,7 +158,8 @@ export default function ContactForm() {
           case_cut: selection.caseId,
           colour: selection.colourId,
           final_combo_price: totalSelectionPrice,
-        });
+          store_code: storeCode,
+        }, token); // Asegúrate que createOrder acepte el token como 2do param
       }
 
       if (orderResponse?.data) {
@@ -170,7 +179,8 @@ export default function ContactForm() {
       setIsSubmitting(false);
       window.dispatchEvent(new CustomEvent("form-submitting", { detail: false }));
     }
-  }, [selection, totalSelectionPrice, setStep, isSubmitting, updateSelection]);
+    // Añadimos token a las dependencias del useCallback
+  }, [selection, totalSelectionPrice, setStep, isSubmitting, updateSelection, token, storeCode]);
 
   useEffect(() => {
     const handleTrigger = () => handleSubmit();
@@ -180,6 +190,7 @@ export default function ContactForm() {
 
   if (!isHydrated) return null;
 
+  // ... (Resto del renderizado sin cambios)
   if (isSubmitting) {
     return (
       <div className="flex flex-col h-full items-center justify-center p-10 bg-white">

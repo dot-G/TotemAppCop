@@ -12,36 +12,37 @@ import {
   missingBrandsAtom,
   missingModelsAtom,
   activeImageTabAtom,
-  totalSelectionPriceAtom 
+  totalSelectionPriceAtom,
+  storeCodeAtom // Importamos el nuevo átomo
 } from '@/lib/store'
 
 export function useApp() {
   const [isMounted, setIsMounted] = useState(false)
   
-  // Suscripciones a los Átomos
+  // --- Suscripciones a los Átomos ---
   const selection = useAtomValue(selectionAtom)
   const currentStep = useAtomValue(currentStepAtom)
   const progress = useAtomValue(stepProgressAtom)
   const stepsPath = useAtomValue(stepsPathAtom)
   const totalSelectionPrice = useAtomValue(totalSelectionPriceAtom)
-  const [activeImageTab, setActiveImageTab] = useAtom(activeImageTabAtom)
   
-  // Setters
+  // Átomos con lectura y escritura (useAtom)
+  const [activeImageTab, setActiveImageTab] = useAtom(activeImageTabAtom)
+  const [storeCode, setStoreCode] = useAtom(storeCodeAtom)
+  
+  // Setters puros
   const setStep = useSetAtom(currentStepAtom)
   const setSelection = useSetAtom(selectionAtom)
   const setMissingBrands = useSetAtom(missingBrandsAtom)
   const setMissingModels = useSetAtom(missingModelsAtom)
 
-  // Control de Hidratación para evitar errores de SSR
+  // --- Control de Hidratación para evitar errores de SSR ---
   useEffect(() => { 
     setIsMounted(true) 
   }, [])
 
   /**
-   * updateSelection: Merge simple y directo.
-   * Eliminamos la lógica interna de precios para que no pise valores con 0.
-   * Recuerda hacer el spread de config en el componente:
-   * updateSelection({ config: { ...selection.config, prices: { ... } } })
+   * updateSelection: Merge simple y directo para el estado de selección.
    */
   const updateSelection = useCallback((data: Partial<SelectionState>) => {
     setSelection((prev) => ({
@@ -50,6 +51,7 @@ export function useApp() {
     }));
   }, [setSelection]);
 
+  // --- Navegación ---
   const nextStep = () => { 
     if (progress.next) setStep(progress.next) 
   }
@@ -58,35 +60,46 @@ export function useApp() {
     if (progress.previous) setStep(progress.previous) 
   }
 
+  /**
+   * resetApp: Limpia todo el estado de la aplicación y el almacenamiento local.
+   */
   const resetApp = () => {
     setSelection(initialSelection)
     setStep('onboarding')
     setMissingBrands([])
     setMissingModels([])
+    //setStoreCode(null) // Limpiamos el código de tienda al resetear
+    
     if (typeof window !== 'undefined') {
       localStorage.removeItem('telcel_selection')
       localStorage.removeItem('telcel_step')
+      localStorage.removeItem('no-results-brand')
+      localStorage.removeItem('no-results-model')
+      localStorage.removeItem('telcel_store_code')
     }
   }
 
   return {
-    // Estado
+    // --- Estado Rehidratado ---
     selection: isMounted ? selection : initialSelection,
     currentStep: isMounted ? currentStep : 'onboarding',
+    storeCode: isMounted ? storeCode : null, // Estado de la tienda
     totalSelectionPrice: isMounted ? totalSelectionPrice : 0,
     progress,
-    stepsPath, // Necesario para el StepIndicator
+    stepsPath,
     activeImageTab,
     isHydrated: isMounted,
     
-    // Acciones
+    // --- Acciones / Setters ---
+    setStoreCode, // Para guardar el código que viene de la URL
     setActiveImageTab,
     setStep,
     nextStep,
     prevStep,
     updateSelection,
     resetApp,
-    // Setters manuales por si los necesitas en algún log
+    
+    // Setters manuales de búsqueda
     setMissingBrands,
     setMissingModels,
   }

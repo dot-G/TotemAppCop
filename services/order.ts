@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie';
+import axios from 'axios';
 
 // --- Interfaces ---
 
@@ -19,6 +19,7 @@ export interface CreateOrderBody {
   case_cut?: string | null;          
   colour?: string | null;            
   final_combo_price: number;
+  store_code: string | null;    
 }
 
 export interface OrderResponse {
@@ -37,28 +38,35 @@ export interface DirectusOrderResponse {
 // --- Service ---
 
 /**
- * Crea una nueva orden simple (Mica o Case liso)
+ * Crea una nueva orden simple (Mica o Case liso) usando Axios.
+ * @param orderData Datos de la orden.
+ * @param token Token de acceso recibido del componente padre.
  */
-export const createOrder = async (orderData: CreateOrderBody): Promise<DirectusOrderResponse> => {
-  const token = Cookies.get('access_token');
+export const createOrder = async (
+  orderData: CreateOrderBody,
+  token: string | null
+): Promise<DirectusOrderResponse> => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  
   const endpoint = `${API_URL}/api/v1/orders`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    },
-    body: JSON.stringify(orderData)
-  });
+  try {
+    const response = await axios.post<DirectusOrderResponse>(
+      endpoint,
+      orderData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      }
+    );
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.message || 'Error al procesar la orden');
+    // Axios ya entrega el body parseado en .data
+    // Retornamos el objeto completo para mantener compatibilidad con el destructuring
+    return response.data;
+  } catch (error: any) {
+    console.error("Error en createOrder:", error.response?.data || error.message);
+    const message = error.response?.data?.message || 'Error al procesar la orden';
+    throw new Error(message);
   }
-
-  // Retornamos el JSON completo que contiene { data: { ... } }
-  return await response.json();
 };
