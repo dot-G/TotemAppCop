@@ -27,12 +27,13 @@ export const uploadImageToDirectus = async (
 
   // FormData equivale a los flags -F de un comando CURL
   const formData = new FormData();
-  formData.append("file", file);
+
 
   // Si existe el ID de la carpeta en el .env, lo adjuntamos
   if (FOLDER_ID) {
     formData.append("folder", FOLDER_ID);
   }
+ formData.append("file", file);
 
   try {
     const response = await axios.post(`${API_URL}/files`, formData, {

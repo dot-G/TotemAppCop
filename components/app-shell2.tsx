@@ -156,7 +156,7 @@ export function AppShell2({
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex justify-center overflow-hidden font-sans">
-      <div className="w-full max-w-[380px] h-[100dvh] relative overflow-hidden shadow-2xl flex flex-col">
+      <div className="w-full max-w-[1080px] h-[100dvh] relative overflow-hidden shadow-2xl flex flex-col">
         
         <AnimatePresence mode="wait">
           {!isOnboarding && (
