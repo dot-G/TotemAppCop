@@ -1,14 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useApp } from "@/hooks/use-app";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePrefetchBrands, BRANDS_KEY } from "@/hooks/use-brands";
+import { BRANDS_KEY } from "@/hooks/use-brands";
 import { AnimatePresence, motion } from "framer-motion";
 
+// --- Types ---
 import { OnboardSlide } from "@/services/onboarding";
+import { Brand } from "@/services/phone-service2";
+import { Combo } from "@/services/combo-service2";
+import { Mica } from "@/services/mica-service2";
+import { CaseCut } from "@/services/case-service2";
+import { CatalogOffering } from "@/services/image-service2";
 
-// UI Components
+// --- UI Components ---
 import { TelcelHeader } from "@/components/shared/telcel-header";
 import { StepHeader } from "@/components/shared/step-header";
 import { SimpleHeader } from "@/components/shared/simple-header";
@@ -16,18 +22,23 @@ import { UnifiedFooter } from "@/components/shared/unified-footer";
 import { ExitModal } from "@/components/shared/exit-modal";
 import { StepIndicator } from "@/components/shared/step-indicator";
 
-// Steps
+// --- Steps ---
 import { Onboarding } from "./onboarding2";
-import PhoneSelectorPage from "./phone-selector";
-import ComboSelector from "./combo-selector";
-import MicaSelector from "./mica-selector";
-import CaseSelector from "./case-selector";
-import ImageSelector from "./image-selector2";
+import PhoneSelectorPage from "./phone-selector2";
+import ComboSelector from "./combo-selector2";
+import MicaSelector from "./mica-selector2";
+import CaseSelector from "./case-selector2";
+import ImageSelector from "./catalog-selector";
 import ContactForm from "./contact-form";
 import FinalSummary from "./final-summary";
 import Payment from "./payment";
 
-// Constantes estáticas fuera del componente
+// --- Constantes de Caché ---
+export const COMBOS_KEY = ["combos"];
+export const MICAS_KEY = ["offerings", "mica"];
+export const CASES_KEY = ["offerings", "cases"];
+export const CATALOG_KEY = ["offerings", "catalog"];
+
 const STEP_CONFIG: Record<string, { title: string }> = {
   "phone-selector": { title: "Selecciona tu celular" },
   "combo-selector": { title: "Elige tu combo" },
@@ -51,41 +62,91 @@ const STEP_NAMES: Record<string, string> = {
 
 interface AppShell2Props {
   initialOnboarding?: OnboardSlide[];
+  initialBrands?: Brand[];
+  initialCombos?: Combo[];
+  initialMicas?: Mica[];
+  initialCases?: CaseCut[];
+  initialCatalog?: CatalogOffering[];
+  token?: string;
+  storeCode?: string | null; // Prop recibida desde el Server Component
 }
 
-export function AppShell2({ initialOnboarding }: AppShell2Props) {
-  const { currentStep, isHydrated, progress, resetApp } = useApp();
-  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
+export function AppShell2({ 
+  initialOnboarding, 
+  initialBrands, 
+  initialCombos, 
+  initialMicas = [],
+  initialCases = [],
+  initialCatalog = [],
+  token,
+  storeCode
+}: AppShell2Props) {
+  // Extraemos las utilidades de nuestro hook personalizado
+  const { 
+    currentStep, 
+    isHydrated, 
+    progress, 
+    resetApp, 
+    setStoreCode 
+  } = useApp();
   
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const queryClient = useQueryClient();
-  const prefetch = usePrefetchBrands();
 
+  // 1. Sincronización del Código de Tienda
+  // Se ejecuta apenas el componente cliente se monta y recibe la prop
   useEffect(() => {
-    if (isHydrated) prefetch();
-  }, [isHydrated, prefetch]);
+    if (storeCode) {
+      setStoreCode(storeCode);
+      console.log("🏪 Tienda identificada y persistida:", storeCode);
+    }
+  }, [storeCode, setStoreCode]);
+
+  // 2. Sincronización de caché global
+  useMemo(() => {
+    if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
+    if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
+    if (initialMicas?.length) queryClient.setQueryData(MICAS_KEY, initialMicas);
+    if (initialCases?.length) queryClient.setQueryData(CASES_KEY, initialCases);
+    if (initialCatalog?.length) queryClient.setQueryData(CATALOG_KEY, initialCatalog);
+  }, [initialBrands, initialCombos, initialMicas, initialCases, initialCatalog, queryClient]);
 
   const handleFullReset = useCallback(() => {
     setIsExitModalOpen(false);
     resetApp();
     queryClient.invalidateQueries({ queryKey: BRANDS_KEY });
+    queryClient.invalidateQueries({ queryKey: COMBOS_KEY });
+    queryClient.invalidateQueries({ queryKey: MICAS_KEY });
+    queryClient.invalidateQueries({ queryKey: CASES_KEY });
+    queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
   }, [resetApp, queryClient]);
 
-  // --- Lógica de Componentes mejorada ---
   const renderStep = () => {
     switch (currentStep) {
-      case "onboarding":     return <Onboarding initialSlides={initialOnboarding} />;
-      case "phone-selector": return <PhoneSelectorPage />;
-      case "combo-selector": return <ComboSelector />;
-      case "mica-selector":  return <MicaSelector />;
-      case "case-selector":  return <CaseSelector />;
-      case "image-selector": return <ImageSelector />;
-      case "contact-form":   return <ContactForm />;
-      case "final-summary":  return <FinalSummary />;
-      case "payment":        return <Payment />;
-      default:               return <Onboarding initialSlides={initialOnboarding} />;
+      case "onboarding":     
+        return <Onboarding initialSlides={initialOnboarding} />;
+      case "phone-selector": 
+        return <PhoneSelectorPage initialBrands={initialBrands} token={token} />;
+      case "combo-selector": 
+        return <ComboSelector initialCombos={initialCombos} />;
+      case "mica-selector":  
+        return <MicaSelector initialMicas={initialMicas} />;
+      case "case-selector":  
+        return <CaseSelector initialCases={initialCases} />;
+      case "image-selector": 
+        return <ImageSelector initialCatalog={initialCatalog} />;
+      case "contact-form":   
+        return <ContactForm token={token || null} />;
+      case "final-summary":  
+        return <FinalSummary />;
+      case "payment":        
+        return <Payment />;
+      default:               
+        return <Onboarding initialSlides={initialOnboarding} />;
     }
   };
 
+  // Evitamos flashes de contenido antes de que Jotai cargue el localStorage
   if (!isHydrated) return null;
 
   const isOnboarding = currentStep === "onboarding";
@@ -110,7 +171,7 @@ export function AppShell2({ initialOnboarding }: AppShell2Props) {
               {isPayment || isSummary ? (
                 <SimpleHeader
                   title={isPayment ? "Cupón de Pago" : "Resumen de pedido"}
-                  subtitle={isSummary ? "Referencia: A3B5C7D9" : ""}
+                  subtitle={isSummary ? "Referencia de compra" : ""}
                   onExitClick={() => setIsExitModalOpen(true)}
                 />
               ) : (
@@ -150,12 +211,11 @@ export function AppShell2({ initialOnboarding }: AppShell2Props) {
               transition={{ 
                 type: "spring", 
                 stiffness: 400, 
-                damping: 35,
+                damping: 35, 
                 opacity: { duration: 0.2 } 
               }}
               className="absolute inset-0 w-full h-full"
             >
-              {/* Contenedor con scroll interno para no romper el layout del tótem */}
               <div className="h-full w-full overflow-y-auto no-scrollbar overscroll-contain">
                  {renderStep()}
               </div>
@@ -163,7 +223,6 @@ export function AppShell2({ initialOnboarding }: AppShell2Props) {
           </AnimatePresence>
         </main>
 
-        {/* Footer condicional para no encimarse en el resumen */}
         {!isSummary && <UnifiedFooter />}
 
         <ExitModal

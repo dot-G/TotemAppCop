@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie';
+import axios from 'axios';
 
 // --- Interfaces ---
 
@@ -33,11 +33,10 @@ export interface CreateOrderImageBody {
   preview_image: string | null; 
   
   final_combo_price: number;
+
+  store_code: string | null;
 }
 
-/**
- * Interface que refleja la respuesta real de tu API
- */
 export interface OrderImageResponse {
   id: string;
   order_number: string;
@@ -47,9 +46,6 @@ export interface OrderImageResponse {
   date_created?: string;
 }
 
-/**
- * Wrapper para la respuesta de Directus
- */
 export interface DirectusOrderImageResponse {
   data: OrderImageResponse;
 }
@@ -58,28 +54,42 @@ export interface DirectusOrderImageResponse {
 
 /**
  * Crea una nueva orden que incluye personalización de imagen (UV Print)
+ * @param orderImageData Datos de la orden
+ * @param token Token de acceso recibido del componente padre
  */
-export const createOrderImage = async (orderImageData: CreateOrderImageBody): Promise<DirectusOrderImageResponse> => {
-  const token = Cookies.get('access_token');
+export const createOrderImage = async (
+  orderImageData: CreateOrderImageBody,
+  token: string | null
+): Promise<DirectusOrderImageResponse> => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const FOLDER_ID = process.env.NEXT_PUBLIC_DIRECTUS_CUSTOM_IMAGES_FOLDER;
   
   const endpoint = `${API_URL}/api/v1/orders`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` })
-    },
-    body: JSON.stringify(orderImageData)
-  });
+  // Combinamos los datos de la orden con el folder ID del .env
+  const payload = {
+    ...orderImageData,
+    ...(FOLDER_ID && { folder: FOLDER_ID })
+  };
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.message || 'Error al procesar la orden con imagen');
+  try {
+    const response = await axios.post<DirectusOrderImageResponse>(
+      endpoint,
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      }
+    );
+
+    // Axios devuelve el body en .data. 
+    // Como tu API ya devuelve { data: { ... } }, retornamos el objeto completo.
+    return response.data;
+  } catch (error: any) {
+    console.error("Error en createOrderImage:", error.response?.data || error.message);
+    const message = error.response?.data?.message || 'Error al procesar la orden con imagen';
+    throw new Error(message);
   }
-
-  // IMPORTANTE: Retornamos el json completo (que contiene { data: { ... } })
-  // para que el componente ContactForm pueda hacer destructuring de .data
-  return await response.json();
 };

@@ -27,9 +27,9 @@ export interface EditorTransform {
 
 export interface AvailableColor {
   caseId: string;
-  colourId: string; 
-  name: string; 
-  hex: string;  
+  colourId: string;
+  name: string;
+  hex: string;
 }
 
 export interface ImageConfig {
@@ -43,7 +43,6 @@ export interface MissingModelEntry {
   timestamp: string;
 }
 
-// Estructura de Precios Crítica para la persistencia
 export interface ComboPrices {
   micaDefault: number;
   mica: number;
@@ -64,54 +63,44 @@ export interface SelectionState {
   brandId: string | null;
   model: string | null;
   modelId: string | null;
-
   comboId: string;
-  config: ComboConfig; // Eliminado el null para asegurar consistencia en el spread
-  
+  config: ComboConfig;
   micaId: string | null;
   micaImage: string | null;
   micaName: string | null;
   caseId: string | null;
   uvPrintId: string | null;
-  
   mica_combo_content: string | null;
   case_combo_content: string | null;
   uv_print_combo_content: string | null;
   catalog_image_combo_content: string | null;
-
   caseImage: string | null;
   caseName: string | null;
   caseColor: string | null;
-  caseTypeId: string | null; 
-  colourId: string | null;   
+  caseTypeId: string | null;
+  colourId: string | null;
   colourHex: string | null;
-
   availableColors: AvailableColor[];
-
   capturedBrandPreview: string | null;
   capturedCustomPreview: string | null;
   brandTransform: EditorTransform | null;
   customTransform: EditorTransform | null;
-
   imageSourceType: ImageSourceType;
-  catalogId: string | null;    
-  catalog_image: string | null; 
+  catalogId: string | null;
+  catalog_image: string | null;
   selectedBrandTag: string | null;
   imageBrandConfig: ImageConfig;
   imageBrandPrice: number;
   orderCustomImage: string | null;
-
   imageCustomUrl: string | null;
   imageCustomConfig: ImageConfig;
   imageCustomPrice: number;
   acceptedTerms: boolean;
-
   contact: {
     name: string;
     email: string;
     phone: string;
   };
-
   orderId: string | null;
   orderNumber: string | null;
   orderSku: string | null;
@@ -129,19 +118,17 @@ export const initialSelection: SelectionState = {
   model: null,
   modelId: null,
   comboId: "",
- 
   config: {
     includes_mica: false,
     includes_case: false,
     includes_uv_print: false,
     prices: {
-      micaDefault: 0, 
+      micaDefault: 0,
       mica: 0,
       case: 0,
       uv: 0,
     },
   },
-  
   micaId: null,
   micaImage: null,
   micaName: null,
@@ -152,25 +139,21 @@ export const initialSelection: SelectionState = {
   case_combo_content: null,
   uv_print_combo_content: null,
   catalog_image_combo_content: null,
-  caseName: null,  
+  caseName: null,
   caseColor: null,
   colourHex: null,
   caseTypeId: null,
   colourId: null,
-  
   availableColors: [],
-
   imageSourceType: null,
   orderCustomImage: null,
   catalogId: null,
   catalog_image: null,
   selectedBrandTag: null,
-
   capturedBrandPreview: null,
   capturedCustomPreview: null,
   brandTransform: null,
   customTransform: null,
-
   imageBrandConfig: { rotation: 0, size: "Grande" },
   imageBrandPrice: 0,
   acceptedTerms: false,
@@ -178,7 +161,6 @@ export const initialSelection: SelectionState = {
   imageCustomConfig: { rotation: 0, size: "Grande" },
   imageCustomPrice: 0,
   contact: { name: "", email: "", phone: "" },
-
   orderId: null,
   orderNumber: null,
   orderSku: null,
@@ -207,6 +189,16 @@ export const missingBrandsAtom = atomWithStorage<string[]>(
 export const missingModelsAtom = atomWithStorage<MissingModelEntry[]>(
   "no-results-model",
   [],
+  storage
+);
+
+/**
+ * NUEVO: Átomo para el código de la tienda.
+ * Persistente para identificar el punto de venta durante todo el flujo.
+ */
+export const storeCodeAtom = atomWithStorage<string | null>(
+  "store_code",
+  null,
   storage
 );
 
@@ -254,21 +246,9 @@ export const totalSelectionPriceAtom = atom((get) => {
   const s = get(selectionAtom);
   if (!s.brandId || !s.modelId) return 0;
 
-  // Acceso seguro a los precios base del combo
   const pMica = Number(s.config?.prices?.mica || 0);
   const pCase = Number(s.config?.prices?.case || 0);
-  
-  /**
-   * EXPLICACIÓN DEL CAMBIO:
-   * El precio 'uv' en tu handleEditorAccept ya incluye:
-   * (Precio Base UV del Combo) + (imageBrandPrice si es tipo brand).
-   * * Por lo tanto, NO debemos sumar 'imageBrandPrice' aparte, 
-   * de lo contrario cobraríamos la licencia dos veces.
-   */
   const pUv = Number(s.config?.prices?.uv || 0);
-
-  // El imageCustomPrice suele ser 0, pero lo dejamos por si en el futuro
-  // cobras un extra por "Subida Personalizada".
   const pCustomExtra = s.imageSourceType === "custom" ? Number(s.imageCustomPrice || 0) : 0;
 
   return Math.round(pMica + pCase + pUv + pCustomExtra);
