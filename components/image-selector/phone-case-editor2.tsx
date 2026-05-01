@@ -2,15 +2,15 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { SmartphoneCaseSimple } from "./smartphone-case-simple2";
-import { ColorSelector } from "../shared/color-selector-vertical";
+import { ColorSelector } from "../shared/color-selector";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, X } from "lucide-react"; // Importamos X de lucide
 import { toPng } from "html-to-image";
 
-export type CameraCutoutStyle = 
-  | "horizontal-top" | "square-left" | "rectangular-left" 
-  | "vertical-pill" | "pill-left" | "circle-large" 
+export type CameraCutoutStyle =
+  | "horizontal-top" | "square-left" | "rectangular-left"
+  | "vertical-pill" | "pill-left" | "circle-large"
   | "circle-small" | "square-center";
 
 export interface EditorTransform { x: number; y: number; scale: number; rotation: number; }
@@ -82,7 +82,7 @@ export function PhoneCaseEditor({
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[120] p-0 md:p-6 backdrop-blur-xl">
       <div className="bg-white md:rounded-[32px] shadow-2xl overflow-hidden w-full max-w-5xl flex flex-col h-full md:h-auto border-none relative">
-        
+
         {/* BOTÓN CERRAR (X) SUPERIOR DERECHA */}
         {allowClose && (
           <button
@@ -95,11 +95,9 @@ export function PhoneCaseEditor({
 
         {/* ÁREA DE VISUALIZACIÓN */}
         <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0 overflow-hidden min-h-[350px]">
-          <div className="absolute top-4 left-6 z-10 pointer-events-none">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-100">Editor</span>
-          </div>
-
+         
           <div ref={smartphoneRef} className="w-full flex justify-center transform scale-[0.8] sm:scale-90 md:scale-90 transition-all duration-300">
+           
             <SmartphoneCaseSimple
               frameColor={selectedCase?.hex || "#000000"}
               caseImage={image}
@@ -114,25 +112,15 @@ export function PhoneCaseEditor({
               enablePinchZoom={true}
               enablePinchRotation={true}
             />
+            
           </div>
         </div>
 
         {/* PANEL DE CONTROLES */}
         <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
-          <div className="grid grid-cols-[1fr_4fr] md:grid-cols-1 items-center gap-3 md:fixed md:right-10 md:top-1/2 md:-translate-y-1/2 md:w-20 md:bg-white/90 md:p-4 md:rounded-full md:shadow-2xl">
-            
-            {/* LENTE */}
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-[7px] font-black uppercase text-slate-300 tracking-tighter">Lente</span>
-              <button 
-                onClick={() => setCameraDialogOpen(true)}
-                className="w-8 h-12 bg-slate-800 rounded-[5px] relative overflow-hidden shadow-sm active:scale-90 transition-transform"
-              >
-                <div className={`absolute bg-slate-400 ${getMiniCutoutClass(currentCamera)}`} />
-              </button>
-            </div>
+          <div className="grid grid-cols-[7fr_3fr] md:grid-cols-1 items-center gap-3 md:fixed md:right-10 md:top-1/2 md:-translate-y-1/2 md:w-20 md:bg-white/90 md:p-4 md:rounded-full md:shadow-2xl">
 
-            {/* COLOR */}
+            {/* COLOR (Ahora a la izquierda - 70%) */}
             <div className="flex flex-col items-center gap-1">
               <span className="hidden text-[7px] font-black uppercase text-slate-300 tracking-tighter">Color</span>
               <div className="flex items-center justify-center w-full">
@@ -154,14 +142,26 @@ export function PhoneCaseEditor({
                 />
               </div>
             </div>
+
+            {/* LENTE (Ahora a la derecha - 30%) */}
+            <div className="flex flex-col items-center gap-1 border-l border-slate-100 pl-2">
+              <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-tighter">Disposición</span>
+              <button
+                onClick={() => setCameraDialogOpen(true)}
+                className="w-8 h-12 bg-slate-800 rounded-[5px] relative overflow-hidden shadow-sm active:scale-95 transition-transform"
+              >
+                <div className={`absolute bg-slate-400 ${getMiniCutoutClass(currentCamera)}`} />
+              </button>
+            </div>
+
           </div>
 
           {/* ACCIÓN FINAL */}
           <div className="mt-6 flex items-center justify-center gap-2 w-full max-w-[500px] mx-auto">
             {allowClose && (
-              <Button 
-                variant="ghost" 
-                className="h-14 md:h-16 flex-1 md:flex-none px-6 text-slate-400 font-bold text-sm uppercase tracking-tight hover:text-slate-600" 
+              <Button
+                variant="ghost"
+                className="h-14 md:h-16 flex-1 md:flex-none px-6 text-slate-400 font-bold text-sm uppercase tracking-tight hover:text-slate-600"
                 onClick={onClose}
               >
                 Cancelar
@@ -178,44 +178,65 @@ export function PhoneCaseEditor({
         </div>
       </div>
 
-      {/* SELECTOR DE LENTES */}
+      {/* Inyección de estilo para forzar el blur en el overlay de fábrica */}
+      <style jsx global>{`
+  /* Seleccionamos el overlay de Radix por sus atributos y clases originales */
+  div[data-radix-portal] div[data-state="open"].fixed.inset-0.bg-black\\/80 {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+  }
+`}</style>
+
       <Dialog open={cameraDialogOpen} onOpenChange={setCameraDialogOpen}>
         <DialogContent className="z-[200] max-w-sm bg-white rounded-[32px] p-6 border-none shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Modelo de Lente</DialogTitle>
+            <DialogTitle className="text-center text-[13px] font-semibold uppercase tracking-widest text-slate-400 mb-6">
+              Disposición de la cámara
+            </DialogTitle>
           </DialogHeader>
+
           <div className="grid grid-cols-3 gap-6">
             {cameraCutoutStyles.map((style) => (
               <button
                 key={style.value}
-                onClick={() => { setCurrentCamera(style.value); setCameraDialogOpen(false); }}
-                className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all ${
-                  currentCamera === style.value ? "bg-indigo-50 ring-2 ring-indigo-500" : "hover:bg-slate-50"
-                }`}
+                onClick={() => {
+                  setCurrentCamera(style.value);
+                  setCameraDialogOpen(false);
+                }}
+                className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all ${currentCamera === style.value
+                    ? "bg-indigo-50 ring-2 ring-indigo-500"
+                    : "hover:bg-slate-50"
+                  }`}
               >
+                {/* Representación visual de la cámara */}
                 <div className="w-10 h-16 bg-slate-800 rounded-lg relative overflow-hidden shadow-md">
                   <div className={`absolute bg-slate-400 ${getMiniCutoutClass(style.value)}`} />
                 </div>
-                <span className="text-[9px] font-bold text-slate-600 uppercase text-center leading-tight">{style.name}</span>
+
+                <span className="text-[9px] font-bold text-slate-600 uppercase text-center leading-tight">
+                  {style.name}
+                </span>
               </button>
             ))}
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
 
 function getMiniCutoutClass(style: CameraCutoutStyle) {
   switch (style) {
-    case "horizontal-top": return "w-[60%] h-[12%] top-[8%] left-[20%] rounded-full"; 
-    case "square-left": return "w-[30%] h-[20%] top-[8%] left-[12%] rounded-[2px]"; 
-    case "rectangular-left": return "w-[30%] h-[35%] top-[8%] left-[12%] rounded-[3px]"; 
-    case "vertical-pill": return "w-[15%] h-[35%] top-[8%] left-[42.5%] rounded-full"; 
-    case "pill-left": return "w-[15%] h-[35%] top-[8%] left-[12%] rounded-full"; 
-    case "circle-large": return "w-[45%] h-[30%] top-[8%] left-[27.5%] rounded-full"; 
-    case "circle-small": return "w-[22%] h-[15%] top-[8%] left-[12%] rounded-full"; 
-    case "square-center": return "w-[38%] h-[25%] top-[8%] left-[31%] rounded-[3px]"; 
+    case "horizontal-top": return "w-[60%] h-[12%] top-[8%] left-[20%] rounded-full";
+    case "square-left": return "w-[30%] h-[20%] top-[8%] left-[12%] rounded-[2px]";
+    case "rectangular-left": return "w-[30%] h-[35%] top-[8%] left-[12%] rounded-[3px]";
+    case "vertical-pill": return "w-[15%] h-[35%] top-[8%] left-[42.5%] rounded-full";
+    case "pill-left": return "w-[15%] h-[35%] top-[8%] left-[12%] rounded-full";
+    case "circle-large": return "w-[45%] h-[30%] top-[8%] left-[27.5%] rounded-full";
+    case "circle-small": return "w-[22%] h-[15%] top-[8%] left-[12%] rounded-full";
+    case "square-center": return "w-[38%] h-[25%] top-[8%] left-[31%] rounded-[3px]";
     default: return "";
   }
 }

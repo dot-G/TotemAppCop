@@ -185,6 +185,12 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                 src={previewToDisplay}
                 alt="Case Preview"
                 className="w-full h-auto object-contain rounded-lg shadow-sm"
+                onClick={() => {
+                  if (sourceUrl) {
+                    setEditorTarget({ url: sourceUrl, type });
+                    setIsEditorOpen(true);
+                  }
+                }}
               />
             ) : (
               <div className="aspect-[3/4] flex items-center justify-center w-full">
@@ -357,49 +363,76 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
       </div>
 
       {mounted && createPortal(
-        <>
-          <AnimatePresence>
-            {flowView === "gallery" && (
-              <motion.div
-                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-                className="fixed inset-0 bg-white z-[100] flex flex-col"
+  <>
+    <AnimatePresence>
+      {flowView === "gallery" && (
+        <motion.div
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          className="fixed inset-0 bg-white z-[100] flex flex-col"
+        >
+          <div className="p-6 border-b flex items-center gap-4">
+            <button onClick={() => setFlowView("idle")} className="p-2">
+              <ArrowLeft />
+            </button>
+            <h2 className="font-black uppercase text-xs tracking-widest text-slate-400">
+              Colección {selectedBrand?.name}
+            </h2>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3">
+            {currentGalleryImages.map((img: any) => (
+              <button
+                key={img.id}
+                onClick={() => {
+                  setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
+                  setIsEditorOpen(true);
+                }}
+                className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
               >
-                <div className="p-6 border-b flex items-center gap-4">
-                  <button onClick={() => setFlowView("idle")} className="p-2"><ArrowLeft /></button>
-                  <h2 className="font-black uppercase text-xs tracking-widest text-slate-400">Colección {selectedBrand?.name}</h2>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3">
-                  {currentGalleryImages.map((img: any) => (
-                    <button
-                      key={img.id}
-                      onClick={() => {
-                        setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
-                        setIsEditorOpen(true);
-                      }}
-                      className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
-                    >
-                      <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <PhoneCaseEditor
-            image={editorTarget?.url || ""}
-            isOpen={isEditorOpen}
-            onClose={() => setIsEditorOpen(false)}
-            onAccept={handleEditorAccept}
-            availableColors={selection.availableColors}
-            initialCaseId={selection.caseId}
-            initialTransform={editorTarget?.type === "brand" ? selection.brandTransform : selection.customTransform}
-            camera={editorTarget?.type === "brand" ? selection.brandCameraStyle : selection.customCameraStyle}
-            allowClose={true}
-          />
-        </>,
-        document.body
+                <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
+              </button>
+            ))}
+          </div>
+        </motion.div>
       )}
+    </AnimatePresence>
+
+    {/* EDITOR CON SLIDE-IN DESDE LA DERECHA (Tailwind puro) */}
+    <div 
+      className={`fixed inset-0 z-[150] bg-white transition-transform duration-300 ease-in-out ${
+        isEditorOpen ? "translate-x-0" : "translate-x-full"
+      }`}
+    >
+      {/* 
+          Renderizamos el contenido solo si hay un target para evitar 
+          errores de carga, pero el contenedor superior maneja la animación 
+      */}
+      {editorTarget && (
+        <PhoneCaseEditor
+          image={editorTarget.url}
+          isOpen={isEditorOpen}
+          onClose={() => setIsEditorOpen(false)}
+          onAccept={handleEditorAccept}
+          availableColors={selection.availableColors}
+          initialCaseId={selection.caseId}
+          initialTransform={
+            editorTarget.type === "brand" 
+              ? selection.brandTransform 
+              : selection.customTransform
+          }
+          camera={
+            editorTarget.type === "brand" 
+              ? selection.brandCameraStyle 
+              : selection.customCameraStyle
+          }
+          allowClose={true}
+        />
+      )}
+    </div>
+  </>,
+  document.body
+)}
     </div>
   );
 }
