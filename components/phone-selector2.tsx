@@ -230,7 +230,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
               <div className="relative mb-6">
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#B7B7B7] w-5 h-5" />
                 <input
-                  autoFocus
+                 // autoFocus
                   placeholder={`Busca ${activePanel === "brand" ? "la marca" : "el modelo"}...`}
                   className="w-full bg-white rounded-[14px] py-5 pl-16 pr-14 font-semibold text-slate-800 outline-none border border-[#B7B7B7] focus:ring-1 focus:ring-[#B7B7B7] transition-all placeholder:text-[#B7B7B7]"
                   value={search}
