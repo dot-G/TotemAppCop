@@ -36,12 +36,12 @@ export function SimpleHeader({ title, subtitle, onExitClick }: SimpleHeaderProps
 
       {/* Botón Salir */}
       <button 
-        onClick={onExitClick} 
-        className="flex flex-col items-center gap-0.5 text-[#0066cc] hover:text-red-500 transition-colors active:scale-90"
-      >
-        <LogOut className="w-4 h-4" />
-        <span className="text-[9px] font-semibold uppercase tracking-tighter">Salir</span>
-      </button>
+          onClick={onExitClick} 
+          className="flex flex-col items-center justify-center min-w-[40px] text-[#0D51A1] transition-colors active:scale-95 shrink-0"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="text-[13px]  text-[#0D51A1] font-normal">Salir</span>
+        </button>
     </header>
   )
 }
