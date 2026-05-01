@@ -18,15 +18,15 @@ export function middleware(request: NextRequest) {
   
   // Pasamos el slug como parámetro dentro del callbackUrl
   // URL resultante: /auth/totem?callbackUrl=/prueba?store=visto
-  loginUrl.searchParams.set('callbackUrl', `/prueba?store=${storeSlug}`); 
+  loginUrl.searchParams.set('callbackUrl', `/?store=${storeSlug}`); 
   
   return NextResponse.redirect(loginUrl);
 }
 
   // Si ya tiene token pero sigue en una ruta de /store que no es /prueba, 
   // lo movemos a /prueba para asegurar consistencia
-  if (isStorePath && token && pathname !== '/prueba') {
-    return NextResponse.redirect(new URL('/prueba', request.url));
+  if (isStorePath && token && pathname !== '/') {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   // 2. Flujo normal de protección para el resto de la app (Admin/Dashboard)

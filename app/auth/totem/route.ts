@@ -5,9 +5,9 @@ export async function GET(request: Request) {
   
   /**
    * 1. Gestión de Redirección y Captura de Store
-   * El middleware nos envía algo como: /prueba?store=visto
+   * El middleware nos envía algo como: /?store=visto
    */
-  const callbackUrl = searchParams.get('callbackUrl') || '/prueba';
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   const targetUrl = new URL(callbackUrl, request.url);
   
   // Extraemos el valor de la tienda del query param si existe
