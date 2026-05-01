@@ -25,10 +25,10 @@ export function StepIndicator() {
   const globalIndex = stepsPath.indexOf(currentStep)
 
   return (
-    <div className="relative flex justify-around items-center px-10 pt-4 bg-[#f8fafc] shrink-0">
+    <div className="relative flex justify-around items-center px-4 pt-2 bg-[#f8fafc] shrink-0">
       
       {/* Línea de fondo (conectora) dinámica */}
-      <div className="absolute top-[2rem] left-[15%] right-[15%] h-[1px] bg-slate-300 -z-0" />
+      <div className="absolute top-[2.9rem] left-[10%] right-[10%] h-[1px] bg-slate-300 -z-0" />
 
       {visibleSteps.map((step) => {
         const stepIndexInPath = stepsPath.indexOf(step.id as any)
@@ -39,6 +39,13 @@ export function StepIndicator() {
         return (
           <div key={step.id} className="relative flex flex-col items-center gap-1 z-10 transition-all duration-500">
             {/* Círculo del Icono */}
+              {/* Etiqueta */}
+            <span className={`
+              text-[11px] font-normal transition-colors
+              ${isActive ? "text-[#0D51A1]" : isCompleted ? "text-[#0D51A1]" : "text-slate-400"}
+            `}>
+              {step.label}
+            </span>
             <div className={`
               w-8 h-8 rounded-2xl flex items-center justify-center transition-all duration-300
               ${isActive 
@@ -55,13 +62,7 @@ export function StepIndicator() {
               )}
             </div>
 
-            {/* Etiqueta */}
-            <span className={`
-              text-[13px] font-normal transition-colors
-              ${isActive ? "text-[#0D51A1]" : isCompleted ? "text-[#0D51A1]" : "text-slate-400"}
-            `}>
-              {step.label}
-            </span>
+          
 
           </div>
         )

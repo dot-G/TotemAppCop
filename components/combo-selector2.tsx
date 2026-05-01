@@ -133,7 +133,7 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
   return (
     <div className="flex flex-col overflow-hidden font-sans">
       <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; }` }} />
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden pt-4">
+      <main className="flex-1 flex flex-col min-h-0 overflow-hidden pt-1">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -179,22 +179,22 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
                     )}
                   </div>
                   <div className="px-2 pb-2 flex-1 flex flex-col">
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="text-[18px] font-semibold leading-tight text-[#1d1d1f] tracking-tight">
+                    <div className="flex justify-between items-baseline mb-0">
+                      <h3 className="text-[17px] font-semibold leading-[tight] text-[#1d1d1f] tracking-tight">
                         {combo.name}
                       </h3>
                       <span className="text-[22px] font-semibold text-[#1d1d1f]">
                         ${totalPrice}
                       </span>
                     </div>
-                    <p className="text-[13px] text-slate-500 leading-snug mb-1 font-normal">
+                    <p className="text-[13px] text-slate-500 leading-[1.1em] mb-2 font-normal">
                       {combo.description || "Selección premium diseñada para la máxima protección."}
                     </p>
-                    <div className="space-y-1">
-                      <span className="text-[13px]">Incluye:</span>
-                      {combo.includes_mica && <BenefitItem icon={<ShieldCheck className="w-5 h-5" />} label="Mica de Protección" />}
-                      {combo.includes_case && <BenefitItem icon={<Smartphone className="w-5 h-5" />} label="Case a Medida" />}
-                      {combo.includes_uv_print && <BenefitItem icon={<ImageIcon className="w-5 h-5" />} label="Personalización UV" />}
+                    <div className="space-y-0">
+                      <span className="hidden text-[13px]">Incluye:</span>
+                      {combo.includes_mica && <BenefitItem icon={<ShieldCheck className="w-4 h-4" />} label="Mica de Protección" />}
+                      {combo.includes_case && <BenefitItem icon={<Smartphone className="w-4 h-4" />} label="Case a Medida" />}
+                      {combo.includes_uv_print && <BenefitItem icon={<ImageIcon className="w-4 h-4" />} label="Personalización UV" />}
                     </div>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ function BenefitItem({ icon, label }: { icon: React.ReactNode; label: string }) 
       <div className="w-6 h-6 text-[#0D51A1] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
         {icon}
       </div>
-      <span className="text-[14px] font-semibold text-slate-800 px-1">{label}</span>
+      <span className="text-[13px] font-semibold text-slate-800 px-1">{label}</span>
     </div>
   );
 }

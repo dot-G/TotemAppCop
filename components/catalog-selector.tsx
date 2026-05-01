@@ -171,7 +171,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
       : selection.imageCustomUrl;
 
     return (
-      <div className="bg-white p-4">
+      <div className="p-3">
         <div className="flex items-start gap-6">
           <div className="w-1/2 flex justify-center items-center bg-slate-50 overflow-hidden rounded-xl">
             {previewToDisplay ? (
@@ -188,84 +188,89 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
           </div>
 
           <div className="w-1/2 flex flex-col justify-center gap-3">
-            <div className="mt-8 mb-1 text-left">
-              <p className="text-[22px] font-semibold leading-[22px] text-black">
-                {title}
-              </p>
-            </div>
+  <div className="mt-8 mb-1 text-left">
+    <p className="text-[20px] font-semibold text-black">
+      {title}
+    </p>
+  </div>
 
-            <Button
-              variant="outline"
-              className="w-full h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[14px] font-semibold"
-              onClick={() => {
-                if (sourceUrl) {
-                  setEditorTarget({ url: sourceUrl, type });
-                  setIsEditorOpen(true);
-                }
-              }}
-            >
-              <Pencil className="w-3.5 h-3.5" /> Editar
-            </Button>
+  {/* Contenedor en 2 columnas para los botones */}
+  <div className="grid grid-cols-2 gap-2">
+    <Button
+      variant="outline"
+      className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold px-2"
+      onClick={() => {
+        if (sourceUrl) {
+          setEditorTarget({ url: sourceUrl, type });
+          setIsEditorOpen(true);
+        }
+      }}
+    >
+      <Pencil className="w-3.5 h-3.5" /> Editar
+    </Button>
 
-            <Button
-              variant="outline"
-              className="w-full h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[14px] font-semibold text-red-500"
-              onClick={() => {
-                const currentUv = selection.config?.prices?.uv || 0;
-                const currentLicense = selection.imageBrandPrice || 0;
+    <Button
+      variant="outline"
+      className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold text-red-500 px-2"
+      onClick={() => {
+        const currentUv = selection.config?.prices?.uv || 0;
+        const currentLicense = selection.imageBrandPrice || 0;
 
-                if (isBrand) {
-                  updateSelection({
-                    catalog_image: null,
-                    capturedBrandPreview: null,
-                    brandTransform: null,
-                    acceptedTerms: false,
-                    imageBrandPrice: 0,
-                    config: {
-                      ...selection.config,
-                      prices: { ...selection.config?.prices, uv: currentUv - currentLicense }
-                    }
-                  });
-                } else {
-                  updateSelection({
-                    imageCustomUrl: null,
-                    capturedCustomPreview: null,
-                    customTransform: null,
-                  });
-                }
-              }}
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Borrar
-            </Button>
+        if (isBrand) {
+          updateSelection({
+            catalog_image: null,
+            capturedBrandPreview: null,
+            brandTransform: null,
+            acceptedTerms: false,
+            imageBrandPrice: 0,
+            config: {
+              ...selection.config,
+              prices: { ...selection.config?.prices, uv: currentUv - currentLicense }
+            }
+          });
+        } else {
+          updateSelection({
+            imageCustomUrl: null,
+            capturedCustomPreview: null,
+            customTransform: null,
+          });
+        }
+      }}
+    >
+      <Trash2 className="w-3.5 h-3.5" /> Borrar
+    </Button>
+  </div>
 
-            {isBrand && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
-                className={`mt-1 p-3 rounded-xl border transition-all cursor-pointer flex gap-2 items-start ${
-                  selection.acceptedTerms ? "bg-[#722296]/5 border-[#722296]/20" : "bg-white border-slate-100"
-                }`}
-              >
-                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                    selection.acceptedTerms ? "bg-[#722296] border-[#722296]" : "bg-white border-slate-300"
-                  }`}
-                >
-                  {selection.acceptedTerms && <Check className="w-3 text-white" />}
-                </div>
-                <p className="text-[14px] leading-tight text-slate-500 font-normal">
-                  Acepto los <span className="font-normal text-slate-800">términos de licencia</span>.
-                </p>
-              </motion.div>
-            )}
-          </div>
+  {/* Los términos se mantienen abajo ocupando el ancho completo para legibilidad */}
+  {isBrand && (
+    <motion.div
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
+      // Quitamos el fondo dinámico y dejamos el contenedor transparente o neutro
+      className="mt-1 transition-all cursor-pointer flex gap-2 items-start py-2"
+    >
+      <div className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+          selection.acceptedTerms 
+            ? "bg-[#722296] border-[#722296]" 
+            : "bg-white border-slate-300"
+        }`}
+      >
+        {selection.acceptedTerms && <Check className="w-3 text-white" />}
+      </div>
+      <p className="text-[12px] leading-tight text-slate-500 font-normal">
+        Acepto los <span className="font-normal text-slate-800">términos de licencia</span>.
+      </p>
+    </motion.div>
+  )}
+</div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="flex pt-2 flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Tabs */}
       <div className="shrink-0 border-b flex z-10">
         {[
@@ -275,7 +280,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
           <button
             key={t.id}
             onClick={() => handleTabChange(t.id as any)}
-            className={`flex-1 py-4 text-[16px] font-semibold relative transition-colors ${
+            className={`flex-1 py-2 text-[14px] font-semibold relative transition-colors ${
               activeTab === t.id ? "text-[#722296]" : "text-slate-400"
             }`}
           >
@@ -287,7 +292,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
         ))}
       </div>
 
-      <main className="flex-1 overflow-y-auto pb-32 no-scrollbar">
+      <div className="flex-1 bg-white overflow-y-hidden no-scrollbar">
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeTab}
@@ -347,7 +352,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
             )}
           </motion.div>
         </AnimatePresence>
-      </main>
+      </div>
 
       {mounted && createPortal(
         <>

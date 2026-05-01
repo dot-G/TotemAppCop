@@ -46,7 +46,7 @@ export function ExitModal({ isOpen, onClose, onConfirm }: ExitModalProps) {
 
             <div className="text-center mb-8">
               <h3 className="text-[22px] font-bold text-[#0f172a] mb-3 leading-tight">
-                ¿Deseas cancelar tu pedido?
+                ¿Deseas salir?
               </h3>
               <p className="text-[#64748b] text-base leading-snug">
                 Recuerda que esta acción es irreversible y perderás tu diseño.
@@ -58,7 +58,7 @@ export function ExitModal({ isOpen, onClose, onConfirm }: ExitModalProps) {
                 onClick={onConfirm} 
                 className="w-full h-[60px] rounded-[1.2rem] border-[1.5px] border-slate-200 text-slate-900 font-bold text-lg active:bg-slate-50 transition-colors"
               >
-                Si, cancelar pedido
+                Si, quiero salir
               </button>
               <button 
                 onClick={onClose} 

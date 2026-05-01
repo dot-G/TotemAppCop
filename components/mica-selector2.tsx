@@ -165,11 +165,11 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
               <div
                 key={mica.id}
                 ref={(el) => { cardsRef.current[idx] = el; }}
-                className="min-w-[95%] flex flex-col px-2 snap-center cursor-pointer"
+                className="min-w-[92%] mt-4 flex flex-col px-0 snap-center cursor-pointer"
                 onClick={() => centerCard(idx)}
               >
-                <div className={`relative w-full bg-white rounded-[14px] p-3 transition-all duration-500 ease-in-out transform-gpu flex flex-col
-                  ${isActive ? "border-[#6b21a8] scale-105 z-10 shadow-lg" : "border-transparent scale-90 opacity-40 grayscale"}`}>
+                <div className={`relative w-full bg-white rounded-[14px] transition-all duration-500 ease-in-out transform-gpu flex flex-col
+                  ${isActive ? "border-[#6b21a8] scale-105 z-10 shadow-lg" : "border-transparent scale-90 opacity-60 grayscale"}`}>
                   
                   {isActive && (
                     <div className="absolute top-4 right-4 bg-[#6b21a8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
@@ -177,13 +177,13 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
                     </div>
                   )}
 
-                  <div className="relative aspect-[4/3] w-full bg-slate-100 rounded-[8px] mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-[16/9] w-full bg-slate-100 rounded-[8px] mb-2 overflow-hidden flex items-center justify-center">
                     {(mica.featured_image || mica.icon) ? (
                       <Image
                         src={getImageUrl(mica.featured_image || mica.icon || "")}
                         alt={mica.name}
                         fill
-                        className={`object-contain transition-opacity duration-500 ${loadingImages[mica.id] === false ? "opacity-100" : "opacity-0"}`}
+                        className={`object-cover transition-opacity duration-500 ${loadingImages[mica.id] === false ? "opacity-100" : "opacity-0"}`}
                         onLoadingComplete={() => setLoadingImages(prev => ({ ...prev, [mica.id]: false }))}
                         unoptimized
                       />
@@ -192,7 +192,7 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
                     )}
                   </div>
 
-                  <div className="px-1 flex flex-col">
+                  <div className="p-4 flex flex-col">
                     <div className="flex justify-between items-baseline mb-0.5">
                       <h3 className="text-[18px] font-semibold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
                       <span className="text-[22px] font-semibold text-[#1d1d1f]">{priceLabel}</span>
