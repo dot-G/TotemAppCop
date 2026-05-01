@@ -208,25 +208,25 @@ export default function ContactForm({ token }: ContactFormProps) {
 
   return (
     <div className="flex flex-col bg-white h-full font-sans">
-      <main className="flex-1 overflow-y-auto px-4 pt-10 no-scrollbar">
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-slate-900">Datos de Contacto</h2>
+      <main className="flex-1 overflow-y-auto px-4 pt-6 no-scrollbar">
+        <div className="mb-3">
+          <h2 className="text-[22px] font-semibold text-slate-900">Datos de Contacto</h2>
         </div>
 
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-          <div className="space-y-2">
+        <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
+          <div className="space-y-1">
             <Label className="text-[14px] font-normal text-slate-700 ml-1">Nombre Completo *</Label>
-            <Input id="name" placeholder="Nombre y Apellido" value={selection.contact.name} onChange={handleChange} className="h-16 rounded-2xl border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <Input id="name" placeholder="Nombre y Apellido" value={selection.contact.name} onChange={handleChange} className="h-14 rounded-[8px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-3 focus:ring-2 focus:ring-purple-100 transition-all" />
           </div>
 
           <div className="space-y-1">
-            <Label className="text-[14px] font-normal text-slate-700 ml-1">Email *</Label>
-            <Input id="email" type="email" placeholder="ejemplo@correo.com" value={selection.contact.email} onChange={handleChange} className="h-16 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <Label className="text-[14px] font-normal text-slate-800 ml-1">Email *</Label>
+            <Input id="email" type="email" placeholder="ejemplo@correo.com" value={selection.contact.email} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
           </div>
 
           <div className="space-y-1">
             <Label className="text-[14px] font-normal text-slate-700 ml-1">WhatsApp / Celular *</Label>
-            <Input id="phone" type="tel" placeholder="Ej: 3764000000" value={selection.contact.phone} onChange={handleChange} className="h-16 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <Input id="phone" type="tel" placeholder="Ej: 3764000000" value={selection.contact.phone} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
           </div>
 
           <AnimatePresence>
