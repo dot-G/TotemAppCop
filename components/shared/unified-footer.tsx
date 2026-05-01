@@ -12,7 +12,7 @@ export function UnifiedFooter() {
   const { currentStep, setStep, progress } = useApp()
   const selection = useAtomValue(selectionAtom)
   const totalPrice = useAtomValue(totalSelectionPriceAtom)
-  
+
   // Estado para controlar si estamos en proceso de envío (desde ContactForm)
   const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false)
 
@@ -20,7 +20,7 @@ export function UnifiedFooter() {
   useEffect(() => {
     const handleSubmitting = (e: any) => setIsGlobalSubmitting(e.detail)
     window.addEventListener("form-submitting", handleSubmitting)
-    
+
     // Si cambiamos de paso por cualquier razón, reseteamos el loading
     return () => {
       window.removeEventListener("form-submitting", handleSubmitting)
@@ -58,7 +58,7 @@ export function UnifiedFooter() {
       default:
         // ComboSelector y CaseSelector ya validan mediante sus propios hooks, 
         // pero aquí aseguramos que existan los IDs
-        return true 
+        return true
     }
   }, [currentStep, selection, isGlobalSubmitting])
 
@@ -82,7 +82,7 @@ export function UnifiedFooter() {
   const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model
 
   return (
-    <footer className="p-4 shrink-0 z-[70] pb-6">
+    <footer className="p-4 shrink-0 z-[70] pb-4">
       <AnimatePresence mode="wait">
         {!isGlobalSubmitting ? (
           <motion.div
@@ -93,43 +93,45 @@ export function UnifiedFooter() {
             transition={{ duration: 0.2 }}
           >
             {/* CARD DE RESUMEN Y PRECIO */}
-            {selection.brand && (
-              <div className="bg-white border border-[#3E3E3E] rounded-[14px] p-4 flex justify-between items-center mb-4">
+            {selection.brand && currentStep !== "phone-selector" && (
+              <div className="bg-white border border-[#3E3E3E] rounded-[14px] px-3 py-2 flex justify-between items-center mb-3">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-slate-900 text-[16px] mb-0.5">Detalle de tu pedido</h4>
+                  <h4 className="font-semibold text-slate-900 text-[14px] mb-0.5">Detalle de tu pedido</h4>
                   <p className="text-[#606166] font-normal text-[14px] leading-tight">
 
-  
-  {selection.micaName && `${selection.micaName}`}
-  {selection.caseName && ` • Case ${selection.caseName}`}
-  {selection.config?.includes_uv_print && (
-    selection.imageSourceType === "brand" 
-      ? ` • ${selection.selectedBrandTag || 'Diseño de catálogo'}` 
-      : selection.imageSourceType === "custom" 
-        ? " • Imagen personalizada" 
-        : ""
-  )}
-</p>
+
+                    {selection.micaName && `${selection.micaName}`}
+                    {selection.caseName && ` • Case ${selection.caseName}`}
+                    {selection.config?.includes_uv_print && (
+                      selection.imageSourceType === "brand"
+                        ? ` • ${selection.selectedBrandTag || 'Diseño de catálogo'}`
+                        : selection.imageSourceType === "custom"
+                          ? " • Imagen personalizada"
+                          : ""
+                    )}
+                  </p>
                 </div>
 
                 {shouldShowPrice && (
-                  <div className="text-right pl-4 border-l border-slate-200">
-                    <p className="text-[13px] font-semibold">Desde</p>
-                    <p className="text-2xl font-semibold text-slate-900">
-                      ${totalPrice.toLocaleString('es-AR')}
-                    </p>
-                  </div>
+                  <div className="text-right pb-0 pt-0 pl-4 border-l border-slate-200 flex flex-col justify-center">
+  <p className="text-[12px] font-semibold mb-[0px] leading-[tight] text-slate-500">
+    Desde
+  </p>
+  <p className="text-2xl font-semibold text-slate-900 leading-none">
+    ${totalPrice.toLocaleString('es-AR')}
+  </p>
+</div>
                 )}
               </div>
             )}
 
             {/* BOTÓN DE ACCIÓN PRINCIPAL */}
-            <Button 
+            <Button
               disabled={!canContinue}
               onClick={handleMainAction}
-              className={`w-full h-16 rounded-[14px] text-[20px] font-semibold transition-all duration-300
-                ${canContinue 
-                  ? "bg-[#6b21a8] text-white shadow-xl shadow-purple-100 active:scale-[0.97]" 
+              className={`w-full h-14 rounded-[14px] text-[20px] font-semibold transition-all duration-300
+                ${canContinue
+                  ? "bg-[#6b21a8] text-white shadow-xl shadow-purple-100 active:scale-[0.97]"
                   : "bg-slate-100 text-slate-300"}`}
             >
               {buttonText}

@@ -1,55 +1,74 @@
-"use client"
+"use client";
 
-import React from "react"
-import { Check } from "lucide-react"
-import { useApp } from "@/hooks/use-app"
-
-// Colores centralizados para toda la app
-export const COLORS = [
-  { name: "Naranja", hex: "#f87171" },
-  { name: "Verde", hex: "#22c55e" },
-  { name: "Azul", hex: "#3b82f6" },
-  { name: "Morado", hex: "#a855f7" },
-  { name: "Amarillo", hex: "#eab308" },
-]
+import React from "react";
 
 interface ColorSelectorProps {
-  layout?: "flex" | "grid"
+  casesApi: any[];
+  selectedCaseId: string | null;
+  onCaseChange: (caseItem: any) => void;
 }
 
-export function ColorSelector({ layout = "flex" }: ColorSelectorProps) {
-  const { selection, updateSelection, isHydrated } = useApp()
-
-  if (!isHydrated) return <div className="h-14 w-full bg-slate-50 animate-pulse rounded-2xl" />
-
-  const selectedColorName = selection.caseColor || "Naranja"
+export const ColorSelector = ({ 
+  casesApi, 
+  selectedCaseId, 
+  onCaseChange 
+}: ColorSelectorProps) => {
+  
+  const currentCase = casesApi.find(c => c.id === selectedCaseId) || casesApi[0];
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-bold text-slate-900 leading-none">Color de Case</p>
-        <p className="text-[12px] text-slate-400 font-medium mt-1">{selectedColorName}</p>
-      </div>
+    <div className="pt-6 border-t border-slate-50">
+      <div className="flex flex-col gap-[10px]">
+        
+        {/* TEXTO INFORMATIVO */}
+        <div className="flex flex-col items-start px-1">
+          <label className="text-[14px] font-bold text-[#1d1d1f] leading-none">
+            Color: <span className="text-slate-400 font-medium">{currentCase?.colour?.name || "Seleccionar"}</span>
+          </label>
+        </div>
 
-      <div className={layout === "grid" ? "grid grid-cols-2 gap-2" : "flex gap-2.5"}>
-        {COLORS.map((color) => (
-          <button
-            key={color.name}
-            type="button"
-            onClick={() => updateSelection({ caseColor: color.name })}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-              selectedColorName === color.name 
-                ? "ring-2 ring-offset-2 ring-red-400 scale-110 shadow-lg" 
-                : "scale-100 opacity-80"
-            }`}
-            style={{ backgroundColor: color.hex }}
-          >
-            {selectedColorName === color.name && (
-              <Check className="w-5 h-5 text-white" strokeWidth={4} />
-            )}
-          </button>
-        ))}
+        {/* GRILLA DE DOTS: gap-x reducido para mayor proximidad */}
+        <div className="grid grid-cols-5 gap-x-3 gap-y-[10px] justify-items-start w-full">
+          {casesApi.map((c) => {
+            const isSelected = selectedCaseId === c.id;
+            const isWhite = 
+              c.colour?.hex_code?.toLowerCase() === '#ffffff' || 
+              c.colour?.hex_code?.toLowerCase() === '#fff';
+
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => onCaseChange(c)}
+                className="relative flex items-center justify-center outline-none group h-8 w-8"
+              >
+                {/* Anillo exterior: más fino (1.5px) y color más suave */}
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border-[1.5px]
+                    ${isSelected 
+                      ? "border-slate-900 scale-105 shadow-sm" 
+                      : "border-transparent group-hover:border-slate-100"}
+                  `}
+                >
+                  {/* Círculo de color (Dot) */}
+                  <div
+                    style={{ backgroundColor: c.colour?.hex_code }}
+                    className={`w-[22px] h-[22px] rounded-full transition-all duration-200 shadow-inner
+                      ${isWhite ? "border border-slate-100" : ""}
+                      ${isSelected ? "scale-90" : "group-hover:scale-105"}
+                    `}
+                  />
+                </div>
+                
+                {/* Tooltip Desktop */}
+                <span className="absolute -top-8 scale-0 transition-all rounded bg-slate-800 p-1 text-[10px] text-white group-hover:scale-100 whitespace-nowrap z-20">
+                  {c.colour?.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};

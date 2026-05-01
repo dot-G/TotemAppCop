@@ -20,7 +20,7 @@ import { StepHeader } from "@/components/shared/step-header";
 import { SimpleHeader } from "@/components/shared/simple-header";
 import { UnifiedFooter } from "@/components/shared/unified-footer";
 import { ExitModal } from "@/components/shared/exit-modal";
-import { StepIndicator } from "@/components/shared/step-indicator";
+import { StepIndicator } from "@/components/shared/step-indicator2";
 
 // --- Steps ---
 import { Onboarding } from "./onboarding2";
