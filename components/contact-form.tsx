@@ -49,7 +49,7 @@ export default function ContactForm({ token }: ContactFormProps) {
       if (startsWithPlus) {
         finalValue = `+${numbers}`.slice(0, 14);
       } else {
-        finalValue = numbers.slice(0, 12);
+        finalValue = numbers.slice(0, 13);
       }
     }
 
