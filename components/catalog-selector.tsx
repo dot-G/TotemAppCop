@@ -185,6 +185,12 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                 src={previewToDisplay}
                 alt="Case Preview"
                 className="w-full h-auto object-contain rounded-lg shadow-sm"
+                onClick={() => {
+                  if (sourceUrl) {
+                    setEditorTarget({ url: sourceUrl, type });
+                    setIsEditorOpen(true);
+                  }
+                }}
               />
             ) : (
               <div className="aspect-[3/4] flex items-center justify-center w-full">

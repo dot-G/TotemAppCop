@@ -28,8 +28,7 @@ export const ColorSelector = ({
         </div>
 
         {/* GRILLA DE DOTS: gap-x reducido para mayor proximidad */}
-        <div className="grid grid-cols-5 gap-x-3 gap-y-[10px] justify-items-start w-full">
-          {casesApi.map((c) => {
+<div className="grid grid-cols-[repeat(5,min-content)] gap-x-[5px] gap-y-[10px] justify-start w-full">          {casesApi.map((c) => {
             const isSelected = selectedCaseId === c.id;
             const isWhite = 
               c.colour?.hex_code?.toLowerCase() === '#ffffff' || 
@@ -44,7 +43,7 @@ export const ColorSelector = ({
               >
                 {/* Anillo exterior: más fino (1.5px) y color más suave */}
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 border-[1.5px]
+                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 border-[1.5px]
                     ${isSelected 
                       ? "border-slate-900 scale-105 shadow-sm" 
                       : "border-transparent group-hover:border-slate-100"}
