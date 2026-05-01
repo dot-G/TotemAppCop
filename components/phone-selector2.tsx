@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import {
   Search,
   ChevronRight,
@@ -62,7 +62,7 @@ function humanSearch<T extends { name: string }>(searchTerm: string, items: T[])
 
 interface PhoneSelectorPageProps {
   initialBrands?: Brand[];
-  token?: string; // <--- Token recibido desde el servidor
+  token?: string; 
 }
 
 export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSelectorPageProps) {
@@ -73,9 +73,19 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
   const [activePanel, setActivePanel] = useState<"none" | "brand" | "model">("none");
   const [search, setSearch] = useState("");
 
+  // Ref para resetear el scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const brands = initialBrands;
   const brandSelected = selection.brand;
   const modelSelected = selection.model;
+
+  // Reset de scroll cuando cambia el panel activo
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0 });
+    }
+  }, [activePanel]);
 
   // --- Filtrado de resultados ---
   const filteredResults = useMemo(() => {
@@ -110,7 +120,6 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
           setMissingBrands((prev) => {
             if (prev.includes(search)) return prev;
             
-            // Inyectamos el token aquí
             trackMissingBrand(search, token).then(success => {
               console.log(`🌎 API Tracking Marca [${search}]:`, success ? "✅ OK" : "❌ FALLÓ");
             });
@@ -123,7 +132,6 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
             const exists = prev.some(m => m.brand === brandSelected && m.model === search);
             if (exists) return prev;
             
-            // Inyectamos el token aquí
             trackMissingModel(brandSelected, search, token).then(success => {
               console.log(`🌎 API Tracking Modelo [${search}]:`, success ? "✅ OK" : "❌ FALLÓ");
             });
@@ -137,7 +145,6 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
     }, 1500);
 
     return () => clearTimeout(handler);
-    // Agregamos 'token' a las dependencias para que el efecto use el más reciente
   }, [search, filteredResults.length, activePanel, brandSelected, setMissingBrands, setMissingModels, token]);
 
   return (
@@ -226,11 +233,13 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
               </h3>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+            <div 
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto p-6 no-scrollbar"
+            >
               <div className="relative mb-6">
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-[#B7B7B7] w-5 h-5" />
                 <input
-                 // autoFocus
                   placeholder={`Busca ${activePanel === "brand" ? "la marca" : "el modelo"}...`}
                   className="w-full bg-white rounded-[14px] py-5 pl-16 pr-14 font-semibold text-slate-800 outline-none border border-[#B7B7B7] focus:ring-1 focus:ring-[#B7B7B7] transition-all placeholder:text-[#B7B7B7]"
                   value={search}
