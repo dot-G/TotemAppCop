@@ -39,19 +39,19 @@ export default function Payment() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#f4f7f9] font-sans items-center justify-start pt-12 p-0 overflow-y-auto no-scrollbar">
+    <div className="flex flex-col h-full bg-[#f4f7f9] font-sans items-center justify-start p-0 overflow-y-auto no-scrollbar">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md space-y-2"
       >
         {/* --- ÁREA DE CAPTURA --- */}
-        <div ref={captureContainerRef} className="p-6 bg-[#f4f7f9]">
+        <div ref={captureContainerRef} className="p-3 bg-[#f4f7f9]">
           <div className="bg-white rounded-[14px] shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col border border-slate-100">
             
             {/* Header: Referencia */}
-            <div className="pt-6 pb-8 text-center">
-              <h2 className="text-[22px] font-semibold text-slate-900 tracking-tight">
+            <div className="pt-3 pb-3 text-center">
+              <h2 className="text-[16px] font-semibold text-slate-900 tracking-tight">
                 Referencia:{" "}
                 <span className="text-[#757575] uppercase">{reference}</span>
               </h2>
@@ -86,10 +86,10 @@ export default function Payment() {
 </div>
 
             {/* Mensaje de Ayuda */}
-            <div className="p-8 bg-slate-50/50 border-t border-dashed border-slate-200">
+            <div className="p-4 bg-slate-50/50 border-t border-dashed border-slate-200">
               <div className="flex gap-4 items-start">
                 <AlertTriangle className="text-emerald-500 w-6 h-6 shrink-0 mt-0.5 stroke-[2.5]" />
-                <p className="text-black text-[14px] leading-tight font-normal">
+                <p className="text-black text-[13px] leading-tight font-normal">
                   Acérquese a la caja de pago más cercana con el cupón para iniciar el proceso de producción.
                 </p>
               </div>
@@ -98,7 +98,7 @@ export default function Payment() {
         </div>
 
         {/* BOTÓN DE DESCARGA */}
-        <div className="px-6 pt-4 pb-10">
+        <div className="px-3 pt-4 pb-4">
           <button
             onClick={downloadCouponJpg}
             disabled={isGenerating}

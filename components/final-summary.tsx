@@ -83,14 +83,14 @@ export default function FinalSummary() {
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] font-sans overflow-hidden">
       
-      <main className={`flex-1 p-4 space-y-6 overflow-y-auto no-scrollbar transition-all duration-700 ${orderStatus !== 'completed' ? 'opacity-0 blur-lg scale-95' : 'opacity-100 blur-0 scale-100'}`}>
+      <div className={`flex-1 p-3 space-y-4 overflow-y-auto no-scrollbar transition-all duration-700 ${orderStatus !== 'completed' ? 'opacity-0 blur-lg scale-95' : 'opacity-100 blur-0 scale-100'}`}>
         
         {/* TARJETA DE RESUMEN TIPO TICKET */}
         <div className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-xl shadow-slate-200/50">
           
           {/* Header de Referencia */}
-          <div className="p-6 text-center border-b border-dashed border-slate-100 relative">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+          <div className="p-3 text-center border-b border-dashed border-slate-100 relative">
+            <h2 className="text-[16px] font-semibold text-slate-900 tracking-tight">
               Referencia: <span className="text-[#6b21a8] uppercase">{reference}</span>
             </h2>
             <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-[#f8fafc] rounded-full border border-slate-100" />
@@ -98,10 +98,10 @@ export default function FinalSummary() {
           </div>
 
           {/* Listado de Items */}
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-3">
             {summaryItems.map((item, i) => (
               <div key={i} className="flex gap-4 items-center">
-                <div className="w-16 h-16 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden shrink-0 shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-[8px] border border-slate-100 overflow-hidden shrink-0 shadow-sm">
                   <img 
                     src={item.preview || ""} 
                     className="w-full h-full object-cover" 
@@ -109,7 +109,7 @@ export default function FinalSummary() {
                   />
                 </div>
                 <div className="flex-1">
-                  <div className="flex justify-between font-semibold text-slate-900 text-base">
+                  <div className="flex justify-between font-semibold text-slate-900 text-[15px]">
                     <h4 className="tracking-tighter">{item.title}</h4>
                     <span>${item.price}</span>
                   </div>
@@ -121,18 +121,17 @@ export default function FinalSummary() {
 
           {/* Banner de Tiempo de Espera */}
           <div className="mx-6 p-2 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
                 <Clock className="w-5 h-5 text-emerald-500" />
-             </div>
+           
              <p className="text-[13px] font-semibold text-emerald-700 leading-tight">
                 Tu pedido estará listo en 30 min.
              </p>
           </div>
 
           {/* Footer del Ticket: Total */}
-          <div className="p-6 mt-4 bg-slate-50/50 border-t border-dashed border-slate-100 flex justify-between items-center">
-            <span className="text-xl font-semibold text-slate-900">Total a pagar</span>
-            <span className="text-4xl font-semibold text-[#6b21a8] tracking-tighter">${totalPrice}</span>
+          <div className="px-6 py-3 mt-4 bg-slate-50/50 border-t border-dashed border-slate-100 flex justify-between items-center">
+            <span className="text-[16px] font-semibold text-slate-900">Total a pagar</span>
+            <span className="text-2xl font-semibold text-[#6b21a8]">${totalPrice}</span>
           </div>
         </div>
 
@@ -142,7 +141,7 @@ export default function FinalSummary() {
         >
           Generar Cupón de pago <ChevronRight size={24} />
         </Button>
-      </main>
+      </div>
 
       {/* MODAL DE PROCESAMIENTO */}
       <AnimatePresence>
