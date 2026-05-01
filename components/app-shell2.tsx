@@ -68,7 +68,7 @@ interface AppShell2Props {
   initialCases?: CaseCut[];
   initialCatalog?: CatalogOffering[];
   token?: string;
-  storeCode?: string | null; // Prop recibida desde el Server Component
+  storeCode?: string | null;
 }
 
 export function AppShell2({ 
@@ -81,7 +81,6 @@ export function AppShell2({
   token,
   storeCode
 }: AppShell2Props) {
-  // Extraemos las utilidades de nuestro hook personalizado
   const { 
     currentStep, 
     isHydrated, 
@@ -93,16 +92,12 @@ export function AppShell2({
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // 1. Sincronización del Código de Tienda
-  // Se ejecuta apenas el componente cliente se monta y recibe la prop
   useEffect(() => {
     if (storeCode) {
       setStoreCode(storeCode);
-      console.log("🏪 Tienda identificada y persistida:", storeCode);
     }
   }, [storeCode, setStoreCode]);
 
-  // 2. Sincronización de caché global
   useMemo(() => {
     if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
     if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
@@ -146,7 +141,6 @@ export function AppShell2({
     }
   };
 
-  // Evitamos flashes de contenido antes de que Jotai cargue el localStorage
   if (!isHydrated) return null;
 
   const isOnboarding = currentStep === "onboarding";
@@ -155,9 +149,13 @@ export function AppShell2({
   const showSubSteps = ["mica-selector", "case-selector", "image-selector"].includes(currentStep);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex justify-center overflow-hidden font-sans">
-      <div className="w-full max-w-[1080px] h-[100dvh] relative overflow-hidden shadow-2xl flex flex-col">
-        
+   <div className="w-full h-[100dvh] bg-[#0f172a] flex justify-center items-center overflow-hidden font-sans">
+  <div className="
+    relative h-full w-full 
+    /* En monitores horizontales forzamos proporción, en tu monitor vertical será 100% */
+    aspect-[9/16] md:w-auto max-w-full
+    bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden"
+  >   
         <AnimatePresence mode="wait">
           {!isOnboarding && (
             <motion.header
@@ -179,7 +177,7 @@ export function AppShell2({
                   currentStepNumber={progress.current}
                   totalSteps={progress.total}
                   title={STEP_CONFIG[currentStep]?.title || ""}
-                  subtitle={`Siguiente: ${STEP_NAMES[progress.next] || "Finalizar"}`}
+                  subtitle={`Sig: ${STEP_NAMES[progress.next] || "Fin"}`}
                   backTo={progress.previous}
                   onExitClick={() => setIsExitModalOpen(true)}
                 />
@@ -201,13 +199,13 @@ export function AppShell2({
           )}
         </AnimatePresence>
 
-        <main className="flex-1 relative overflow-hidden bg-[#f8fafc]">
+        <main className="flex-1 relative overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={currentStep}
-              initial={{ opacity: 0, x: isOnboarding ? 0 : 30 }}
+              initial={{ opacity: 0, x: isOnboarding ? 0 : 20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: isOnboarding ? 0 : -30 }}
+              exit={{ opacity: 0, x: isOnboarding ? 0 : -20 }}
               transition={{ 
                 type: "spring", 
                 stiffness: 400, 

@@ -70,7 +70,7 @@ export function SummaryCard({
               </div>
             )}
 
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="relative w-full rounded-[25px] h-full flex items-center justify-center">
               <Image 
                 src={url} 
                 alt="Final Preview"
