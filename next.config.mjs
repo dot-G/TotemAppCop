@@ -10,7 +10,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'pxp.srv01.elcanoso.xyz',
+        hostname: 'admin3pa.ai-labs.com.mx',
         pathname: '/assets/**',
       },
     ],
