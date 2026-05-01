@@ -86,7 +86,7 @@ export default function Payment() {
 </div>
 
             {/* Mensaje de Ayuda */}
-            <div className="p-6 bg-slate-50/50 border-t border-dashed border-slate-200">
+            <div className="p-4 bg-slate-50/50 border-t border-dashed border-slate-200">
               <div className="flex gap-4 items-start">
                 <AlertTriangle className="text-emerald-500 w-6 h-6 shrink-0 mt-0.5 stroke-[2.5]" />
                 <p className="text-black text-[13px] leading-tight font-normal">
@@ -98,7 +98,7 @@ export default function Payment() {
         </div>
 
         {/* BOTÓN DE DESCARGA */}
-        <div className="px-6 pt-4 pb-10">
+        <div className="px-3 pt-4 pb-4">
           <button
             onClick={downloadCouponJpg}
             disabled={isGenerating}
