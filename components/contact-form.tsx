@@ -11,7 +11,7 @@ import { createOrder } from "@/services/order";
 import { createOrderImage } from "@/services/order-image";
 
 interface ContactFormProps {
-  token: string | null; // El componente ahora recibe el token
+  token: string | null;
 }
 
 export default function ContactForm({ token }: ContactFormProps) {
@@ -35,15 +35,32 @@ export default function ContactForm({ token }: ContactFormProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
+    
+    let finalValue = value;
+
+    if (id === "phone") {
+      // 1. Verificamos si empieza con +
+      const startsWithPlus = value.startsWith("+");
+      // 2. Extraemos solo los números
+      const numbers = value.replace(/\D/g, "");
+      
+      // 3. Recomponemos: solo agregamos el + si el usuario lo escribió originalmente
+      // Limitamos a 13 caracteres si hay +, o 12 si son solo números
+      if (startsWithPlus) {
+        finalValue = `+${numbers}`.slice(0, 14);
+      } else {
+        finalValue = numbers.slice(0, 12);
+      }
+    }
+
     updateSelection({
       contact: {
         ...selection.contact,
-        [id]: id === "phone" ? value.replace(/\D/g, "").slice(0, 10) : value,
+        [id]: finalValue,
       },
     });
   };
 
-  // Helper actualizado para recibir y pasar el token
   const uploadBase64OrBlob = async (url: string, prefix: string, authToken: string | null) => {
     const res = await fetch(url);
     const blob = await res.blob();
@@ -54,9 +71,7 @@ export default function ContactForm({ token }: ContactFormProps) {
       { type: blob.type }
     );
 
-    // Pasamos el token al servicio de Axios que configuramos antes
     const uploadedFile = await uploadImageToDirectus(file, authToken);
-
     if (!uploadedFile?.id) throw new Error("Error al obtener ID de archivo");
     return uploadedFile.id;
   };
@@ -77,34 +92,21 @@ export default function ContactForm({ token }: ContactFormProps) {
       let finalPersonalImageId = null;
       let finalPreviewImageId = null;
 
-      // 1. PROCESAMIENTO DE PREVIEW
       const previewToUpload = selection.imageSourceType === "brand"
         ? selection.capturedBrandPreview
         : selection.capturedCustomPreview;
 
       if (previewToUpload) {
-        try {
-          finalPreviewImageId = await uploadBase64OrBlob(previewToUpload, "preview-capture", token);
-        } catch (err) {
-          console.error("Error subiendo preview:", err);
-          throw new Error("Error al procesar la vista previa del diseño.");
-        }
+        finalPreviewImageId = await uploadBase64OrBlob(previewToUpload, "preview-capture", token);
       }
 
-      // 2. PROCESAMIENTO DE IMAGEN ORIGINAL
       if (selection.imageSourceType === "custom" && selection.imageCustomUrl) {
-        try {
-          finalPersonalImageId = await uploadBase64OrBlob(selection.imageCustomUrl, "custom-original", token);
-          if (selection.imageCustomUrl.startsWith("blob:")) {
-            URL.revokeObjectURL(selection.imageCustomUrl);
-          }
-        } catch (uploadErr) {
-          console.error("Error subiendo original:", uploadErr);
-          throw new Error("No se pudo procesar la imagen original.");
+        finalPersonalImageId = await uploadBase64OrBlob(selection.imageCustomUrl, "custom-original", token);
+        if (selection.imageCustomUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(selection.imageCustomUrl);
         }
       }
 
-      // 3. CREACIÓN DE LA ORDEN (Pasando el token a los servicios de orden)
       const hasImage = selection.imageSourceType !== null || selection.config?.includes_uv_print;
       let orderResponse;
 
@@ -139,7 +141,7 @@ export default function ContactForm({ token }: ContactFormProps) {
             : selection.imageCustomConfig.rotation,
           final_combo_price: totalSelectionPrice,
           store_code: storeCode,
-        }, token); // Asegúrate que createOrderImage acepte el token como 2do param
+        }, token);
       } else {
         orderResponse = await createOrder({
           brand: selection.brandId || "",
@@ -159,7 +161,7 @@ export default function ContactForm({ token }: ContactFormProps) {
           colour: selection.colourId,
           final_combo_price: totalSelectionPrice,
           store_code: storeCode,
-        }, token); // Asegúrate que createOrder acepte el token como 2do param
+        }, token);
       }
 
       if (orderResponse?.data) {
@@ -179,7 +181,6 @@ export default function ContactForm({ token }: ContactFormProps) {
       setIsSubmitting(false);
       window.dispatchEvent(new CustomEvent("form-submitting", { detail: false }));
     }
-    // Añadimos token a las dependencias del useCallback
   }, [selection, totalSelectionPrice, setStep, isSubmitting, updateSelection, token, storeCode]);
 
   useEffect(() => {
@@ -190,7 +191,6 @@ export default function ContactForm({ token }: ContactFormProps) {
 
   if (!isHydrated) return null;
 
-  // ... (Resto del renderizado sin cambios)
   if (isSubmitting) {
     return (
       <div className="flex flex-col h-full items-center justify-center p-10 bg-white">
@@ -226,7 +226,7 @@ export default function ContactForm({ token }: ContactFormProps) {
 
           <div className="space-y-1">
             <Label className="text-[14px] font-normal text-slate-700 ml-1">WhatsApp / Celular *</Label>
-            <Input id="phone" type="tel" placeholder="Ej: 3764000000" value={selection.contact.phone} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <Input id="phone" type="text" placeholder="Ej: +5493764... o 3764..." value={selection.contact.phone} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
           </div>
 
           <AnimatePresence>
