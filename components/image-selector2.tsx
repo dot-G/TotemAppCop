@@ -23,7 +23,7 @@ import { getImageUrl } from "@/lib/image-directus";
 import {
   PhoneCaseEditor,
   EditorTransform,
-} from "./image-selector/phone-case-editor";
+} from "./image-selector/phone-case-editor2";
 
 const resizeTo600 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {

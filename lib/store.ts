@@ -18,6 +18,17 @@ export type StepType =
 export type ImageSourceType = "brand" | "custom" | null;
 export type ImageSize = "Pequeña" | "Mediana" | "Grande";
 
+// Estilos de cámara permitidos (como strings para el store)
+export type CameraCutoutStyle = 
+  | "horizontal-top" 
+  | "square-left" 
+  | "rectangular-left" 
+  | "vertical-pill" 
+  | "pill-left" 
+  | "circle-large" 
+  | "circle-small" 
+  | "square-center";
+
 export interface EditorTransform {
   x: number;
   y: number;
@@ -85,6 +96,11 @@ export interface SelectionState {
   capturedCustomPreview: string | null;
   brandTransform: EditorTransform | null;
   customTransform: EditorTransform | null;
+  
+  // Nuevos campos de cámara (persisten como string)
+  brandCameraStyle: CameraCutoutStyle;
+  customCameraStyle: CameraCutoutStyle;
+
   imageSourceType: ImageSourceType;
   catalogId: string | null;
   catalog_image: string | null;
@@ -107,6 +123,7 @@ export interface SelectionState {
   orderPrice: number | null;
 }
 
+// Configuración de almacenamiento persistente
 const storage = createJSONStorage<any>(() =>
   typeof window !== "undefined" ? localStorage : ({} as Storage)
 );
@@ -154,6 +171,11 @@ export const initialSelection: SelectionState = {
   capturedCustomPreview: null,
   brandTransform: null,
   customTransform: null,
+
+  // Inicialización de estilos de cámara por defecto
+  brandCameraStyle: "square-left",
+  customCameraStyle: "square-left",
+
   imageBrandConfig: { rotation: 0, size: "Grande" },
   imageBrandPrice: 0,
   acceptedTerms: false,
@@ -192,10 +214,6 @@ export const missingModelsAtom = atomWithStorage<MissingModelEntry[]>(
   storage
 );
 
-/**
- * NUEVO: Átomo para el código de la tienda.
- * Persistente para identificar el punto de venta durante todo el flujo.
- */
 export const storeCodeAtom = atomWithStorage<string | null>(
   "store_code",
   null,

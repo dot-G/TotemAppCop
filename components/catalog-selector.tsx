@@ -14,7 +14,7 @@ import {
 import { useApp } from "@/hooks/use-app";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAtom } from "jotai";
-import { activeImageTabAtom } from "@/lib/store";
+import { activeImageTabAtom, CameraCutoutStyle } from "@/lib/store";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
@@ -24,7 +24,7 @@ import { getImageUrl } from "@/lib/image-directus";
 import {
   PhoneCaseEditor,
   EditorTransform,
-} from "./image-selector/phone-case-editor";
+} from "./image-selector/phone-case-editor2";
 
 const resizeTo600 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -66,7 +66,6 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Usamos los datos inyectados directamente
   const offerings = initialCatalog;
   
   const [selectedBrand, setSelectedBrand] = useState<CatalogOffering | null>(null);
@@ -102,7 +101,8 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
     newColorHex: string,
     transform: EditorTransform,
     caseId: string,
-    colourId: string
+    colourId: string,
+    cameraStyle: CameraCutoutStyle // Recibimos el estilo desde el editor
   ) => {
     const colorData = selection.availableColors.find((c) => c.caseId === caseId);
 
@@ -113,7 +113,6 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
     const currentTotalUv = selection.config?.prices?.uv || 0;
     const oldBrandPrice = selection.imageBrandPrice || 0;
     const baseUvWithoutLicense = currentTotalUv - oldBrandPrice;
-    
     const finalUvPrice = baseUvWithoutLicense + newBrandPrice;
 
     const baseUpdates = {
@@ -140,6 +139,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
         selectedBrandTag: editorTarget.tag || selection.selectedBrandTag,
         capturedBrandPreview: capturedImage,
         brandTransform: transform,
+        brandCameraStyle: cameraStyle, // Guardamos estilo de marca
       });
     } else {
       updateSelection({
@@ -147,6 +147,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
         imageCustomUrl: editorTarget?.url || selection.imageCustomUrl,
         capturedCustomPreview: capturedImage,
         customTransform: transform,
+        customCameraStyle: cameraStyle, // Guardamos estilo personalizado
       });
     }
 
@@ -162,6 +163,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
     const previewToDisplay = isBrand
       ? selection.capturedBrandPreview
       : selection.capturedCustomPreview;
+    
     const sourceUrl = isBrand
       ? selection.catalog_image
         ? getImageUrl(selection.catalog_image)
@@ -171,7 +173,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
     return (
       <div className="bg-white p-4">
         <div className="flex items-start gap-6">
-          <div className="w-1/2 flex justify-center items-center bg-slate-50 overflow-hidden">
+          <div className="w-1/2 flex justify-center items-center bg-slate-50 overflow-hidden rounded-xl">
             {previewToDisplay ? (
               <img
                 src={previewToDisplay}
@@ -213,21 +215,16 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                 const currentLicense = selection.imageBrandPrice || 0;
 
                 if (isBrand) {
-                  const resetConfig = {
-                    ...selection.config,
-                    prices: { 
-                      ...selection.config?.prices, 
-                      uv: currentUv - currentLicense 
-                    }
-                  };
-
                   updateSelection({
                     catalog_image: null,
                     capturedBrandPreview: null,
                     brandTransform: null,
                     acceptedTerms: false,
                     imageBrandPrice: 0,
-                    config: resetConfig
+                    config: {
+                      ...selection.config,
+                      prices: { ...selection.config?.prices, uv: currentUv - currentLicense }
+                    }
                   });
                 } else {
                   updateSelection({
@@ -245,25 +242,18 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                onClick={() =>
-                  updateSelection({ acceptedTerms: !selection.acceptedTerms })
-                }
+                onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
                 className={`mt-1 p-3 rounded-xl border transition-all cursor-pointer flex gap-2 items-start ${
-                  selection.acceptedTerms
-                    ? "bg-[#722296]/5 border-[#722296]/20"
-                    : "bg-white border-slate-100"
+                  selection.acceptedTerms ? "bg-[#722296]/5 border-[#722296]/20" : "bg-white border-slate-100"
                 }`}
               >
-                <div
-                  className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                    selection.acceptedTerms
-                      ? "bg-[#722296] border-[#722296]"
-                      : "bg-white border-slate-300"
+                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                    selection.acceptedTerms ? "bg-[#722296] border-[#722296]" : "bg-white border-slate-300"
                   }`}
                 >
                   {selection.acceptedTerms && <Check className="w-3 text-white" />}
                 </div>
-                <p className="text-[14px] leading-tight text-slate-500 font-normal select-none">
+                <p className="text-[14px] leading-tight text-slate-500 font-normal">
                   Acepto los <span className="font-normal text-slate-800">términos de licencia</span>.
                 </p>
               </motion.div>
@@ -276,6 +266,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
 
   return (
     <div className="flex pt-2 flex-col h-full overflow-hidden">
+      {/* Tabs */}
       <div className="shrink-0 border-b flex z-10">
         {[
           { id: "brand", label: "Licencias" },
@@ -290,85 +281,56 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
           >
             {t.label}
             {activeTab === t.id && (
-              <motion.div
-                layoutId="tabLine"
-                className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#722296] mx-8"
-              />
+              <motion.div layoutId="tabLine" className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#722296] mx-8" />
             )}
           </button>
         ))}
       </div>
 
-      <main className="flex-1 overflow-y-auto pb-32 no-scrollbar relative">
-        <AnimatePresence mode="popLayout" initial={false}>
+      <main className="flex-1 overflow-y-auto pb-32 no-scrollbar">
+        <AnimatePresence mode="wait">
           <motion.div 
             key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
             className="w-full"
           >
             {activeTab === "brand" ? (
               <div key="brand-content">
-                {selection.catalog_image ? (
-                  renderPreviewState("brand")
-                ) : (
+                {selection.catalog_image ? renderPreviewState("brand") : (
                   <div className="grid gap-3 p-6">
-                    {offerings.length === 0 ? (
-                       <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                          <p className="text-sm">No hay catálogos disponibles</p>
-                       </div>
-                    ) : (
-                      offerings.map((brand) => (
-                        <button
-                          key={brand.id}
-                          onClick={() => {
-                            setSelectedBrand(brand);
-                            setFlowView("gallery");
-                          }}
-                          className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98] transition-transform"
-                        >
-                          <div className="relative h-8 w-24">
-                            <Image
-                              src={getImageUrl(brand.icon || "")}
-                              alt={brand.name}
-                              fill
-                              className="object-contain grayscale opacity-50"
-                              unoptimized
-                            />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[14px] font-semibold uppercase text-slate-600">
-                              + {brand.price}
-                            </span>
-                            <ChevronIcon size={18} className="text-slate-300" />
-                          </div>
-                        </button>
-                      ))
-                    )}
+                    {offerings.map((brand) => (
+                      <button
+                        key={brand.id}
+                        onClick={() => { setSelectedBrand(brand); setFlowView("gallery"); }}
+                        className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98]"
+                      >
+                        <div className="relative h-8 w-24">
+                          <Image src={getImageUrl(brand.icon || "")} alt={brand.name} fill className="object-contain grayscale opacity-50" unoptimized />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[14px] font-semibold uppercase text-slate-600">+ {brand.price}</span>
+                          <ChevronIcon size={18} className="text-slate-300" />
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
             ) : (
               <div key="custom-content">
-                {selection.imageCustomUrl ? (
-                  renderPreviewState("custom")
-                ) : (
+                {selection.imageCustomUrl ? renderPreviewState("custom") : (
                   <div className="flex flex-col gap-6 p-6">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full aspect-video rounded-[14px] bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400 hover:border-[#722296]/30 transition-colors"
+                      className="w-full aspect-video rounded-[14px] bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400"
                     >
                       <ImageIcon size={32} />
-                      <span className="text-[14px] font-semibold text-center">
-                        Subir Foto o Imagen
-                      </span>
+                      <span className="text-[14px] font-semibold">Subir Foto o Imagen</span>
                     </button>
                     <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
+                      type="file" ref={fileInputRef} className="hidden" accept="image/*"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -387,55 +349,51 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
         </AnimatePresence>
       </main>
 
-      {mounted &&
-        createPortal(
-          <>
-            <AnimatePresence>
-              {flowView === "gallery" && (
-                <motion.div
-                  initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-                  className="fixed inset-0 bg-white z-[100] flex flex-col"
-                >
-                  <div className="p-6 border-b flex items-center gap-4">
-                    <button onClick={() => setFlowView("idle")} className="p-2">
-                      <ArrowLeft />
+      {mounted && createPortal(
+        <>
+          <AnimatePresence>
+            {flowView === "gallery" && (
+              <motion.div
+                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+                className="fixed inset-0 bg-white z-[100] flex flex-col"
+              >
+                <div className="p-6 border-b flex items-center gap-4">
+                  <button onClick={() => setFlowView("idle")} className="p-2"><ArrowLeft /></button>
+                  <h2 className="font-black uppercase text-xs tracking-widest text-slate-400">Colección {selectedBrand?.name}</h2>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3">
+                  {currentGalleryImages.map((img: any) => (
+                    <button
+                      key={img.id}
+                      onClick={() => {
+                        setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
+                        setIsEditorOpen(true);
+                      }}
+                      className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
+                    >
+                      <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
                     </button>
-                    <h2 className="font-black uppercase text-xs tracking-widest text-slate-400">
-                      Colección {selectedBrand?.name}
-                    </h2>
-                  </div>
-                  <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3">
-                    {currentGalleryImages.map((img: any) => (
-                      <button
-                        key={img.id}
-                        onClick={() => {
-                          setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
-                          setIsEditorOpen(true);
-                        }}
-                        className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-sm active:scale-95 transition-transform bg-slate-50 border border-slate-100"
-                      >
-                        <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <PhoneCaseEditor
-              image={editorTarget?.url || ""}
-              isOpen={isEditorOpen}
-              onClose={() => setIsEditorOpen(false)}
-              onAccept={handleEditorAccept}
-              availableColors={selection.availableColors}
-              initialCaseId={selection.caseId}
-              initialTransform={editorTarget?.type === "brand" ? selection.brandTransform : selection.customTransform}
-              camera={(selection.model?.toLowerCase().includes("iphone") ? "apple" : "apple") as any}
-              allowClose={true}
-            />
-          </>,
-          document.body
-        )}
+          <PhoneCaseEditor
+            image={editorTarget?.url || ""}
+            isOpen={isEditorOpen}
+            onClose={() => setIsEditorOpen(false)}
+            onAccept={handleEditorAccept}
+            availableColors={selection.availableColors}
+            initialCaseId={selection.caseId}
+            initialTransform={editorTarget?.type === "brand" ? selection.brandTransform : selection.customTransform}
+            // PASAMOS EL ESTADO DE CÁMARA CORRESPONDIENTE DESDE EL STORE
+            camera={editorTarget?.type === "brand" ? selection.brandCameraStyle : selection.customCameraStyle}
+            allowClose={true}
+          />
+        </>,
+        document.body
+      )}
     </div>
   );
 }
