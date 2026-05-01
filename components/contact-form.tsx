@@ -49,7 +49,7 @@ export default function ContactForm({ token }: ContactFormProps) {
       if (startsWithPlus) {
         finalValue = `+${numbers}`.slice(0, 14);
       } else {
-        finalValue = numbers.slice(0, 12);
+        finalValue = numbers.slice(0, 13);
       }
     }
 
@@ -226,7 +226,7 @@ export default function ContactForm({ token }: ContactFormProps) {
 
           <div className="space-y-1">
             <Label className="text-[14px] font-normal text-slate-700 ml-1">WhatsApp / Celular *</Label>
-            <Input id="phone" type="text" placeholder="Ej: +5493764... o 3764..." value={selection.contact.phone} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <Input id="phone" type="text" placeholder="Ej: +5493764..." value={selection.contact.phone} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
           </div>
 
           <AnimatePresence>
