@@ -26,6 +26,14 @@ import {
   EditorTransform,
 } from "./image-selector/phone-case-editor2";
 
+// Estado inicial para resetear transformaciones
+const DEFAULT_TRANSFORM: EditorTransform = {
+  x: 0,
+  y: 0,
+  scale: 1,
+  rotation: 0,
+};
+
 const resizeTo600 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -102,7 +110,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
     transform: EditorTransform,
     caseId: string,
     colourId: string,
-    cameraStyle: CameraCutoutStyle // Recibimos el estilo desde el editor
+    cameraStyle: CameraCutoutStyle
   ) => {
     const colorData = selection.availableColors.find((c) => c.caseId === caseId);
 
@@ -139,7 +147,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
         selectedBrandTag: editorTarget.tag || selection.selectedBrandTag,
         capturedBrandPreview: capturedImage,
         brandTransform: transform,
-        brandCameraStyle: cameraStyle, // Guardamos estilo de marca
+        brandCameraStyle: cameraStyle,
       });
     } else {
       updateSelection({
@@ -147,15 +155,13 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
         imageCustomUrl: editorTarget?.url || selection.imageCustomUrl,
         capturedCustomPreview: capturedImage,
         customTransform: transform,
-        customCameraStyle: cameraStyle, // Guardamos estilo personalizado
+        customCameraStyle: cameraStyle,
       });
     }
 
     setIsEditorOpen(false);
     setFlowView("idle");
   };
-
-  if (!isHydrated || !mounted) return null;
 
   const renderPreviewState = (type: "brand" | "custom") => {
     const isBrand = type === "brand";
@@ -188,82 +194,79 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
           </div>
 
           <div className="w-1/2 flex flex-col justify-center gap-3">
-  <div className="mt-8 mb-1 text-left">
-    <p className="text-[20px] font-semibold text-black">
-      {title}
-    </p>
-  </div>
+            <div className="mt-8 mb-1 text-left">
+              <p className="text-[20px] font-semibold text-black">
+                {title}
+              </p>
+            </div>
 
-  {/* Contenedor en 2 columnas para los botones */}
-  <div className="grid grid-cols-2 gap-2">
-    <Button
-      variant="outline"
-      className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold px-2"
-      onClick={() => {
-        if (sourceUrl) {
-          setEditorTarget({ url: sourceUrl, type });
-          setIsEditorOpen(true);
-        }
-      }}
-    >
-      <Pencil className="w-3.5 h-3.5" /> Editar
-    </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold px-2"
+                onClick={() => {
+                  if (sourceUrl) {
+                    setEditorTarget({ url: sourceUrl, type });
+                    setIsEditorOpen(true);
+                  }
+                }}
+              >
+                <Pencil className="w-3.5 h-3.5" /> Editar
+              </Button>
 
-    <Button
-      variant="outline"
-      className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold text-red-500 px-2"
-      onClick={() => {
-        const currentUv = selection.config?.prices?.uv || 0;
-        const currentLicense = selection.imageBrandPrice || 0;
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold text-red-500 px-2"
+                onClick={() => {
+                  const currentUv = selection.config?.prices?.uv || 0;
+                  const currentLicense = selection.imageBrandPrice || 0;
 
-        if (isBrand) {
-          updateSelection({
-            catalog_image: null,
-            capturedBrandPreview: null,
-            brandTransform: null,
-            acceptedTerms: false,
-            imageBrandPrice: 0,
-            config: {
-              ...selection.config,
-              prices: { ...selection.config?.prices, uv: currentUv - currentLicense }
-            }
-          });
-        } else {
-          updateSelection({
-            imageCustomUrl: null,
-            capturedCustomPreview: null,
-            customTransform: null,
-          });
-        }
-      }}
-    >
-      <Trash2 className="w-3.5 h-3.5" /> Borrar
-    </Button>
-  </div>
+                  if (isBrand) {
+                    updateSelection({
+                      catalog_image: null,
+                      capturedBrandPreview: null,
+                      brandTransform: DEFAULT_TRANSFORM, // Reseteo de transformación
+                      acceptedTerms: false,
+                      imageBrandPrice: 0,
+                      config: {
+                        ...selection.config,
+                        prices: { ...selection.config?.prices, uv: currentUv - currentLicense }
+                      }
+                    });
+                  } else {
+                    updateSelection({
+                      imageCustomUrl: null,
+                      capturedCustomPreview: null,
+                      customTransform: DEFAULT_TRANSFORM, // Reseteo de transformación
+                    });
+                  }
+                }}
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Borrar
+              </Button>
+            </div>
 
-  {/* Los términos se mantienen abajo ocupando el ancho completo para legibilidad */}
-  {isBrand && (
-    <motion.div
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
-      onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
-      // Quitamos el fondo dinámico y dejamos el contenedor transparente o neutro
-      className="mt-1 transition-all cursor-pointer flex gap-2 items-start py-2"
-    >
-      <div className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-          selection.acceptedTerms 
-            ? "bg-[#722296] border-[#722296]" 
-            : "bg-white border-slate-300"
-        }`}
-      >
-        {selection.acceptedTerms && <Check className="w-3 text-white" />}
-      </div>
-      <p className="text-[12px] leading-tight text-slate-500 font-normal">
-        Acepto los <span className="font-normal text-slate-800">términos de licencia</span>.
-      </p>
-    </motion.div>
-  )}
-</div>
+            {isBrand && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
+                className="mt-1 transition-all cursor-pointer flex gap-2 items-start py-2"
+              >
+                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                    selection.acceptedTerms 
+                      ? "bg-[#722296] border-[#722296]" 
+                      : "bg-white border-slate-300"
+                  }`}
+                >
+                  {selection.acceptedTerms && <Check className="w-3 text-white" />}
+                </div>
+                <p className="text-[12px] leading-tight text-slate-500 font-normal">
+                  Acepto los <span className="font-normal text-slate-800">términos de licencia</span>.
+                </p>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -271,7 +274,6 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Tabs */}
       <div className="shrink-0 border-b flex z-10">
         {[
           { id: "brand", label: "Licencias" },
@@ -392,7 +394,6 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
             availableColors={selection.availableColors}
             initialCaseId={selection.caseId}
             initialTransform={editorTarget?.type === "brand" ? selection.brandTransform : selection.customTransform}
-            // PASAMOS EL ESTADO DE CÁMARA CORRESPONDIENTE DESDE EL STORE
             camera={editorTarget?.type === "brand" ? selection.brandCameraStyle : selection.customCameraStyle}
             allowClose={true}
           />
