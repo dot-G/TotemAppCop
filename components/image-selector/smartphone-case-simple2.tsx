@@ -297,7 +297,7 @@ export function SmartphoneCaseSimple({
     }
   }, [caseImage, enableDrag, enablePinchZoom, enablePinchRotation, getMousePosition, offset, imageScale, imageRotation, getDistanceBetweenTouches, getAngleBetweenTouches])
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+const handleTouchMove = useCallback((e: React.TouchEvent) => {
   if (!caseImage) return;
 
   e.preventDefault();
@@ -312,40 +312,32 @@ export function SmartphoneCaseSimple({
       onImageScaleChange(newScale);
     }
     
-    // 2. Manejo de Rotación con corrección de "Rebote"
+    // 2. Manejo de Rotación (INFINITA Y FLUIDA)
     if (enablePinchRotation && onImageRotationChange) {
       const currentAngle = getAngleBetweenTouches(e.touches);
-      
-      // Calculamos la diferencia de ángulo entre el frame actual y el inicio del toque
       let angleDiff = currentAngle - pinchStartAngleRef.current;
 
-      // --- LÓGICA ANTI-REBOTE ---
-      // Si el salto es mayor a 180 grados, detectamos que cruzó la frontera de Atan2
-      // y corregimos la diferencia para que el giro sea continuo.
-      if (angleDiff > 180) {
-        angleDiff -= 360;
-      } else if (angleDiff < -180) {
-        angleDiff += 360;
-      }
+      // Anti-rebote: corregimos el salto de Atan2
+      if (angleDiff > 180) angleDiff -= 360;
+      else if (angleDiff < -180) angleDiff += 360;
 
-      // Sumamos la diferencia corregida a la rotación que ya tenía la imagen
-      let newRotation = pinchStartRotationRef.current + angleDiff;
-
-      // --- NORMALIZACIÓN (0 a 360) ---
-      // Esto asegura que el valor siempre sea positivo y no crezca hasta el infinito
-      newRotation = ((newRotation % 360) + 360) % 360;
+      // IMPORTANTE: No normalizamos aquí. Dejamos que el valor crezca o disminuya 
+      // para que el cálculo en el siguiente frame sea coherente.
+      const newRotation = pinchStartRotationRef.current + angleDiff;
 
       onImageRotationChange(newRotation);
     }
     return;
   }
 
-  // 3. Manejo de Drag (Movimiento)
+  // 3. Manejo de Drag
   if (isDragging && e.touches.length === 1) {
     const pos = getMousePosition(e);
     const dx = pos.x - dragStartRef.current.x;
     const dy = pos.y - dragStartRef.current.y;
 
+    // Aquí sí normalizamos para el cálculo matemático del offset, 
+    // pero es una variable local, no afecta al estado global.
     const normalizedRotation = ((imageRotation % 360) + 360) % 360;
     const rad = (normalizedRotation * Math.PI) / 180;
     const cos = Math.cos(rad);
@@ -372,6 +364,7 @@ export function SmartphoneCaseSimple({
   setOffset, 
   imageRotation
 ]);
+
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault()
     if (e.touches.length === 0) {
