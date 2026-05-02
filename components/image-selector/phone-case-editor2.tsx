@@ -7,7 +7,9 @@ import { ColorSelectorVertical } from "../shared/color-selector-vertical";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, X } from "lucide-react"; 
-import { toPng } from "html-to-image";
+// Cambiamos toPng por toBlob y toJpeg para máxima compatibilidad
+import { toBlob } from "html-to-image";
+import { set as setIDB } from "idb-keyval";
 
 export type CameraCutoutStyle =
   | "horizontal-top" | "square-left" | "rectangular-left"
@@ -70,12 +72,47 @@ export function PhoneCaseEditor({
   const handleAccept = useCallback(async () => {
     if (!smartphoneRef.current || !selectedCase) return;
     setIsCapturing(true);
+
     try {
-      const dataUrl = await toPng(smartphoneRef.current, { pixelRatio: 2, cacheBust: true });
-      onAccept(dataUrl, selectedCase.hex, { x: imageOffset.x, y: imageOffset.y, scale: imageScale[0], rotation: imageRotation }, selectedCase.caseId, selectedCase.colourId, currentCamera);
+      // 1. Generamos el BLOB (Binario) en lugar de un string Base64
+      // Usamos JPEG al 80% de calidad para optimizar RAM en iPhone
+      const blob = await toBlob(smartphoneRef.current, {
+        quality: 0.8,
+        pixelRatio: 2,
+        cacheBust: true,
+        backgroundColor: "#ffffff", 
+      });
+
+      if (!blob) throw new Error("Error generando el diseño");
+
+      // 2. Creamos una URL temporal para previsualización (es un string corto)
+      const previewUrl = URL.createObjectURL(blob);
+
+      // 3. Guardamos el binario en IndexedDB (No bloquea el localStorage)
+      const storageKey = `case-design-${Date.now()}`;
+      await setIDB(storageKey, blob);
+
+      // 4. Enviamos al componente padre
+      onAccept(
+        previewUrl, 
+        selectedCase.hex, 
+        { 
+          x: imageOffset.x, 
+          y: imageOffset.y, 
+          scale: imageScale[0], 
+          rotation: imageRotation 
+        }, 
+        selectedCase.caseId, 
+        selectedCase.colourId, 
+        currentCamera
+      );
+
     } catch (err) {
-      console.error(err);
-    } finally { setIsCapturing(false); }
+      console.error("Error en la captura:", err);
+      alert("No se pudo generar la imagen. Intenta de nuevo.");
+    } finally {
+      setIsCapturing(false);
+    }
   }, [onAccept, selectedCase, imageOffset, imageScale, imageRotation, currentCamera]);
 
   if (!isOpen) return null;
@@ -114,8 +151,7 @@ export function PhoneCaseEditor({
 
         <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
           
-          {/* PANEL DERECHO VERTICAL (Solo visible en pantallas >= 960px) */}
-          <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5  z-[130] border border-slate-100">
+          <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
             <div className="flex flex-col items-center gap-2">
               <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Color</span>
               <ColorSelectorVertical
@@ -149,7 +185,6 @@ export function PhoneCaseEditor({
             </div>
           </div>
 
-          {/* PANEL INFERIOR HORIZONTAL (Solo visible en pantallas < 960px) */}
           <div className="grid grid-cols-[7fr_3fr] items-center gap-3 min-[960px]:hidden">
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center justify-center w-full">

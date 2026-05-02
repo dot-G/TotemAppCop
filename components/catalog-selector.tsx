@@ -157,7 +157,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
     } else {
       updateSelection({
         ...baseUpdates,
-        imageCustomUrl: editorTarget?.url || selection.imageCustomUrl,
+        //imageCustomUrl: editorTarget?.url || selection.imageCustomUrl,
         capturedCustomPreview: capturedImage,
         customTransform: transform,
         customCameraStyle: cameraStyle,
