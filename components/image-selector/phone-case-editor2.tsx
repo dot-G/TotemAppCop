@@ -115,7 +115,7 @@ export function PhoneCaseEditor({
         <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
           
           {/* PANEL DERECHO VERTICAL (Solo visible en pantallas >= 960px) */}
-          <div className="hidden min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5  z-[130] border border-slate-100">
+          <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5  z-[130] border border-slate-100">
             <div className="flex flex-col items-center gap-2">
               <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Color</span>
               <ColorSelectorVertical
