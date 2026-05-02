@@ -394,29 +394,35 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
       </div>
     </div>
 
-    {/* 2. EDITOR (Slide-in suave con Tailwind - Capa Superior) */}
+    {/* 2. EDITOR CON PROTECCIÓN DE TRANSFORMACIONES CRUZADAS */}
     <div 
       className={`fixed inset-0 z-[150] bg-white transition-transform duration-300 ease-in-out ${
         isEditorOpen ? "translate-x-0" : "translate-x-full"
       }`}
     >
-      {editorTarget && (
+      {isEditorOpen && editorTarget && (
         <PhoneCaseEditor
+          // La key fuerza a React a destruir y crear el editor al cambiar de imagen o tipo
+          key={`${editorTarget.type}-${editorTarget.url}`} 
           image={editorTarget.url}
           isOpen={isEditorOpen}
           onClose={() => setIsEditorOpen(false)}
           onAccept={handleEditorAccept}
           availableColors={selection.availableColors}
           initialCaseId={selection.caseId}
+          /* 
+             SOLUCIÓN: Solo cargamos la transformación guardada si existe una preview ya capturada.
+             Si no hay preview (es selección nueva), forzamos DEFAULT_TRANSFORM para no heredar basura.
+          */
           initialTransform={
             editorTarget.type === "brand" 
-              ? selection.brandTransform 
-              : selection.customTransform
+              ? (selection.capturedBrandPreview ? selection.brandTransform : DEFAULT_TRANSFORM) 
+              : (selection.capturedCustomPreview ? selection.customTransform : DEFAULT_TRANSFORM)
           }
           camera={
             editorTarget.type === "brand" 
-              ? selection.brandCameraStyle 
-              : selection.customCameraStyle
+              ? (selection.brandCameraStyle || "normal") 
+              : (selection.customCameraStyle || "normal")
           }
           allowClose={true}
         />
