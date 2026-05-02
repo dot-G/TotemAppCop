@@ -7,8 +7,7 @@ import { ColorSelectorVertical } from "../shared/color-selector-vertical";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, X } from "lucide-react"; 
-// Cambiamos toPng por toBlob y toJpeg para máxima compatibilidad
-import { toBlob } from "html-to-image";
+import html2canvas from 'html2canvas';
 import { set as setIDB } from "idb-keyval";
 
 export type CameraCutoutStyle =
@@ -17,7 +16,6 @@ export type CameraCutoutStyle =
   | "circle-small" | "square-center";
 
 export interface EditorTransform { x: number; y: number; scale: number; rotation: number; }
-
 interface AvailableColor { caseId: string; colourId: string; name: string; hex: string; }
 
 interface PhoneCaseEditorProps {
@@ -43,9 +41,28 @@ const cameraCutoutStyles: Array<{ name: string; value: CameraCutoutStyle }> = [
   { name: "Cuadrado C", value: "square-center" },
 ];
 
+// Función para asegurar que la imagen no dispare errores de CORS al capturar
+async function getSafeImageData(url: string): Promise<string> {
+  if (!url || url.startsWith('data:')) return url;
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Error convirtiendo imagen a Base64:", error);
+    return url;
+  }
+}
+
 export function PhoneCaseEditor({
   image, isOpen, onClose, onAccept, initialTransform, camera = "square-left", allowClose = false, availableColors = [], initialCaseId,
 }: PhoneCaseEditorProps) {
+  const [safeImage, setSafeImage] = useState<string>("");
   const [imageOffset, setImageOffset] = useState({ x: 0, y: 0 });
   const [imageScale, setImageScale] = useState([1]);
   const [imageRotation, setImageRotation] = useState(0);
@@ -55,6 +72,12 @@ export function PhoneCaseEditor({
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
 
   const smartphoneRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && image) {
+      getSafeImageData(image).then(setSafeImage);
+    }
+  }, [isOpen, image]);
 
   useEffect(() => {
     if (isOpen) {
@@ -70,52 +93,56 @@ export function PhoneCaseEditor({
   }, [isOpen, initialTransform, initialCaseId, availableColors, camera]);
 
   const handleAccept = useCallback(async () => {
-    if (!smartphoneRef.current || !selectedCase) return;
-    setIsCapturing(true);
+  if (!smartphoneRef.current || !selectedCase) return;
+  setIsCapturing(true);
 
-    try {
-      // 1. Generamos el BLOB (Binario) en lugar de un string Base64
-      // Usamos JPEG al 80% de calidad para optimizar RAM en iPhone
-      const blob = await toBlob(smartphoneRef.current, {
-        quality: 0.8,
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: "#ffffff", 
-      });
+  try {
+    // 1. Espera técnica para que el DOM se asiente
+    await new Promise(r => setTimeout(r, 200));
+    const element = smartphoneRef.current;
 
-      if (!blob) throw new Error("Error generando el diseño");
+    // 2. Captura con configuración para evitar fondo gris y desfase
+    const canvas = await html2canvas(element, {
+      useCORS: true,
+      backgroundColor: "#ffffff", // Fondo blanco sólido
+      scale: 2,                   // Alta resolución
+      logging: false,
+      // Importante: capturamos el tamaño real del elemento
+      width: element.offsetWidth,
+      height: element.offsetHeight,
+    });
 
-      // 2. Creamos una URL temporal para previsualización (es un string corto)
-      const previewUrl = URL.createObjectURL(blob);
+    // 3. Generar Base64 (JPG para optimizar peso o PNG para máxima calidad)
+    const base64Image = canvas.toDataURL("image/png");
 
-      // 3. Guardamos el binario en IndexedDB (No bloquea el localStorage)
-      const storageKey = `case-design-${Date.now()}`;
-      await setIDB(storageKey, blob);
+    // 4. Persistencia en IndexedDB para que sobreviva al F5
+    // Usamos una clave única o una fija según tu lógica de "carrito"
+    const storageKey = `case-design-${Date.now()}`;
+    await setIDB(storageKey, base64Image);
 
-      // 4. Enviamos al componente padre
-      onAccept(
-        previewUrl, 
-        selectedCase.hex, 
-        { 
-          x: imageOffset.x, 
-          y: imageOffset.y, 
-          scale: imageScale[0], 
-          rotation: imageRotation 
-        }, 
-        selectedCase.caseId, 
-        selectedCase.colourId, 
-        currentCamera
-      );
+    // 5. Callback final con todos los datos necesarios
+    onAccept(
+      base64Image, // Ahora es el string Base64 persistente
+      selectedCase.hex, 
+      { 
+        x: imageOffset.x, 
+        y: imageOffset.y, 
+        scale: imageScale[0], 
+        rotation: imageRotation 
+      }, 
+      selectedCase.caseId, 
+      selectedCase.colourId, 
+      currentCamera
+    );
 
-    } catch (err) {
-      console.error("Error en la captura:", err);
-      alert("No se pudo generar la imagen. Intenta de nuevo.");
-    } finally {
-      setIsCapturing(false);
-    }
-  }, [onAccept, selectedCase, imageOffset, imageScale, imageRotation, currentCamera]);
+  } catch (err) {
+    console.error("Error en el proceso de aceptación:", err);
+  } finally {
+    setIsCapturing(false);
+  }
+}, [onAccept, selectedCase, imageOffset, imageScale, imageRotation, currentCamera]);
 
-  if (!isOpen) return null;
+if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[120] p-0 md:p-6 backdrop-blur-xl">
@@ -130,11 +157,15 @@ export function PhoneCaseEditor({
           </button>
         )}
 
+        {/* Área del Canvas Principal */}
         <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0 overflow-hidden min-h-[350px]">
-          <div ref={smartphoneRef} className="w-full flex justify-center transform scale-[0.8] sm:scale-90 md:scale-90 transition-all duration-300">
+          <div 
+            ref={smartphoneRef} 
+            className="w-fit h-fit bg-transparent flex justify-center transform scale-[0.8] sm:scale-90 md:scale-90 transition-all duration-300"
+          >
             <SmartphoneCaseSimple
               frameColor={selectedCase?.hex || "#000000"}
-              caseImage={image}
+              caseImage={safeImage}
               cameraCutout={currentCamera}
               imageOffset={imageOffset}
               imageScale={imageScale[0]}
@@ -149,31 +180,26 @@ export function PhoneCaseEditor({
           </div>
         </div>
 
+        {/* Controles Inferiores */}
         <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
           
+          {/* Selector Lateral Desktop */}
           <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
             <div className="flex flex-col items-center gap-2">
               <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Color</span>
               <ColorSelectorVertical
                 casesApi={availableColors.map(c => ({
-                  id: c.caseId,
-                  colourId: c.colourId,
-                  colour: { name: c.name, hex_code: c.hex }
+                  id: c.caseId, colourId: c.colourId, colour: { name: c.name, hex_code: c.hex }
                 }))}
                 selectedCaseId={selectedCase?.caseId || null}
                 onCaseChange={(item) =>
                   setSelectedCase({
-                    caseId: item.id,
-                    colourId: item.colourId,
-                    name: item.colour.name,
-                    hex: item.colour.hex_code,
+                    caseId: item.id, colourId: item.colourId, name: item.colour.name, hex: item.colour.hex_code,
                   })
                 }
               />
             </div>
-            
             <div className="w-8 h-[1px] bg-slate-100" />
-            
             <div className="flex flex-col items-center gap-2">
               <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-tighter">Cámara</span>
               <button
@@ -185,22 +211,18 @@ export function PhoneCaseEditor({
             </div>
           </div>
 
+          {/* Controles Mobile */}
           <div className="grid grid-cols-[7fr_3fr] items-center gap-3 min-[960px]:hidden">
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center justify-center w-full">
                 <ColorSelector
                   casesApi={availableColors.map(c => ({
-                    id: c.caseId,
-                    colourId: c.colourId,
-                    colour: { name: c.name, hex_code: c.hex }
+                    id: c.caseId, colourId: c.colourId, colour: { name: c.name, hex_code: c.hex }
                   }))}
                   selectedCaseId={selectedCase?.caseId || null}
                   onCaseChange={(item) =>
                     setSelectedCase({
-                      caseId: item.id,
-                      colourId: item.colourId,
-                      name: item.colour.name,
-                      hex: item.colour.hex_code,
+                      caseId: item.id, colourId: item.colourId, name: item.colour.name, hex: item.colour.hex_code,
                     })
                   }
                 />
@@ -218,6 +240,7 @@ export function PhoneCaseEditor({
             </div>
           </div>
 
+          {/* Botones de Acción Final */}
           <div className="mt-6 flex items-center justify-center gap-2 w-full max-w-[500px] mx-auto">
             {allowClose && (
               <Button
@@ -247,6 +270,7 @@ export function PhoneCaseEditor({
         }
       `}</style>
 
+      {/* Diálogo de Disposición de Cámara */}
       <Dialog open={cameraDialogOpen} onOpenChange={setCameraDialogOpen}>
         <DialogContent className="z-[200] max-w-sm bg-white rounded-[32px] p-6 border-none shadow-2xl">
           <DialogHeader>
