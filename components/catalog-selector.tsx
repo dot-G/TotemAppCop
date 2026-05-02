@@ -26,6 +26,8 @@ import {
   EditorTransform,
 } from "./image-selector/phone-case-editor2";
 
+import { TermsPopup } from "./image-selector/terms-popup"; // Ajusta la ruta según donde lo guardaste
+
 // Estado inicial para resetear transformaciones
 const DEFAULT_TRANSFORM: EditorTransform = {
   x: 0,
@@ -84,6 +86,9 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Al lado de tus otros estados
+const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -268,8 +273,17 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                   {selection.acceptedTerms && <Check className="w-3 text-white" />}
                 </div>
                 <p className="text-[12px] leading-tight text-slate-500 font-normal">
-                  Acepto los <span className="font-normal text-slate-800">términos de licencia</span>.
-                </p>
+  Acepto los{" "}
+  <span 
+    onClick={(e) => {
+      e.stopPropagation(); // <--- ESTO evita que se marque el checkbox
+      setIsTermsOpen(true);
+    }} 
+    className="font-semibold text-[#722296] underline cursor-pointer decoration-dotted underline-offset-2"
+  >
+    términos de licencia
+  </span>.
+</p>
               </motion.div>
             )}
           </div>
@@ -361,6 +375,12 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Renderizado del Popup de Términos */}
+      <TermsPopup 
+        isOpen={isTermsOpen} 
+        onOpenChange={setIsTermsOpen} 
+      />
 
 {mounted && createPortal(
   <>
