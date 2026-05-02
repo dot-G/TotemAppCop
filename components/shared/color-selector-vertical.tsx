@@ -8,7 +8,7 @@ interface ColorSelectorProps {
   onCaseChange: (caseItem: any) => void
 }
 
-export const ColorSelector = ({ 
+export const ColorSelectorVertical = ({ 
   casesApi, 
   selectedCaseId, 
   onCaseChange 

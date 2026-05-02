@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { SmartphoneCaseSimple } from "./smartphone-case-simple2";
 import { ColorSelector } from "../shared/color-selector";
+import { ColorSelectorVertical } from "../shared/color-selector-vertical";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, X } from "lucide-react"; // Importamos X de lucide
+import { Loader2, X } from "lucide-react"; 
 import { toPng } from "html-to-image";
 
 export type CameraCutoutStyle =
@@ -83,7 +84,6 @@ export function PhoneCaseEditor({
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[120] p-0 md:p-6 backdrop-blur-xl">
       <div className="bg-white md:rounded-[32px] shadow-2xl overflow-hidden w-full max-w-5xl flex flex-col h-full md:h-auto border-none relative">
 
-        {/* BOTÓN CERRAR (X) SUPERIOR DERECHA */}
         {allowClose && (
           <button
             onClick={onClose}
@@ -93,11 +93,8 @@ export function PhoneCaseEditor({
           </button>
         )}
 
-        {/* ÁREA DE VISUALIZACIÓN */}
         <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0 overflow-hidden min-h-[350px]">
-         
           <div ref={smartphoneRef} className="w-full flex justify-center transform scale-[0.8] sm:scale-90 md:scale-90 transition-all duration-300">
-           
             <SmartphoneCaseSimple
               frameColor={selectedCase?.hex || "#000000"}
               caseImage={image}
@@ -112,17 +109,49 @@ export function PhoneCaseEditor({
               enablePinchZoom={true}
               enablePinchRotation={true}
             />
-            
           </div>
         </div>
 
-        {/* PANEL DE CONTROLES */}
         <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
-          <div className="grid grid-cols-[7fr_3fr] md:grid-cols-1 items-center gap-3 md:fixed md:right-10 md:top-1/2 md:-translate-y-1/2 md:w-20 md:bg-white/90 md:p-4 md:rounded-full md:shadow-2xl">
+          
+          {/* PANEL DERECHO VERTICAL (Solo visible en pantallas >= 960px) */}
+          <div className="hidden min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5  z-[130] border border-slate-100">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Color</span>
+              <ColorSelectorVertical
+                casesApi={availableColors.map(c => ({
+                  id: c.caseId,
+                  colourId: c.colourId,
+                  colour: { name: c.name, hex_code: c.hex }
+                }))}
+                selectedCaseId={selectedCase?.caseId || null}
+                onCaseChange={(item) =>
+                  setSelectedCase({
+                    caseId: item.id,
+                    colourId: item.colourId,
+                    name: item.colour.name,
+                    hex: item.colour.hex_code,
+                  })
+                }
+              />
+            </div>
+            
+            <div className="w-8 h-[1px] bg-slate-100" />
+            
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-tighter">Cámara</span>
+              <button
+                onClick={() => setCameraDialogOpen(true)}
+                className="w-10 h-14 bg-slate-800 rounded-[8px] relative overflow-hidden shadow-sm active:scale-95 transition-transform"
+              >
+                <div className={`absolute bg-slate-400 ${getMiniCutoutClass(currentCamera)}`} />
+              </button>
+            </div>
+          </div>
 
-            {/* COLOR (Ahora a la izquierda - 70%) */}
+          {/* PANEL INFERIOR HORIZONTAL (Solo visible en pantallas < 960px) */}
+          <div className="grid grid-cols-[7fr_3fr] items-center gap-3 min-[960px]:hidden">
             <div className="flex flex-col items-center gap-1">
-              <span className="hidden text-[7px] font-black uppercase text-slate-300 tracking-tighter">Color</span>
               <div className="flex items-center justify-center w-full">
                 <ColorSelector
                   casesApi={availableColors.map(c => ({
@@ -143,7 +172,6 @@ export function PhoneCaseEditor({
               </div>
             </div>
 
-            {/* LENTE (Ahora a la derecha - 30%) */}
             <div className="flex flex-col items-center gap-1 border-l border-slate-100 pl-2">
               <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-tighter">Disposición</span>
               <button
@@ -153,10 +181,8 @@ export function PhoneCaseEditor({
                 <div className={`absolute bg-slate-400 ${getMiniCutoutClass(currentCamera)}`} />
               </button>
             </div>
-
           </div>
 
-          {/* ACCIÓN FINAL */}
           <div className="mt-6 flex items-center justify-center gap-2 w-full max-w-[500px] mx-auto">
             {allowClose && (
               <Button
@@ -178,15 +204,13 @@ export function PhoneCaseEditor({
         </div>
       </div>
 
-      {/* Inyección de estilo para forzar el blur en el overlay de fábrica */}
       <style jsx global>{`
-  /* Seleccionamos el overlay de Radix por sus atributos y clases originales */
-  div[data-radix-portal] div[data-state="open"].fixed.inset-0.bg-black\\/80 {
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    background-color: rgba(0, 0, 0, 0.4) !important;
-  }
-`}</style>
+        div[data-radix-portal] div[data-state="open"].fixed.inset-0.bg-black\\/80 {
+          backdrop-filter: blur(8px) !important;
+          -webkit-backdrop-filter: blur(8px) !important;
+          background-color: rgba(0, 0, 0, 0.4) !important;
+        }
+      `}</style>
 
       <Dialog open={cameraDialogOpen} onOpenChange={setCameraDialogOpen}>
         <DialogContent className="z-[200] max-w-sm bg-white rounded-[32px] p-6 border-none shadow-2xl">
@@ -209,11 +233,9 @@ export function PhoneCaseEditor({
                     : "hover:bg-slate-50"
                   }`}
               >
-                {/* Representación visual de la cámara */}
                 <div className="w-10 h-16 bg-slate-800 rounded-lg relative overflow-hidden shadow-md">
                   <div className={`absolute bg-slate-400 ${getMiniCutoutClass(style.value)}`} />
                 </div>
-
                 <span className="text-[9px] font-bold text-slate-600 uppercase text-center leading-tight">
                   {style.name}
                 </span>
@@ -222,7 +244,6 @@ export function PhoneCaseEditor({
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
