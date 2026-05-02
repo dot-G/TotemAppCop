@@ -3,16 +3,29 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, AlertCircle, Smartphone } from "lucide-react";
+import { Loader2, AlertCircle, Smartphone, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/hooks/use-app";
 import { uploadImageToDirectus } from "@/services/upload2";
 import { createOrder } from "@/services/order";
 import { createOrderImage } from "@/services/order-image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ContactFormProps {
   token: string | null;
 }
+
+// Configuración de países
+const COUNTRIES = [
+  { code: "MX", prefix: "+52", flag: "🇲🇽" }, // México primero para el default
+  { code: "AR", prefix: "+54", flag: "🇦🇷" },
+  { code: "CO", prefix: "+57", flag: "🇨🇴" },
+];
 
 export default function ContactForm({ token }: ContactFormProps) {
   const {
@@ -23,8 +36,12 @@ export default function ContactForm({ token }: ContactFormProps) {
     totalSelectionPrice,
     storeCode,
   } = useApp();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // México por defecto
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
 
   const mapSize = (size: string): "small" | "medium" | "large" => {
     const s = size?.toLowerCase() || "";
@@ -35,22 +52,12 @@ export default function ContactForm({ token }: ContactFormProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    
     let finalValue = value;
 
     if (id === "phone") {
-      // 1. Verificamos si empieza con +
-      const startsWithPlus = value.startsWith("+");
-      // 2. Extraemos solo los números
+      // Solo números y máximo 12 dígitos
       const numbers = value.replace(/\D/g, "");
-      
-      // 3. Recomponemos: solo agregamos el + si el usuario lo escribió originalmente
-      // Limitamos a 13 caracteres si hay +, o 12 si son solo números
-      if (startsWithPlus) {
-        finalValue = `+${numbers}`.slice(0, 14);
-      } else {
-        finalValue = numbers.slice(0, 13);
-      }
+      finalValue = numbers.slice(0, 12);
     }
 
     updateSelection({
@@ -88,6 +95,9 @@ export default function ContactForm({ token }: ContactFormProps) {
     setError(null);
     window.dispatchEvent(new CustomEvent("form-submitting", { detail: true }));
 
+    // Combinamos el prefijo con el número
+    const fullPhone = `${selectedCountry.prefix}${selection.contact.phone}`;
+
     try {
       let finalPersonalImageId = null;
       let finalPreviewImageId = null;
@@ -116,7 +126,7 @@ export default function ContactForm({ token }: ContactFormProps) {
           model: selection.modelId || "",
           customer_name: selection.contact.name,
           customer_email: selection.contact.email,
-          customer_cell_phone: selection.contact.phone,
+          customer_cell_phone: fullPhone,
           customer_place: "in_store",
           combo: selection.comboId,
           combo_includes_mica: selection.config?.includes_mica || false,
@@ -148,7 +158,7 @@ export default function ContactForm({ token }: ContactFormProps) {
           model: selection.modelId || "",
           customer_name: selection.contact.name,
           customer_email: selection.contact.email,
-          customer_cell_phone: selection.contact.phone,
+          customer_cell_phone: fullPhone,
           customer_place: "in_store",
           combo: selection.comboId,
           combo_includes_mica: selection.config?.includes_mica || false,
@@ -181,7 +191,7 @@ export default function ContactForm({ token }: ContactFormProps) {
       setIsSubmitting(false);
       window.dispatchEvent(new CustomEvent("form-submitting", { detail: false }));
     }
-  }, [selection, totalSelectionPrice, setStep, isSubmitting, updateSelection, token, storeCode]);
+  }, [selection, totalSelectionPrice, setStep, isSubmitting, updateSelection, token, storeCode, selectedCountry]);
 
   useEffect(() => {
     const handleTrigger = () => handleSubmit();
@@ -216,7 +226,7 @@ export default function ContactForm({ token }: ContactFormProps) {
         <form className="space-y-3" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-1">
             <Label className="text-[14px] font-normal text-slate-700 ml-1">Nombre Completo *</Label>
-            <Input id="name" placeholder="Nombre y Apellido" value={selection.contact.name} onChange={handleChange} className="h-14 rounded-[8px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-3 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <Input id="name" placeholder="Nombre y Apellido" value={selection.contact.name} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
           </div>
 
           <div className="space-y-1">
@@ -226,7 +236,39 @@ export default function ContactForm({ token }: ContactFormProps) {
 
           <div className="space-y-1">
             <Label className="text-[14px] font-normal text-slate-700 ml-1">WhatsApp / Celular *</Label>
-            <Input id="phone" type="text" placeholder="Ej: +5493764..." value={selection.contact.phone} onChange={handleChange} className="h-14 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" />
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 px-3 h-14 rounded-[14px] border border-slate-400 bg-slate-50/50 hover:bg-slate-100 transition-all outline-none focus:ring-2 focus:ring-purple-100">
+                    <span className="text-xl">{selectedCountry.flag}</span>
+                    <span className="font-bold text-slate-900 text-sm">{selectedCountry.prefix}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white rounded-xl border-slate-200 shadow-xl z-[150]">
+                  {COUNTRIES.map((c) => (
+                    <DropdownMenuItem 
+                      key={c.code} 
+                      className="flex gap-3 px-4 py-1 cursor-pointer hover:bg-slate-50 transition-colors"
+                      onClick={() => setSelectedCountry(c)}
+                    >
+                      <span className="text-xl">{c.flag}</span>
+                      <span className="font-bold text-slate-900">{c.code}</span>
+                      <span className="text-slate-400 ml-auto">{c.prefix}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Input 
+                id="phone" 
+                type="text" 
+                placeholder="" 
+                value={selection.contact.phone} 
+                onChange={handleChange} 
+                className="h-14 flex-1 rounded-[14px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" 
+              />
+            </div>
           </div>
 
           <AnimatePresence>
