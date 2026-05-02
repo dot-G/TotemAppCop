@@ -298,80 +298,49 @@ export function SmartphoneCaseSimple({
   }, [caseImage, enableDrag, enablePinchZoom, enablePinchRotation, getMousePosition, offset, imageScale, imageRotation, getDistanceBetweenTouches, getAngleBetweenTouches])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-  if (!caseImage) return;
+    if (!caseImage) return
 
-  e.preventDefault();
-  e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
 
-  if (isPinching && e.touches.length === 2) {
-    // 1. Manejo de Pinch Zoom
-    if (enablePinchZoom && onImageScaleChange) {
-      const currentDistance = getDistanceBetweenTouches(e.touches);
-      const scaleFactor = currentDistance / pinchStartDistanceRef.current;
-      const newScale = Math.min(4, Math.max(0.5, pinchStartScaleRef.current * scaleFactor));
-      onImageScaleChange(newScale);
-    }
-    
-    // 2. Manejo de Rotación con corrección de "Rebote"
-    if (enablePinchRotation && onImageRotationChange) {
-      const currentAngle = getAngleBetweenTouches(e.touches);
-      
-      // Calculamos la diferencia de ángulo entre el frame actual y el inicio del toque
-      let angleDiff = currentAngle - pinchStartAngleRef.current;
-
-      // --- LÓGICA ANTI-REBOTE ---
-      // Si el salto es mayor a 180 grados, detectamos que cruzó la frontera de Atan2
-      // y corregimos la diferencia para que el giro sea continuo.
-      if (angleDiff > 180) {
-        angleDiff -= 360;
-      } else if (angleDiff < -180) {
-        angleDiff += 360;
+    if (isPinching && e.touches.length === 2) {
+      // Handle pinch zoom
+      if (enablePinchZoom && onImageScaleChange) {
+        const currentDistance = getDistanceBetweenTouches(e.touches)
+        const scaleFactor = currentDistance / pinchStartDistanceRef.current
+        const newScale = Math.min(4, Math.max(0.5, pinchStartScaleRef.current * scaleFactor))
+        onImageScaleChange(newScale)
       }
-
-      // Sumamos la diferencia corregida a la rotación que ya tenía la imagen
-      let newRotation = pinchStartRotationRef.current + angleDiff;
-
-      // --- NORMALIZACIÓN (0 a 360) ---
-      // Esto asegura que el valor siempre sea positivo y no crezca hasta el infinito
-      newRotation = ((newRotation % 360) + 360) % 360;
-
-      onImageRotationChange(newRotation);
+      
+      // Handle pinch rotation
+      if (enablePinchRotation && onImageRotationChange) {
+        const currentAngle = getAngleBetweenTouches(e.touches)
+        const angleDiff = currentAngle - pinchStartAngleRef.current
+        const newRotation = pinchStartRotationRef.current + angleDiff
+        onImageRotationChange(newRotation)
+      }
+      return
     }
-    return;
-  }
 
-  // 3. Manejo de Drag (Movimiento)
-  if (isDragging && e.touches.length === 1) {
-    const pos = getMousePosition(e);
-    const dx = pos.x - dragStartRef.current.x;
-    const dy = pos.y - dragStartRef.current.y;
+    if (isDragging && e.touches.length === 1) {
+      const pos = getMousePosition(e)
+      const dx = pos.x - dragStartRef.current.x
+      const dy = pos.y - dragStartRef.current.y
 
-    const normalizedRotation = ((imageRotation % 360) + 360) % 360;
-    const rad = (normalizedRotation * Math.PI) / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
-    const adjustedDx = dx * cos + dy * sin;
-    const adjustedDy = -dx * sin + dy * cos;
+      const normalizedRotation = ((imageRotation % 360) + 360) % 360
+      const rad = (normalizedRotation * Math.PI) / 180
+      const cos = Math.cos(rad)
+      const sin = Math.sin(rad)
+      const adjustedDx = dx * cos + dy * sin
+      const adjustedDy = -dx * sin + dy * cos
 
-    setOffset({
-      x: offsetStartRef.current.x + adjustedDx,
-      y: offsetStartRef.current.y + adjustedDy,
-    });
-  }
-}, [
-  caseImage, 
-  isPinching, 
-  isDragging, 
-  enablePinchZoom, 
-  enablePinchRotation, 
-  onImageScaleChange, 
-  onImageRotationChange, 
-  getDistanceBetweenTouches, 
-  getAngleBetweenTouches, 
-  getMousePosition, 
-  setOffset, 
-  imageRotation
-]);
+      setOffset({
+        x: offsetStartRef.current.x + adjustedDx,
+        y: offsetStartRef.current.y + adjustedDy,
+      })
+    }
+  }, [caseImage, isPinching, isDragging, enablePinchZoom, enablePinchRotation, onImageScaleChange, onImageRotationChange, getDistanceBetweenTouches, getAngleBetweenTouches, getMousePosition, setOffset, imageRotation])
+
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault()
     if (e.touches.length === 0) {
