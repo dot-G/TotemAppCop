@@ -16,7 +16,7 @@ export default function FinalSummary() {
   const [orderStatus, setOrderStatus] = useState<'processing' | 'success' | 'completed'>('processing')
 
   // Referencia SKU real de la orden creada
-  const reference = selection.orderSku  || "---"
+  const reference = selection.orderNumber  || "---"
 
   useEffect(() => {
     const procTimer = setTimeout(() => {
