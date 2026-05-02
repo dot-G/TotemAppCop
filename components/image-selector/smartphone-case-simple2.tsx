@@ -188,9 +188,8 @@ export function SmartphoneCaseSimple({
     <div className={cn("relative inline-block select-none touch-none", className)}>
       {/* Glow externo */}
       <div
-        className="absolute inset-0 blur-3xl -z-10 scale-110"
+        className="absolute inset-0 -z-10 scale-110"
         style={{
-          backgroundColor: frameColor,
           opacity: glowIntensity,
           borderRadius: borderRadius,
         }}
@@ -263,6 +262,7 @@ export function SmartphoneCaseSimple({
           {caseImage && (
             <image
               href={caseImage}
+              {...({ crossOrigin: "anonymous" } as any)} // Forzamos permiso de lectura
               x={printArea.x + (printArea.width - scaledWidth) / 2 + offset.x}
               y={printArea.y + (printArea.height - scaledHeight) / 2 + offset.y}
               width={scaledWidth}
