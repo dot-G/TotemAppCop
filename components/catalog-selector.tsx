@@ -184,7 +184,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
     return (
       <div className="p-3">
         <div className="flex items-start gap-6">
-          <div className="w-1/2 flex justify-center items-center bg-slate-50 overflow-hidden rounded-xl">
+          <div className="p-4 w-1/2 flex justify-center items-center overflow-hidden rounded-xl">
             {previewToDisplay ? (
               <img
                 src={previewToDisplay}

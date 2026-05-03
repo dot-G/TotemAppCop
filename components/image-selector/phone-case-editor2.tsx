@@ -41,7 +41,6 @@ const cameraCutoutStyles: Array<{ name: string; value: CameraCutoutStyle }> = [
   { name: "Cuadrado C", value: "square-center" },
 ];
 
-// Función para asegurar que la imagen no dispare errores de CORS al capturar
 async function getSafeImageData(url: string): Promise<string> {
   if (!url || url.startsWith('data:')) return url;
   try {
@@ -70,8 +69,25 @@ export function PhoneCaseEditor({
   const [selectedCase, setSelectedCase] = useState<AvailableColor | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
+  
+  // NUEVO: Estado para manejar el ancho real del componente sin usar scale de CSS
+  const [componentWidth, setComponentWidth] = useState(280);
 
   const smartphoneRef = useRef<HTMLDivElement>(null);
+
+  // Manejo de responsividad manual para el width del componente
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setComponentWidth(220); // Tamaño más pequeño para móviles
+      } else {
+        setComponentWidth(300); // Tamaño para desktop
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (isOpen && image) {
@@ -91,38 +107,39 @@ export function PhoneCaseEditor({
       }
     }
   }, [isOpen, initialTransform, initialCaseId, availableColors, camera]);
-
-  const handleAccept = useCallback(async () => {
+const handleAccept = useCallback(async () => {
   if (!smartphoneRef.current || !selectedCase) return;
   setIsCapturing(true);
 
   try {
-    // 1. Espera técnica para que el DOM se asiente
-    await new Promise(r => setTimeout(r, 200));
+    // 1. Pequeño delay para asegurar que el SVG escalado se renderice bien
+    await new Promise(r => setTimeout(r, 300));
     const element = smartphoneRef.current;
 
-    // 2. Captura con configuración para evitar fondo gris y desfase
+    // 2. Captura con fondo blanco (necesario para JPG)
     const canvas = await html2canvas(element, {
       useCORS: true,
-      backgroundColor: "#ffffff", // Fondo blanco sólido
-      scale: 2,                   // Alta resolución
+      backgroundColor: "#ffffff", // Fondo sólido para evitar artefactos en el JPG
+      scale: 2,                   // Calidad Retina
       logging: false,
-      // Importante: capturamos el tamaño real del elemento
       width: element.offsetWidth,
       height: element.offsetHeight,
     });
 
-    // 3. Generar Base64 (JPG para optimizar peso o PNG para máxima calidad)
-    const base64Image = canvas.toDataURL("image/png");
+    /**
+     * 3. Generar JPG comprimido
+     * "image/jpeg" -> Define el formato
+     * 0.8 -> Calidad de 0 a 1 (80% es excelente para web)
+     */
+    const compressedJpg = canvas.toDataURL("image/jpeg", 0.8);
 
-    // 4. Persistencia en IndexedDB para que sobreviva al F5
-    // Usamos una clave única o una fija según tu lógica de "carrito"
+    // 4. Persistencia en IndexedDB
     const storageKey = `case-design-${Date.now()}`;
-    await setIDB(storageKey, base64Image);
+    await setIDB(storageKey, compressedJpg);
 
-    // 5. Callback final con todos los datos necesarios
+    // 5. Callback final
     onAccept(
-      base64Image, // Ahora es el string Base64 persistente
+      compressedJpg, 
       selectedCase.hex, 
       { 
         x: imageOffset.x, 
@@ -136,13 +153,12 @@ export function PhoneCaseEditor({
     );
 
   } catch (err) {
-    console.error("Error en el proceso de aceptación:", err);
+    console.error("Error en el proceso de captura JPG:", err);
   } finally {
     setIsCapturing(false);
   }
 }, [onAccept, selectedCase, imageOffset, imageScale, imageRotation, currentCamera]);
-
-if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[120] p-0 md:p-6 backdrop-blur-xl">
@@ -157,13 +173,17 @@ if (!isOpen) return null;
           </button>
         )}
 
-        {/* Área del Canvas Principal */}
-        <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0 overflow-hidden min-h-[350px]">
+        <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0 overflow-hidden min-h-[320px]">
+          {/* 
+              CAMBIO: Se eliminan las clases scale-90 / scale-80. 
+              El tamaño ahora es controlado por la prop width que recibe SmartphoneCaseSimple.
+          */}
           <div 
             ref={smartphoneRef} 
-            className="w-fit h-fit bg-transparent flex justify-center transform scale-[0.8] sm:scale-90 md:scale-90 transition-all duration-300"
+            className="w-fit h-fit bg-transparent flex justify-center transition-all duration-300"
           >
             <SmartphoneCaseSimple
+              width={componentWidth} // <--- Prop de ancho dinámico
               frameColor={selectedCase?.hex || "#000000"}
               caseImage={safeImage}
               cameraCutout={currentCamera}
@@ -183,7 +203,6 @@ if (!isOpen) return null;
         {/* Controles Inferiores */}
         <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
           
-          {/* Selector Lateral Desktop */}
           <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
             <div className="flex flex-col items-center gap-2">
               <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Color</span>
@@ -211,7 +230,6 @@ if (!isOpen) return null;
             </div>
           </div>
 
-          {/* Controles Mobile */}
           <div className="grid grid-cols-[7fr_3fr] items-center gap-3 min-[960px]:hidden">
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center justify-center w-full">
@@ -240,7 +258,6 @@ if (!isOpen) return null;
             </div>
           </div>
 
-          {/* Botones de Acción Final */}
           <div className="mt-6 flex items-center justify-center gap-2 w-full max-w-[500px] mx-auto">
             {allowClose && (
               <Button
@@ -270,7 +287,6 @@ if (!isOpen) return null;
         }
       `}</style>
 
-      {/* Diálogo de Disposición de Cámara */}
       <Dialog open={cameraDialogOpen} onOpenChange={setCameraDialogOpen}>
         <DialogContent className="z-[200] max-w-sm bg-white rounded-[32px] p-6 border-none shadow-2xl">
           <DialogHeader>

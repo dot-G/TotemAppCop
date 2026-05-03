@@ -12,7 +12,7 @@ interface SmartphoneCaseSimpleProps {
   frameColor?: string;
   caseImage?: string;
   className?: string;
-  width?: number;
+  width?: number; 
   cameraCutout?: CameraCutoutStyle;
   glowIntensity?: number;
   imageOffset?: { x: number; y: number };
@@ -58,6 +58,7 @@ export function SmartphoneCaseSimple({
   const offset = externalOffset ?? internalOffset;
   const setOffset = onImageOffsetChange ?? setInternalOffset;
 
+  // Lógica de dimensiones dinámicas
   const height = width * 1.85;
   const borderRadius = width * 0.12;
   const framePadding = width * 0.025;
@@ -96,7 +97,7 @@ export function SmartphoneCaseSimple({
     });
   }, [isDragging, getMousePosition, setOffset, imageRotation]);
 
-  // Manejo de eventos táctiles optimizado para iPhone (No-pasivo)
+  // Eventos Touch (Mantenemos tu lógica original exacta)
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -121,11 +122,9 @@ export function SmartphoneCaseSimple({
     const onTouchMove = (e: TouchEvent) => {
       if (!caseImage) return;
       if (e.cancelable) e.preventDefault();
-
       if (isPinching && e.touches.length === 2) {
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
-        
         if (enablePinchZoom && onImageScaleChange) {
           const dist = Math.sqrt(dx * dx + dy * dy);
           const newScale = Math.min(4, Math.max(0.5, pinchStartScaleRef.current * (dist / pinchStartDistanceRef.current)));
@@ -140,15 +139,11 @@ export function SmartphoneCaseSimple({
       }
     };
 
-    const onTouchEnd = () => {
-      setIsDragging(false);
-      setIsPinching(false);
-    };
+    const onTouchEnd = () => { setIsDragging(false); setIsPinching(false); };
 
     svg.addEventListener("touchstart", onTouchStart, { passive: false });
     svg.addEventListener("touchmove", onTouchMove, { passive: false });
     svg.addEventListener("touchend", onTouchEnd);
-
     return () => {
       svg.removeEventListener("touchstart", onTouchStart);
       svg.removeEventListener("touchmove", onTouchMove);
@@ -186,15 +181,6 @@ export function SmartphoneCaseSimple({
 
   return (
     <div className={cn("relative inline-block select-none touch-none", className)}>
-      {/* Glow externo */}
-      <div
-        className="absolute inset-0 -z-10 scale-110"
-        style={{
-          opacity: glowIntensity,
-          borderRadius: borderRadius,
-        }}
-      />
-
       <svg
         ref={svgRef}
         width={width}
@@ -207,62 +193,51 @@ export function SmartphoneCaseSimple({
         onMouseLeave={() => setIsDragging(false)}
       >
         <defs>
-          {/* ClipPath para el área de impresión */}
           <clipPath id={`clip-${uniqueId}`}>
             <rect x={printArea.x} y={printArea.y} width={printArea.width} height={printArea.height} rx={borderRadius * 0.5} />
           </clipPath>
 
-          {/* Gradiente de estructura de la funda */}
           <linearGradient id={`frameGrad-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor={frameColor} stopOpacity="1" />
             <stop offset="50%" stopColor={frameColor} stopOpacity="0.85" />
             <stop offset="100%" stopColor={frameColor} stopOpacity="0.75" />
           </linearGradient>
 
-          {/* Brillo principal (Shine) */}
           <linearGradient id={`shine-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="white" stopOpacity="0.3" />
             <stop offset="50%" stopColor="white" stopOpacity="0" />
             <stop offset="100%" stopColor="white" stopOpacity="0.1" />
           </linearGradient>
 
-          {/* Brillo superior */}
           <linearGradient id={`topShine-${uniqueId}`} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="white" stopOpacity="0.3" />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </linearGradient>
 
-          {/* Reflejo lateral */}
           <linearGradient id={`sideRef-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="white" stopOpacity="0.15" />
             <stop offset="100%" stopColor="black" stopOpacity="0.05" />
           </linearGradient>
         </defs>
 
-        {/* 1. Marco Exterior (Outer Frame) */}
+        {/* 1. Marco Exterior */}
         <rect width={width} height={height} rx={borderRadius} fill={`url(#frameGrad-${uniqueId})`} />
-        
-        {/* Borde sutil de luz perimetral */}
         <rect x="1" y="1" width={width-2} height={height-2} rx={borderRadius-1} fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="1" />
 
-        {/* 2. Botones Laterales */}
+        {/* 2. Botones */}
         <rect x="-2" y={height * 0.18} width="3" height={width * 0.06} rx="1" fill={frameColor} />
         <rect x="-2" y={height * 0.26} width="3" height={width * 0.12} rx="1" fill={frameColor} />
         <rect x={width-1} y={height * 0.23} width="3" height={width * 0.14} rx="1" fill={frameColor} />
 
-        {/* 3. Superficie Trasera Base */}
-        <rect 
-          x={framePadding} y={framePadding} 
-          width={width - framePadding*2} height={height - framePadding*2} 
-          rx={borderRadius - framePadding/2} fill={frameColor} 
-        />
+        {/* 3. Fondo Trasero */}
+        <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={frameColor} />
 
-        {/* 4. Capa de Imagen del Cliente */}
+        {/* 4. Imagen */}
         <g clipPath={`url(#clip-${uniqueId})`}>
           {caseImage && (
             <image
               href={caseImage}
-              {...({ crossOrigin: "anonymous" } as any)} // Forzamos permiso de lectura
+              {...({ crossOrigin: "anonymous" } as any)}
               x={printArea.x + (printArea.width - scaledWidth) / 2 + offset.x}
               y={printArea.y + (printArea.height - scaledHeight) / 2 + offset.y}
               width={scaledWidth}
@@ -274,37 +249,16 @@ export function SmartphoneCaseSimple({
           )}
         </g>
 
-        {/* 5. Capas de Realismo (Overlays) */}
-        {/* Brillo General */}
-        <rect 
-          x={framePadding} y={framePadding} 
-          width={width - framePadding*2} height={height - framePadding*2} 
-          rx={borderRadius - framePadding/2} fill={`url(#shine-${uniqueId})`} 
-          pointerEvents="none" 
-        />
-        {/* Reflejo Lateral */}
-        <rect 
-          x={framePadding} y={framePadding} 
-          width={width - framePadding*2} height={height - framePadding*2} 
-          rx={borderRadius - framePadding/2} fill={`url(#sideRef-${uniqueId})`} 
-          pointerEvents="none" 
-        />
-        {/* Brillo de Borde Superior */}
-        <rect 
-          x={framePadding + 10} y={framePadding + 2} 
-          width={width - framePadding*2 - 20} height={height * 0.1} 
-          rx={borderRadius} fill={`url(#topShine-${uniqueId})`} 
-          pointerEvents="none" 
-        />
+        {/* 5. Capas de Realismo */}
+        <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={`url(#shine-${uniqueId})`} pointerEvents="none" />
+        <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={`url(#sideRef-${uniqueId})`} pointerEvents="none" />
+        <rect x={framePadding + 10} y={framePadding + 2} width={width - framePadding*2 - 20} height={height * 0.1} rx={borderRadius} fill={`url(#topShine-${uniqueId})`} pointerEvents="none" />
 
-        {/* 6. Hueco de Cámara (Camera Cutout) */}
+        {/* 6. Hueco Cámara */}
         {camera && (
           <g>
-            {/* Profundidad del hueco */}
             <rect x={camera.x - 1} y={camera.y - 1} width={camera.width + 2} height={camera.height + 2} rx={camera.rx + 1} fill="#0a0a0a" />
-            {/* Fondo del hueco */}
             <rect x={camera.x} y={camera.y} width={camera.width} height={camera.height} rx={camera.rx} fill="#000000" />
-            {/* Brillo en el borde del hueco */}
             <rect x={camera.x} y={camera.y} width={camera.width} height={camera.height} rx={camera.rx} fill="none" stroke="white" strokeOpacity="0.08" strokeWidth="0.5" />
           </g>
         )}
