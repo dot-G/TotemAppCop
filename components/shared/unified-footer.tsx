@@ -13,33 +13,26 @@ export function UnifiedFooter() {
   const selection = useAtomValue(selectionAtom)
   const totalPrice = useAtomValue(totalSelectionPriceAtom)
 
-  // Estado para controlar si estamos en proceso de envío (desde ContactForm)
   const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false)
 
-  // ESCUCHA DE EVENTOS: El ContactForm nos avisa si está subiendo datos
   useEffect(() => {
     const handleSubmitting = (e: any) => setIsGlobalSubmitting(e.detail)
     window.addEventListener("form-submitting", handleSubmitting)
-
-    // Si cambiamos de paso por cualquier razón, reseteamos el loading
     return () => {
       window.removeEventListener("form-submitting", handleSubmitting)
     }
   }, [])
 
-  // Reset local al cambiar de step para evitar que estados viejos afecten la UI
   useEffect(() => {
     setIsGlobalSubmitting(false)
   }, [currentStep])
 
-  // LÓGICA DE VALIDACIÓN (Botón habilitado/deshabilitado)
   const canContinue = useMemo(() => {
     if (isGlobalSubmitting) return false
 
     switch (currentStep) {
       case "phone-selector":
         return !!selection.brand && !!selection.model
-
       case "image-selector":
         if (selection.imageSourceType === "brand") {
           return !!selection.catalog_image && selection.acceptedTerms === true
@@ -48,31 +41,24 @@ export function UnifiedFooter() {
           return !!selection.imageCustomUrl
         }
         return false
-
       case "contact-form":
         const isNameValid = selection.contact.name.trim().length >= 3
         const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(selection.contact.email)
         const isPhoneValid = selection.contact.phone.length >= 8
         return isNameValid && isEmailValid && isPhoneValid
-
       default:
-        // ComboSelector y CaseSelector ya validan mediante sus propios hooks, 
-        // pero aquí aseguramos que existan los IDs
         return true
     }
   }, [currentStep, selection, isGlobalSubmitting])
 
-  // ACCIÓN DEL BOTÓN
   const handleMainAction = () => {
     if (currentStep === "contact-form") {
-      // Disparamos evento para que el Formulario de Contacto inicie el submit
       window.dispatchEvent(new CustomEvent("trigger-contact-submit"))
     } else {
       setStep(progress.next)
     }
   }
 
-  // PASOS DONDE NO SE MUESTRA EL FOOTER (Onboarding, Éxito, etc.)
   if (["onboarding", "final-summary", "success", "payment"].includes(currentStep)) {
     return null
   }
@@ -80,6 +66,9 @@ export function UnifiedFooter() {
   const isContactForm = currentStep === "contact-form"
   const buttonText = isContactForm ? "Confirmar Pedido" : "Siguiente"
   const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model
+  
+  // Lógica para el label dinámico del precio
+  const priceLabel = ["mica-selector", "combo-selector"].includes(currentStep) ? "Desde" : "Total"
 
   return (
     <footer className="p-4 shrink-0 z-[70] pb-4">
@@ -92,14 +81,11 @@ export function UnifiedFooter() {
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.2 }}
           >
-            {/* CARD DE RESUMEN Y PRECIO */}
             {selection.brand && currentStep !== "phone-selector" && (
               <div className="bg-white border border-[#3E3E3E] rounded-[14px] px-3 py-2 flex justify-between items-center mb-3">
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-slate-900 text-[14px] mb-0.5">Detalle de tu pedido</h4>
                   <p className="text-[#606166] font-normal text-[14px] leading-tight">
-
-
                     {selection.micaName && `${selection.micaName}`}
                     {selection.caseName && ` • Case ${selection.caseName}`}
                     {selection.config?.includes_uv_print && (
@@ -114,18 +100,17 @@ export function UnifiedFooter() {
 
                 {shouldShowPrice && (
                   <div className="text-right pb-0 pt-0 pl-4 border-l border-slate-200 flex flex-col justify-center">
-  <p className="text-[12px] font-semibold mb-[0px] leading-[tight] text-slate-500">
-    Desde
-  </p>
-  <p className="text-2xl font-semibold text-slate-900 leading-none">
-    ${totalPrice.toLocaleString('es-AR')}
-  </p>
-</div>
+                    <p className="text-[12px] font-semibold mb-[0px] leading-[tight] text-slate-500 tracking-wider">
+                      {priceLabel}
+                    </p>
+                    <p className="text-2xl font-semibold text-slate-900 leading-none">
+                      ${totalPrice.toLocaleString('es-AR')}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
 
-            {/* BOTÓN DE ACCIÓN PRINCIPAL */}
             <Button
               disabled={!canContinue}
               onClick={handleMainAction}
@@ -138,7 +123,6 @@ export function UnifiedFooter() {
             </Button>
           </motion.div>
         ) : (
-          /* ESTADO DE ENVÍO: Ocultamos el botón y mostramos un feedback sutil en el footer */
           <motion.div
             key="footer-submitting"
             initial={{ opacity: 0 }}
@@ -150,7 +134,7 @@ export function UnifiedFooter() {
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>Sincronizando Orden...</span>
             </div>
-            <p className="text-[9px] text-[20px] font-semibold mt-2">
+            <p className="text-[20px] font-semibold mt-2 text-slate-900">
               Por favor, no cierres esta pantalla
             </p>
           </motion.div>
