@@ -16,8 +16,8 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: 'CaseShop - Cases Premium para tu Smartphone',
-  description: 'Descubre los mejores cases para tu smartphone con diseños exclusivos y protección premium. Envío gratis en compras mayores a $500 MXN.',
+  title: 'Telcel | Personaliza tu Protector de Celular',
+  description: 'Diseña la protección perfecta para tu equipo. Crea un protector único que combine estilo premium y seguridad total para tu smartphone.',
   generator: 'v0.app',
 }
 
