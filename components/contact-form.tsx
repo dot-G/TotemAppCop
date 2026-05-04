@@ -123,7 +123,7 @@ export default function ContactForm({ token }: ContactFormProps) {
       if (hasImage) {
         orderResponse = await createOrderImage({
           brand: selection.brandId || "",
-          model: selection.modelId || "",
+          model: selection.model.id || "",
           customer_name: selection.contact.name,
           customer_email: selection.contact.email,
           customer_cell_phone: fullPhone,
@@ -155,7 +155,7 @@ export default function ContactForm({ token }: ContactFormProps) {
       } else {
         orderResponse = await createOrder({
           brand: selection.brandId || "",
-          model: selection.modelId || "",
+          model: selection.model.id || "",
           customer_name: selection.contact.name,
           customer_email: selection.contact.email,
           customer_cell_phone: fullPhone,

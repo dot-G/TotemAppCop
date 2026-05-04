@@ -29,17 +29,35 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
     return casesApi.find(c => String(c.id) === String(selection.caseId)) || casesApi[0]
   }, [casesApi, selection.caseId])
 
-  const gallery = useMemo(() => {
-    if (!selectedCase) return []
-    const extraImages = selectedCase.images?.map((img: any) => img.directus_files_id) || []
-    return [selectedCase.featured_image, ...extraImages].filter(Boolean) as string[]
-  }, [selectedCase])
+const gallery = useMemo(() => {
+  if (!selectedCase) return []
+  
+  const extraImages = selectedCase.images?.map((img: any) => img.directus_files_id) || []
+  
+  // Creamos un array con la imagen principal y las extras
+  const allImages = [selectedCase.featured_image, ...extraImages].filter(Boolean) as string[]
+  
+  // Eliminamos duplicados usando Set
+  return Array.from(new Set(allImages))
+}, [selectedCase])
+
+  // --- OPTIMIZACIÓN: PRECARGA DE IMÁGENES ---
+  // Esto descarga las imágenes en segundo plano apenas cambia la galería
+  useEffect(() => {
+    if (gallery.length > 0) {
+      gallery.forEach((imgId) => {
+        const img = new window.Image();
+        img.src = `${getImageUrl(imgId)}?width=800`; // Precarga calidad alta para el zoom
+      });
+    }
+  }, [gallery]);
 
   const handleCaseChange = useCallback((caseItem: CaseCut) => {
     if (!caseItem) return
     const rawPrice = caseItem.case_cut_type?.offerings?.[0]?.price || "0"
     const newCasePrice = parseFloat(rawPrice)
     const mainImage = caseItem.featured_image || null
+    
     const availableColors = casesApi.map(c => ({
       caseId: c.id || "",
       colourId: c.colour?.id || "",
@@ -92,17 +110,18 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
     <div className="flex flex-col min-h-full px-6 pb-28 pt-12 font-sans bg-[#f8fafc]">
       
       <div className="flex items-stretch mb-10 min-h-[200px]">
-        {/* Click en la imagen o en el icono de zoom abre la galería */}
         <div 
           onClick={() => setIsGalleryOpen(true)}
-          className="relative w-1/2 aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 border-4 border-white shrink-0 cursor-pointer active:scale-[0.98] transition-transform"
+          className="relative w-1/2 aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl shadow-slate-200 border-4 border-white shrink-0 cursor-pointer active:scale-[0.98] transition-transform bg-slate-100"
         >
-          <AnimatePresence mode="wait">
+          {/* Cambiado mode="wait" por defecto para que la nueva imagen entre mientras la vieja sale */}
+          <AnimatePresence>
             <motion.div
-              key={`${selectedCase?.id}-${selectedImgIdx}`}
+              key={gallery[selectedImgIdx]} // Usar el ID de la imagen evita re-renders innecesarios
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="w-full h-full relative"
             >
               {gallery[selectedImgIdx] ? (
@@ -110,9 +129,8 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
                   src={`${getImageUrl(gallery[selectedImgIdx])}?width=400`}
                   alt="Case Preview" 
                   fill 
-                  unoptimized 
+                  priority // Carga prioritaria para evitar lag visual inicial
                   className="object-cover object-center" 
-                  priority 
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-slate-50">
@@ -122,7 +140,6 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
             </motion.div>
           </AnimatePresence>
 
-          {/* Icono de Zoom solicitado */}
           <div className="absolute bottom-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-slate-900 shadow-lg z-10">
             <Search className="w-5 h-5" />
           </div>
@@ -137,7 +154,7 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
           </p>
           <div className="text-[12px] text-slate-600 font-semibold tracking-wider space-y-1">
              <p>Modelo: <span className="text-slate-700 font-normal">{selectedCase?.case_cut_type?.name}</span></p>
-             <p>Compatibilidad: <span className="text-slate-700 font-normal">{selection.brand} {selection.model}</span></p>
+             <p>Compatibilidad: <span className="text-slate-700 font-normal">{selection.brand} {selection.model.name}</span></p>
           </div>
           <ColorSelector casesApi={casesApi} selectedCaseId={selection.caseId} onCaseChange={handleCaseChange} />
         </div>
@@ -160,15 +177,16 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
               </button>
             </div>
             
-            {/* Contenedor de Imagen con Drag y Fade */}
-            <div className="flex-1 relative flex items-center justify-center overflow-hidden touch-none">
-               <AnimatePresence mode="wait">
+            {/* Contenedor de Imagen */}
+            <div className="flex-1 relative flex items-center justify-center overflow-hidden touch-none bg-white">
+               {/* Usamos mode="popLayout" para evitar saltos de posición en la transición */}
+               <AnimatePresence mode="popLayout">
                  <motion.div
                    key={selectedImgIdx}
-                   initial={{ opacity: 0, scale: 0.95 }}
-                   animate={{ opacity: 1, scale: 1 }}
-                   exit={{ opacity: 0, scale: 1.05 }}
-                   transition={{ duration: 0.3 }}
+                   initial={{ opacity: 0, x: 20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   exit={{ opacity: 0, x: -20 }}
+                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                    drag="x"
                    dragConstraints={{ left: 0, right: 0 }}
                    dragElastic={0.4}
@@ -182,21 +200,21 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
                      src={getImageUrl(gallery[selectedImgIdx])} 
                      alt="Zoom" 
                      fill 
-                     unoptimized 
                      className="object-contain pointer-events-none" 
+                     sizes="100vw"
+                     quality={90}
                    />
                  </motion.div>
                </AnimatePresence>
 
-               {/* Navegación lateral sutil */}
                {selectedImgIdx > 0 && (
-                 <button onClick={() => paginate(-1)} className="absolute left-4 p-3 bg-white/30 backdrop-blur-sm rounded-full active:scale-90 transition-transform">
-                   <ChevronLeft className="w-6 h-6 text-slate-400" />
+                 <button onClick={() => paginate(-1)} className="absolute left-4 z-20 p-3 bg-white/80 shadow-md rounded-full active:scale-90 transition-transform">
+                   <ChevronLeft className="w-6 h-6 text-slate-900" />
                  </button>
                )}
                {selectedImgIdx < gallery.length - 1 && (
-                 <button onClick={() => paginate(1)} className="absolute right-4 p-3 bg-white/30 backdrop-blur-sm rounded-full active:scale-90 transition-transform">
-                   <ChevronRight className="w-6 h-6 text-slate-400" />
+                 <button onClick={() => paginate(1)} className="absolute right-4 z-20 p-3 bg-white/80 shadow-md rounded-full active:scale-90 transition-transform">
+                   <ChevronRight className="w-6 h-6 text-slate-900" />
                  </button>
                )}
             </div>
@@ -208,14 +226,13 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
                   key={imgId} 
                   onClick={() => setSelectedImgIdx(i)} 
                   className={`relative shrink-0 w-20 aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
-                    selectedImgIdx === i ? "border-slate-900 scale-105" : "border-transparent opacity-50"
+                    selectedImgIdx === i ? "border-slate-900 scale-105 shadow-lg" : "border-transparent opacity-40 hover:opacity-100"
                   }`}
                 >
                   <Image 
                     src={`${getImageUrl(imgId)}?width=150`} 
                     alt="Thumb" 
                     fill 
-                    unoptimized 
                     className="object-cover" 
                   />
                 </button>

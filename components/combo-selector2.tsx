@@ -128,6 +128,14 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
       </div>
     );
 
+
+
+const filteredCombos = combos.filter((combo) => {
+  const caseCompatible = !combo.includes_case || selection.model.has_case;
+  const micaCompatible = !combo.includes_mica || selection.model.has_mica;
+  return caseCompatible && micaCompatible;
+});
+
   if (combos.length === 0) return null;
 
   return (
@@ -139,78 +147,98 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
           onScroll={handleScroll}
           className="flex-1 flex overflow-x-auto snap-x snap-mandatory hide-scrollbar items-stretch px-[12%] py-6 scroll-smooth"
         >
-          {combos.map((combo, idx) => {
-            const totalPrice = (
-              parseFloat(String(combo.mica_combo_content?.price || 0)) +
-              parseFloat(String(combo.case_combo_content?.price || 0)) +
-              parseFloat(String(combo.uv_print_combo_content?.price || 0))
-            ).toFixed(0);
-            const isActive = activeIdx === idx;
-            return (
-              <div
-                key={combo.id}
-                ref={(el) => { cardsRef.current[idx] = el; }}
-                className="min-w-[95%] flex flex-col px-2 snap-center cursor-pointer"
-                onClick={() => centerCard(idx)}
-              >
-                <div className={`relative w-full flex-1 bg-white rounded-[8px] p-2 transition-all duration-500 flex flex-col shadow-purple-500 ${
-                    isActive ? "border-[#6b21a8] scale-105 z-10 shadow-purple-200" : "border-transparent scale-90 opacity-40 grayscale"
-                  }`}
-                >
-                  {isActive && (
-                    <div className="absolute top-5 right-5 bg-[#0D51A1] text-white rounded-full p-2 shadow-xl animate-in zoom-in duration-300 z-20">
-                      <Check className="w-5 h-5" strokeWidth={2} />
-                    </div>
-                  )}
-                  <div className="relative aspect-[16/10] w-full bg-slate-100 rounded-[8px] mb-3 overflow-hidden shrink-0 border border-slate-100">
-                    {combo.featured_image ? (
-                      <Image
-                        src={`${getImageUrl(combo.featured_image)}?width=400`}
-                        alt={combo.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                        priority={idx === 0}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="text-slate-300 w-12 h-12" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="px-2 pb-2 flex-1 flex flex-col">
-                    <div className="flex justify-between items-baseline mb-0">
-                      <h3 className="text-[17px] font-semibold leading-[tight] text-[#1d1d1f] tracking-tight">
-                        {combo.name}
-                      </h3>
-                      <span className="text-[22px] font-semibold text-[#1d1d1f]">
-                        ${totalPrice}
-                      </span>
-                    </div>
-                    <p className="text-[13px] text-slate-500 leading-[1.1em] mb-2 font-normal">
-                      {combo.description || "Selección premium diseñada para la máxima protección."}
-                    </p>
-                    <div className="space-y-0">
-                      <span className="hidden text-[13px]">Incluye:</span>
-                      {combo.includes_mica && <BenefitItem icon={<ShieldCheck className="w-4 h-4" />} label="Mica de Protección" />}
-                      {combo.includes_case && <BenefitItem icon={<Smartphone className="w-4 h-4" />} label="Case a Medida" />}
-                      {combo.includes_uv_print && <BenefitItem icon={<ImageIcon className="w-4 h-4" />} label="Personalización UV" />}
-                    </div>
-                  </div>
-                </div>
+          {combos
+  .filter((combo) => {
+    // 1. Si el combo incluye CASE, el modelo debe tenerlo disponible
+    const caseCompatible = !combo.includes_case || selection.model.has_case;
+    
+    // 2. Si el combo incluye MICA, el modelo debe tenerla disponible
+    const micaCompatible = !combo.includes_mica || selection.model.has_mica;
+
+    // Solo mostramos el combo si cumple AMBAS condiciones
+    return caseCompatible && micaCompatible;
+  })
+  .map((combo, idx) => {
+    const totalPrice = (
+      parseFloat(String(combo.mica_combo_content?.price || 0)) +
+      parseFloat(String(combo.case_combo_content?.price || 0)) +
+      parseFloat(String(combo.uv_print_combo_content?.price || 0))
+    ).toFixed(0);
+
+    const isActive = activeIdx === idx;
+
+    return (
+      <div
+        key={combo.id}
+        ref={(el) => { cardsRef.current[idx] = el; }}
+        className="min-w-[95%] flex flex-col px-2 snap-center cursor-pointer"
+        onClick={() => centerCard(idx)}
+      >
+        <div className={`relative w-full flex-1 bg-white rounded-[8px] p-2 transition-all duration-500 flex flex-col shadow-purple-500 ${
+            isActive ? "border-[#6b21a8] scale-105 z-10 shadow-purple-200" : "border-transparent scale-90 opacity-40 grayscale"
+          }`}
+        >
+          {isActive && (
+            <div className="absolute top-5 right-5 bg-[#0D51A1] text-white rounded-full p-2 shadow-xl animate-in zoom-in duration-300 z-20">
+              <Check className="w-5 h-5" strokeWidth={2} />
+            </div>
+          )}
+          
+          <div className="relative aspect-[16/10] w-full bg-slate-100 rounded-[8px] mb-3 overflow-hidden shrink-0 border border-slate-100">
+            {combo.featured_image ? (
+              <Image
+                src={`${getImageUrl(combo.featured_image)}?width=400`}
+                alt={combo.name}
+                fill
+                className="object-cover"
+                unoptimized
+                priority={idx === 0}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <ImageIcon className="text-slate-300 w-12 h-12" />
               </div>
-            );
-          })}
+            )}
+          </div>
+
+          <div className="px-2 pb-2 flex-1 flex flex-col">
+            <div className="flex justify-between items-baseline mb-0">
+              <h3 className="text-[17px] font-semibold leading-[tight] text-[#1d1d1f] tracking-tight">
+                {combo.name}
+              </h3>
+              <span className="text-[22px] font-semibold text-[#1d1d1f]">
+                ${totalPrice}
+              </span>
+            </div>
+            <p className="text-[13px] text-slate-500 leading-[1.1em] mb-2 font-normal">
+              {combo.description || "Selección premium diseñada para la máxima protección."}
+            </p>
+            <div className="space-y-0">
+              <span className="hidden text-[13px]">Incluye:</span>
+              {combo.includes_mica && <BenefitItem icon={<ShieldCheck className="w-4 h-4" />} label="Mica de Protección" />}
+              {combo.includes_case && <BenefitItem icon={<Smartphone className="w-4 h-4" />} label="Case a Medida" />}
+              {combo.includes_uv_print && <BenefitItem icon={<ImageIcon className="w-4 h-4" />} label="Personalización UV" />}
+            </div>
+          </div>
         </div>
-        <div className="flex justify-center gap-3 py-2">
-          {combos.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => centerCard(i)}
-              className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#0D51A1]" : "w-2.5 bg-slate-300"}`}
-            />
-          ))}
+      </div>
+    );
+})}
         </div>
+       {/* 2. Solo mostramos el div de indicadores si hay más de uno */}
+{filteredCombos.length > 1 && (
+  <div className="flex justify-center gap-3 py-2">
+    {filteredCombos.map((_, i) => (
+      <button
+        key={i}
+        onClick={() => centerCard(i)}
+        className={`h-2.5 rounded-full transition-all duration-300 ${
+          activeIdx === i ? "w-10 bg-[#0D51A1]" : "w-2.5 bg-slate-300"
+        }`}
+      />
+    ))}
+  </div>
+)}
       </main>
     </div>
   );

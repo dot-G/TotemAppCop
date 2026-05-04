@@ -65,7 +65,7 @@ export function UnifiedFooter() {
 
   const isContactForm = currentStep === "contact-form"
   const buttonText = isContactForm ? "Confirmar Pedido" : "Siguiente"
-  const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model
+  const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model.id
   
   // Lógica para el label dinámico del precio
   const priceLabel = ["mica-selector", "combo-selector"].includes(currentStep) ? "Desde" : "Total"
@@ -84,7 +84,7 @@ export function UnifiedFooter() {
             {selection.brand && currentStep !== "phone-selector" && (
               <div className="bg-white border border-[#3E3E3E] rounded-[14px] px-3 py-2 flex justify-between items-center mb-3">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-slate-900 text-[14px] mb-0.5">Detalle de tu pedido</h4>
+                  <h4 className="font-semibold text-slate-900 text-[14px] mb-0.5">Detalle para {selection.brand} {selection.model.name}</h4>
                   <p className="text-[#606166] font-normal text-[14px] leading-tight">
                     {selection.micaName && `${selection.micaName}`}
                     {selection.caseName && ` • Case ${selection.caseName}`}

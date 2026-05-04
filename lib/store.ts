@@ -18,7 +18,6 @@ export type StepType =
 export type ImageSourceType = "brand" | "custom" | null;
 export type ImageSize = "Pequeña" | "Mediana" | "Grande";
 
-// Estilos de cámara permitidos (como strings para el store)
 export type CameraCutoutStyle = 
   | "horizontal-top" 
   | "square-left" 
@@ -69,12 +68,19 @@ export interface ComboConfig {
   prices: ComboPrices;
 }
 
+// --- NUEVA INTERFAZ MODEL ---
+export interface SelectedModel {
+  id: string | null;
+  name: string | null;
+  has_case: boolean;
+  has_mica: boolean;
+}
+
 // --- 2. INTERFAZ DEL ESTADO DE SELECCIÓN ---
 export interface SelectionState {
   brand: string | null;
   brandId: string | null;
-  model: string | null;
-  modelId: string | null;
+  model: SelectedModel; // Agrupado aquí
   comboId: string;
   config: ComboConfig;
   micaId: string | null;
@@ -97,11 +103,8 @@ export interface SelectionState {
   capturedCustomPreview: string | null;
   brandTransform: EditorTransform | null;
   customTransform: EditorTransform | null;
-  
-  // Nuevos campos de cámara (persisten como string)
   brandCameraStyle: CameraCutoutStyle;
   customCameraStyle: CameraCutoutStyle;
-
   imageSourceType: ImageSourceType;
   catalogId: string | null;
   catalog_image: string | null;
@@ -133,19 +136,18 @@ const storage = createJSONStorage<any>(() =>
 export const initialSelection: SelectionState = {
   brand: null,
   brandId: null,
-  model: null,
-  modelId: null,
+  model: {
+    id: null,
+    name: null,
+    has_case: false,
+    has_mica: false,
+  },
   comboId: "",
   config: {
     includes_mica: false,
     includes_case: false,
     includes_uv_print: false,
-    prices: {
-      micaDefault: 0,
-      mica: 0,
-      case: 0,
-      uv: 0,
-    },
+    prices: { micaDefault: 0, mica: 0, case: 0, uv: 0 },
   },
   micaId: null,
   micaImage: null,
@@ -172,11 +174,8 @@ export const initialSelection: SelectionState = {
   capturedCustomPreview: null,
   brandTransform: null,
   customTransform: null,
-
-  // Inicialización de estilos de cámara por defecto
   brandCameraStyle: "square-left",
   customCameraStyle: "square-left",
-
   imageBrandConfig: { rotation: 0, size: "Grande" },
   imageBrandPrice: 0,
   acceptedTerms: false,
@@ -224,7 +223,8 @@ export const storeCodeAtom = atomWithStorage<string | null>(
 // --- 5. ÁTOMOS DE UI ---
 export const activeImageTabAtom = atom<"brand" | "custom">("brand");
 
-// --- 6. ÁTOMOS DERIVADOS ---
+// --- 6. ÁTOMOS DERIVADOS (EXPORTS CRÍTICOS) ---
+
 export const stepsPathAtom = atom((get) => {
   const selection = get(selectionAtom);
   const steps: StepType[] = ["onboarding", "phone-selector", "combo-selector"];
@@ -263,7 +263,8 @@ export const stepProgressAtom = atom((get) => {
 
 export const totalSelectionPriceAtom = atom((get) => {
   const s = get(selectionAtom);
-  if (!s.brandId || !s.modelId) return 0;
+  // Validación actualizada con el nuevo objeto model
+  if (!s.brandId || !s.model.id) return 0;
 
   const pMica = Number(s.config?.prices?.mica || 0);
   const pCase = Number(s.config?.prices?.case || 0);

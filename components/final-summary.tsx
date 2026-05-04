@@ -51,7 +51,7 @@ export default function FinalSummary() {
       items.push({
         title: `Case 3D - ${selection.caseColor || 'Standard'}`,
         price: selection.config.prices.case,
-        desc: `Diseño para ${selection.model}.`,
+        desc: `Diseño para ${selection.brand} ${selection.model.name}.`,
 preview: selectedColor?.caseImage 
     ? getImageUrl(selectedColor.caseImage) 
     : "/icons/case-placeholder.png"      })

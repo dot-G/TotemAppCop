@@ -348,7 +348,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
                         onClick={() => { setSelectedBrand(brand); setFlowView("gallery"); }}
                         className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98]"
                       >
-                        <div className="relative h-4 w-24">
+                        <div className="relative h-8 w-24">
                           <Image src={getImageUrl(brand.icon || "")} alt={brand.name} fill className="object-contain" unoptimized />
                         </div>
                         <div className="flex items-center gap-2">
