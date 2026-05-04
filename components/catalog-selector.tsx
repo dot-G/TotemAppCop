@@ -257,32 +257,50 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
               </Button>
             </div>
 
-            {isBrand && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
-                className="mt-1 transition-all cursor-pointer flex gap-2 items-start py-2"
-              >
-                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                    selection.acceptedTerms 
-                      ? "bg-[#722296] border-[#722296]" 
-                      : "bg-white border-slate-300"
-                  }`}
-                >
-                  {selection.acceptedTerms && <Check className="w-3 text-white" />}
-                </div>
-                <p className="text-[12px] leading-tight text-slate-500 font-normal">
-  Acepto los{" "}
-  <span 
-    onClick={() => setIsTermsOpen(true)} 
-    className="font-semibold text-[#722296] underline cursor-pointer decoration-dotted underline-offset-2"
+           {isBrand && (
+  <motion.div
+    initial={{ opacity: 0, y: 5 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="mt-1 flex gap-3 items-start py-2 select-none"
   >
-    términos de licencia
-  </span>.
-</p>
-              </motion.div>
-            )}
+    {/* Contenedor del Checkbox con área de clic optimizada */}
+    <div 
+      onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
+      className="group flex cursor-pointer items-start pt-0.5"
+    >
+      <div className={`
+        shrink-0 w-5 h-5 rounded-[4px] border-2 flex items-center justify-center transition-all duration-200
+        ${selection.acceptedTerms 
+          ? "bg-[#722296] border-[#722296] shadow-[0_0_8px_rgba(114,34,150,0.4)]" 
+          : "bg-white border-[#722296] group-hover:border-[#722296]/50 shadow-[0_0_8px_rgba(114,34,150,0.4)]"
+        }
+      `}>
+        {selection.acceptedTerms && (
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
+          </motion.div>
+        )}
+      </div>
+    </div>
+
+    {/* Texto con stopPropagation en el link para evitar conflictos de clic */}
+    <p className="text-[14px] leading-tight text-slate-500 font-normal">
+      Acepto los{" "}<br/>
+      <span 
+        onClick={(e) => {
+          e.stopPropagation(); // IMPORTANTE: evita que el check cambie al tocar el link
+          setIsTermsOpen(true);
+        }} 
+        className="font-semibold text-[#722296] cursor-pointer hover:underline decoration-1 underline-offset-2 transition-all"
+      >
+        Términos de Licencia
+      </span>
+    </p>
+  </motion.div>
+)}
           </div>
         </div>
       </div>
@@ -330,8 +348,8 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
                         onClick={() => { setSelectedBrand(brand); setFlowView("gallery"); }}
                         className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98]"
                       >
-                        <div className="relative h-8 w-24">
-                          <Image src={getImageUrl(brand.icon || "")} alt={brand.name} fill className="object-contain grayscale opacity-50" unoptimized />
+                        <div className="relative h-4 w-24">
+                          <Image src={getImageUrl(brand.icon || "")} alt={brand.name} fill className="object-contain" unoptimized />
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[14px] font-semibold uppercase text-slate-600">+ {brand.price}</span>
@@ -387,15 +405,15 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
         flowView === "gallery" ? "translate-x-0" : "translate-x-full"
       }`}
     >
-      <div className="p-6 border-b flex items-center gap-4">
+      <div className="px-3 py-2 border-b flex items-center gap-4">
         <button onClick={() => setFlowView("idle")} className="p-2">
           <ArrowLeft />
         </button>
-        <h2 className="font-black uppercase text-xs tracking-widest text-slate-400">
-          Colección {selectedBrand?.name}
-        </h2>
+        <h3 className="text-[16px] font-semibold flex-1 text-center pr-12 text-slate-900">
+          {selectedBrand?.name}
+        </h3>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 gap-3">
+      <div className="flex-col p-4 grid grid-cols-3 gap-3">
         {currentGalleryImages.map((img: any) => (
           <button
             key={img.id}
@@ -403,7 +421,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
               setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
               setIsEditorOpen(true);
             }}
-            className="aspect-[2/3] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
+            className="aspect-[3/4] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
           >
             <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
           </button>
