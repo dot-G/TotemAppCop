@@ -42,14 +42,19 @@ export default function FinalSummary() {
       })
     }
 
+    const selectedColor = selection.availableColors.find(c => c.caseId === selection.caseId);
+
+
     // 2. CASE
     if (selection.config?.includes_case) {
+      selection.availableColors
       items.push({
         title: `Case 3D - ${selection.caseColor || 'Standard'}`,
         price: selection.config.prices.case,
         desc: `Diseño para ${selection.model}.`,
-        preview: selection.caseImage ? getImageUrl(selection.caseImage) : "/icons/case-placeholder.png"
-      })
+preview: selectedColor?.caseImage 
+    ? getImageUrl(selectedColor.caseImage) 
+    : "/icons/case-placeholder.png"      })
     }
 
     // 3. IMAGEN + SERVICIO DE IMPRESIÓN UV

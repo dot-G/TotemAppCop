@@ -44,7 +44,8 @@ export default function CaseSelector({ initialCases = [] }: CaseSelectorProps) {
       caseId: c.id || "",
       colourId: c.colour?.id || "",
       name: c.colour?.name || c.name || "Sin nombre",
-      hex: c.colour?.hex_code || "#000000"
+      hex: c.colour?.hex_code || "#000000",
+      caseImage: c?.featured_image || ""
     }))
   
     updateSelection({ 
