@@ -22,9 +22,9 @@ import { getImageUrl } from "@/lib/image-directus";
 
 // --- Servicios ---
 import { trackMissingBrand, trackMissingModel } from "@/services/track-service";
-import { Brand } from "@/services/phone-service";
+import { Brand } from "@/services/phone-service2";
 
-// --- Algoritmo de Búsqueda (Lógica de Negocio) ---
+// --- Algoritmo de Búsqueda ---
 const SMART_ALIASES: Record<string, string> = {
   ifon: "Apple", ifone: "Apple", aifon: "Apple", iphon: "Apple", apple: "Apple",
   saam: "Samsung", samsun: "Samsung", sansun: "Samsung", sam: "Samsung",
@@ -69,6 +69,7 @@ interface PhoneSelectorPageProps {
 }
 
 export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSelectorPageProps) {
+  
   const [selection, setSelection] = useAtom(selectionAtom);
   const [, setMissingBrands] = useAtom(missingBrandsAtom);
   const [, setMissingModels] = useAtom(missingModelsAtom);
@@ -79,19 +80,31 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
   const [direction, setDirection] = useState(1); 
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Acceso simplificado a los datos del store refactorizado
   const brandSelected = selection.brand;
-  const modelSelected = selection.model;
+  const modelSelected = selection.model.name;
 
-  // --- 1. Filtrado (Declarado arriba para evitar TS Error) ---
+  // --- 1. Filtrado de Resultados ---
   const filteredResults = useMemo(() => {
-    let source: { id: string; name: string; logo: string | null }[] = [];
+    // Definimos una interfaz local para el tipado del buscador
+    type SearchItem = { id: string; name: string; logo: string | null; has_case?: boolean; has_mica?: boolean };
+    
+    let source: SearchItem[] = [];
+    
     if (activePanel === "brand") {
       source = initialBrands.map((b) => ({ id: b.id, name: b.name, logo: b.logo || null }));
     } else if (activePanel === "model" && brandSelected) {
       const targetBrand = initialBrands.find((b) => b.name === brandSelected);
       source = targetBrand ? targetBrand.models
             .filter((m) => m.has_mica || m.has_case)
-            .map((m) => ({ id: m.id, name: m.name, logo: null })) : [];
+            .map((m) => ({ 
+              id: m.id, 
+              name: m.name, 
+              logo: null,
+              has_case: m.has_case,
+              has_mica: m.has_mica
+            })) : [];
     }
     return humanSearch(search, source);
   }, [activePanel, search, brandSelected, initialBrands]);
@@ -123,12 +136,18 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
     return () => clearTimeout(handler);
   }, [search, filteredResults.length, activePanel, brandSelected, token, setMissingBrands, setMissingModels]);
 
-  const handleSelect = (item: { id: string; name: string }) => {
+  // --- 3. Manejo de Selección (Refactorizado para objeto model) ---
+  const handleSelect = (item: any) => {
     if (isTransitioning) return;
     setIsTransitioning(true);
 
     if (activePanel === "brand") {
-      setSelection({ ...selection, brand: item.name, brandId: item.id, model: null, modelId: "" });
+      setSelection({ 
+        ...selection, 
+        brand: item.name, 
+        brandId: item.id, 
+        model: { id: null, name: null, has_case: false, has_mica: false } // Reset model
+      });
       setTimeout(() => {
         setSearch("");
         setDirection(1); 
@@ -136,7 +155,16 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
         setIsTransitioning(false);
       }, 400); 
     } else {
-      setSelection({ ...selection, model: item.name, modelId: item.id });
+      // Seteo del nuevo objeto model con sus flags
+      setSelection({ 
+        ...selection, 
+        model: { 
+          id: item.id, 
+          name: item.name, 
+          has_case: !!item.has_case, 
+          has_mica: !!item.has_mica 
+        } 
+      });
       setTimeout(() => {
         setActivePanel("none");
         setSearch("");
@@ -149,17 +177,10 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
     return initialBrands.find((b) => b.name === brandSelected)?.logo;
   }, [initialBrands, brandSelected]);
 
-  // --- 3. Configuración de Animación Suave (Deslizamiento Puro) ---
   const variants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? "100%" : "-100%",
-    }),
-    center: {
-      x: 0,
-    },
-    exit: (dir: number) => ({
-      x: dir < 0 ? "100%" : "-100%",
-    })
+    enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%" }),
+    center: { x: 0 },
+    exit: (dir: number) => ({ x: dir < 0 ? "100%" : "-100%" })
   };
 
   return (
@@ -180,7 +201,15 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
             <div className="bg-white text-[#0B4488] px-4 py-2 rounded-3xl text-[13px] font-bold w-fit border border-blue-100 flex items-center gap-3">
               {selectedBrandLogo && <Image src={getImageUrl(selectedBrandLogo)} alt={brandSelected} width={20} height={20} className="object-contain" unoptimized />}
               <span className="font-normal text-[14px]">{brandSelected}</span>
-              <button onClick={(e) => { e.stopPropagation(); setSelection({ ...selection, brand: null, brandId: "", model: null, modelId: "" }); }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488]" /></button>
+              <button onClick={(e) => { 
+                e.stopPropagation(); 
+                setSelection({ 
+                  ...selection, 
+                  brand: null, 
+                  brandId: "", 
+                  model: { id: null, name: null, has_case: false, has_mica: false } 
+                }); 
+              }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488]" /></button>
             </div>
           )}
         </div>
@@ -200,7 +229,10 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
           {modelSelected && (
             <div className="bg-white text-[#0B4488] px-4 py-2 rounded-3xl text-[14px] font-normal w-fit border border-blue-100 flex items-center gap-3">
               <span className="tracking-tight">{modelSelected}</span>
-              <button onClick={(e) => { e.stopPropagation(); setSelection({ ...selection, model: null, modelId: "" }); }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488]" /></button>
+              <button onClick={(e) => { 
+                e.stopPropagation(); 
+                setSelection({ ...selection, model: { id: null, name: null, has_case: false, has_mica: false } }); 
+              }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488]" /></button>
             </div>
           )}
         </div>
@@ -215,9 +247,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ 
-              x: { type: "tween", duration: 0.5, ease: [0.32, 0.72, 0, 1] } 
-            }}
+            transition={{ x: { type: "tween", duration: 0.5, ease: [0.32, 0.72, 0, 1] } }}
             className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden shadow-2xl"
           >
             <div className="p-4 flex items-center gap-4 border-b pt-12 shrink-0 bg-white">
@@ -249,7 +279,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
                 )}
                 
                 {filteredResults.map(({ item, layer }) => {
-                  const isSelected = activePanel === "brand" ? selection.brand === item.name : selection.model === item.name;
+                  const isSelected = activePanel === "brand" ? selection.brand === item.name : selection.model.id === item.id;
                   return (
                     <button
                       key={item.id}

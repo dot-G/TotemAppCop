@@ -13,6 +13,7 @@ import { Combo } from "@/services/combo-service2";
 import { Mica } from "@/services/mica-service2";
 import { CaseCut } from "@/services/case-service2";
 import { CatalogOffering } from "@/services/image-service2";
+import { StepType } from "@/lib/store";
 
 // --- UI Components ---
 import { TelcelHeader } from "@/components/shared/telcel-header";
@@ -39,7 +40,8 @@ export const MICAS_KEY = ["offerings", "mica"];
 export const CASES_KEY = ["offerings", "cases"];
 export const CATALOG_KEY = ["offerings", "catalog"];
 
-const STEP_CONFIG: Record<string, { title: string }> = {
+// Tipamos los Records con Partial<Record<StepType, ...>> para que acepten los pasos del enum
+const STEP_CONFIG: Partial<Record<StepType, { title: string }>> = {
   "phone-selector": { title: "Selecciona tu celular" },
   "combo-selector": { title: "Elige tu combo" },
   "mica-selector": { title: "Protector de pantalla" },
@@ -48,7 +50,7 @@ const STEP_CONFIG: Record<string, { title: string }> = {
   "contact-form": { title: "Enviar a producción" },
 };
 
-const STEP_NAMES: Record<string, string> = {
+const STEP_NAMES: Partial<Record<StepType, string>> = {
   onboarding: "Inicio",
   "phone-selector": "Tu celular",
   "combo-selector": "Tu combo",
@@ -149,13 +151,12 @@ export function AppShell2({
   const showSubSteps = ["mica-selector", "case-selector", "image-selector"].includes(currentStep);
 
   return (
-   <div className="w-full h-[100dvh] bg-[#0f172a] flex justify-center items-center overflow-hidden font-sans">
-  <div className="
-    relative h-full w-full 
-    /* En monitores horizontales forzamos proporción, en tu monitor vertical será 100% */
-    aspect-[9/16] md:w-auto max-w-full
-    bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden"
-  >   
+    <div className="w-full h-[100dvh] bg-[#0f172a] flex justify-center items-center overflow-hidden font-sans">
+      <div className="
+        relative h-full w-full 
+        aspect-[9/16] md:w-auto max-w-full
+        bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden"
+      >   
         <AnimatePresence mode="wait">
           {!isOnboarding && (
             <motion.header
@@ -177,8 +178,8 @@ export function AppShell2({
                   currentStepNumber={progress.current}
                   totalSteps={progress.total}
                   title={STEP_CONFIG[currentStep]?.title || ""}
-                  subtitle={`Sig: ${STEP_NAMES[progress.next] || "Fin"}`}
-                  backTo={progress.previous}
+                  subtitle={`Sig: ${STEP_NAMES[progress.next as StepType] || "Fin"}`}
+                  backTo={progress.previous as StepType}
                   onExitClick={() => setIsExitModalOpen(true)}
                 />
               )}
