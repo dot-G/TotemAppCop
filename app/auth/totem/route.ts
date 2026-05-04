@@ -1,60 +1,50 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const cookieStore = cookies();
   
-  /**
-   * 1. Gestión de Redirección y Captura de Store
-   * El middleware nos envía algo como: /?store=visto
-   */
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const targetUrl = new URL(callbackUrl, request.url);
   
-  // Extraemos el valor de la tienda del query param si existe
+  // Parámetros que inyectó el middleware en el callbackUrl
   const storeValue = targetUrl.searchParams.get('store');
-  
-  // El token estático desde tu variable de entorno
-  const staticToken = process.env.TOTEM_STATIC_TOKEN;
+  const totemValue = targetUrl.searchParams.get('totem');
 
-  // Validación de seguridad
-  if (!staticToken) {
-    console.error("ERROR: TOTEM_STATIC_TOKEN no está definido en el archivo .env");
-    return NextResponse.json(
-      { error: "Error de configuración en el servidor" }, 
-      { status: 500 }
-    );
+  // Si no hay parámetros, es un login manual (staff/admin)
+  if (!storeValue && !totemValue) {
+    return NextResponse.redirect(new URL(callbackUrl, request.url));
   }
 
-  // Preparamos la respuesta de redirección absoluta
+  // Definición dinámica según el parámetro presente
+  let incomingType: 'store' | 'totem' = totemValue ? 'totem' : 'store';
+  let finalSlug = totemValue || storeValue;
+  let staticToken = incomingType === 'totem' 
+    ? process.env.TOTEM_STATIC_TOKEN 
+    : process.env.STORE_STATIC_TOKEN;
+
+  if (!staticToken) {
+    console.error(`ERROR: Token para ${incomingType} no configurado en .env`);
+    return NextResponse.json({ error: "Security Config Missing" }, { status: 500 });
+  }
+
   const res = NextResponse.redirect(targetUrl);
 
-  /**
-   * 2. Persistencia de Autenticación
-   * Token de acceso para las llamadas a Directus/API
-   */
-  res.cookies.set('access_token', staticToken, {
+  const cookieOptions = {
     httpOnly: true, 
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     maxAge: 60 * 60 * 24 * 365, // 1 año
     path: '/',
-  });
+  };
 
-  /**
-   * 3. Persistencia del Identificador de Tienda
-   * Guardamos el slug (ej: 'visto') en una cookie.
-   * Esto permite que el servidor y el cliente sepan qué tienda es
-   * incluso si el usuario refresca la página en /prueba
-   */
-  if (storeValue) {
-    res.cookies.set('current_store', storeValue, {
-      httpOnly: false, // Permitimos que JS (Jotai) pueda leerla si es necesario
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 365, // 1 año
-      path: '/',
-    });
-  }
+  // Seteamos / Sobrescribimos cookies
+  res.cookies.set('access_token', staticToken, cookieOptions);
+  
+  // Estas son httpOnly: false para que el cliente las lea
+  res.cookies.set('current_store', finalSlug!, { ...cookieOptions, httpOnly: false });
+  res.cookies.set('type_user', incomingType, { ...cookieOptions, httpOnly: false });
 
   return res;
 }
