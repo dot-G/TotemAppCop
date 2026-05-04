@@ -41,6 +41,7 @@ export interface AvailableColor {
   colourId: string;
   name: string;
   hex: string;
+  caseImage: string;
 }
 
 export interface ImageConfig {
