@@ -1,21 +1,33 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { AlertTriangle, Loader2, FileDown, Share2 } from "lucide-react";
+import React, { useRef, useState, useEffect } from "react";
+import { AlertTriangle, Loader2, FileDown, Share2, Smartphone } from "lucide-react";
 import { motion } from "framer-motion";
 import { toJpeg } from "html-to-image";
 import { useApp } from "@/hooks/use-app";
 import Barcode from "react-barcode";
+import QRCode from "react-qr-code"; // Asegúrate de tener instalada esta librería
+import Cookies from "js-cookie";
 
 export default function Payment() {
   const { selection } = useApp();
   const captureContainerRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [actionType, setActionType] = useState<"download" | "share" | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
+
+  // Leer el tipo de usuario desde la cookie
+  useEffect(() => {
+    const type = Cookies.get("type_user");
+    setUserType(type || "store");
+  }, []);
 
   const reference = selection.orderNumber || "A3B5C7D9";
   const sku = selection.orderSku || "IPHONE-17P001";
   const barcodeValue = selection.orderSku || "IPHONE-17P001";
+  
+  // URL para el QR en modo totem/operator
+  const qrUrl = `${window.location.origin}/qr/${reference}`;
 
   const handleAction = async (type: "download" | "share") => {
     if (captureContainerRef.current === null) return;
@@ -41,7 +53,6 @@ export default function Payment() {
           });
         }
       } else {
-        // Download (or fallback for share)
         const link = document.createElement("a");
         link.download = `cupon-${reference}.jpg`;
         link.href = dataUrl;
@@ -55,15 +66,18 @@ export default function Payment() {
     }
   };
 
+  // Determinar si mostramos QR o Barcode
+  const showQR = userType === "operator" || userType === "totem";
+
   return (
     <div className="flex flex-col h-full bg-[#f4f7f9] font-sans items-center justify-start p-0 overflow-y-auto no-scrollbar">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md space-y-2"
+        className="w-full max-w-md space-y-2 min-[960px]:mt-8"
       >
         {/* --- ÁREA DE CAPTURA --- */}
-        <div ref={captureContainerRef} className="p-3 bg-[#f4f7f9] min-[960px]:mt-8">
+        <div ref={captureContainerRef} className="p-3 bg-[#f4f7f9]">
           <div className="bg-white rounded-[14px] shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col border border-slate-100">
             <div className="pt-3 pb-3 text-center">
               <h2 className="text-[16px] font-semibold text-slate-900 tracking-tight">
@@ -80,17 +94,51 @@ export default function Payment() {
 
             <div className="flex flex-col items-center px-0 py-8 bg-white">
               <div className="mb-2 px-2 w-full flex justify-center">
-                 <Barcode value={barcodeValue} width={1.8} height={50} fontSize={14} background="transparent" margin={0} displayValue={true} />
+                {showQR ? (
+                  /* Renderizado para OPERATOR o TOTEM */
+                  <div className="p-4 bg-white border-2 border-slate-50 rounded-xl">
+                    <QRCode 
+                      value={qrUrl} 
+                      size={180}
+                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                      viewBox={`0 0 256 256`}
+                    />
+                  </div>
+                ) : (
+                  /* Renderizado para STORE (Legacy/Caja) */
+                  <Barcode 
+                    value={barcodeValue} 
+                    width={1.8} 
+                    height={50} 
+                    fontSize={14} 
+                    background="transparent" 
+                    margin={0} 
+                    displayValue={true} 
+                  />
+                )}
               </div>
-              <span className="text-[12px] text-slate-400 font-medium mt-2">Código de validación</span>
+              <span className="text-[12px] text-slate-400 font-medium mt-2">
+                {showQR ? "Escanea para ver detalles" : "Código de validación"}
+              </span>
             </div>
 
             <div className="p-4 bg-slate-50/50 border-t border-dashed border-slate-200">
               <div className="flex gap-4 items-start">
-                <AlertTriangle className="text-emerald-500 w-6 h-6 shrink-0 mt-0.5 stroke-[2.5]" />
-                <p className="text-black text-[13px] leading-tight font-normal">
-                  Acérquese a la caja de pago más cercana con el cupón para iniciar el proceso de producción.
-                </p>
+                {showQR ? (
+                  <>
+                    <Smartphone className="text-blue-500 w-6 h-6 shrink-0 mt-0.5 stroke-[2.5]" />
+                    <p className="text-black text-[13px] leading-tight font-normal">
+                      Escanee este código con su dispositivo para realizar el seguimiento o procesar la orden desde el panel técnico.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="text-emerald-500 w-6 h-6 shrink-0 mt-0.5 stroke-[2.5]" />
+                    <p className="text-black text-[13px] leading-tight font-normal">
+                      Acérquese a la caja de pago más cercana con el cupón para iniciar el proceso de producción.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -98,7 +146,6 @@ export default function Payment() {
 
         {/* --- BOTONES DE ACCIÓN --- */}
         <div className="px-3 pt-4 pb-6 flex gap-3">
-          {/* Botón Descargar (Izquierda) */}
           <button
             onClick={() => handleAction("download")}
             disabled={isGenerating}
@@ -114,7 +161,6 @@ export default function Payment() {
             )}
           </button>
 
-          {/* Botón Enviar (Derecha) */}
           <button
             onClick={() => handleAction("share")}
             disabled={isGenerating}
