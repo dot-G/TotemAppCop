@@ -152,11 +152,25 @@ export function AppShell2({
 
   return (
     <div className="w-full h-[100dvh] bg-[#0f172a] flex justify-center items-center overflow-hidden font-sans">
-      <div className="
-        relative h-full w-full 
-        aspect-[9/16] md:w-auto max-w-full
-        bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden"
-      >   
+    <div className="
+    relative h-full w-full 
+    /* Comportamiento base (móvil) */
+    aspect-auto 
+    
+    /* A partir de 1100px: Aspecto, límites y escalado */
+    min-[1100px]:aspect-[9/16] 
+    min-[1100px]:w-full 
+    min-[1100px]:max-w-[960px] 
+    min-[1100px]:mx-auto
+    
+    /* Escalado al 50% */
+    min-[1100px]:scale-70
+    min-[1100px]:origin-center
+    
+    bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300"
+>
+
+
         <AnimatePresence mode="wait">
           {!isOnboarding && (
             <motion.header
