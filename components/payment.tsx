@@ -63,7 +63,7 @@ export default function Payment() {
         className="w-full max-w-md space-y-2"
       >
         {/* --- ÁREA DE CAPTURA --- */}
-        <div ref={captureContainerRef} className="p-3 bg-[#f4f7f9]">
+        <div ref={captureContainerRef} className="p-3 bg-[#f4f7f9] min-[960px]:mt-8">
           <div className="bg-white rounded-[14px] shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col border border-slate-100">
             <div className="pt-3 pb-3 text-center">
               <h2 className="text-[16px] font-semibold text-slate-900 tracking-tight">

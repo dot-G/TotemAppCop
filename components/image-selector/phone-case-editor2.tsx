@@ -173,7 +173,7 @@ const handleAccept = useCallback(async () => {
           </button>
         )}
 
-        <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0 overflow-hidden min-h-[320px]">
+        <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0  min-[960px]:p-16 overflow-hidden min-h-[320px]">
           {/* 
               CAMBIO: Se eliminan las clases scale-90 / scale-80. 
               El tamaño ahora es controlado por la prop width que recibe SmartphoneCaseSimple.
@@ -205,7 +205,7 @@ const handleAccept = useCallback(async () => {
           
           <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
             <div className="flex flex-col items-center gap-2">
-              <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Color</span>
+              <span className="text-[10px] min-[960px]:text-[12px] font-semibold uppercase text-slate-400">Color</span>
               <ColorSelectorVertical
                 casesApi={availableColors.map(c => ({
                   id: c.caseId, colourId: c.colourId, colour: { name: c.name, hex_code: c.hex }
@@ -220,7 +220,7 @@ const handleAccept = useCallback(async () => {
             </div>
             <div className="w-8 h-[1px] bg-slate-100" />
             <div className="flex flex-col items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-tighter">Cámara</span>
+              <span className="text-[10px] min-[960px]:text-[12px] font-semibold uppercase text-slate-400">Cámara</span>
               <button
                 onClick={() => setCameraDialogOpen(true)}
                 className="w-10 h-14 bg-slate-800 rounded-[8px] relative overflow-hidden shadow-sm active:scale-95 transition-transform"
@@ -262,14 +262,14 @@ const handleAccept = useCallback(async () => {
             {allowClose && (
               <Button
                 variant="ghost"
-                className="h-14 md:h-16 flex-1 md:flex-none px-6 text-slate-400 font-bold text-sm uppercase tracking-tight hover:text-slate-600"
+                className="h-14 md:h-16 flex-1 md:flex-none px-6 text-slate-400 font-bold text-sm min-[960px]:text-[22px] uppercase hover:text-slate-600"
                 onClick={onClose}
               >
                 Cancelar
               </Button>
             )}
             <Button
-              className="h-14 md:h-16 flex-[2] md:max-w-[320px] rounded-[18px] md:rounded-[24px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base md:text-lg shadow-lg active:scale-95 transition-all"
+              className="h-14 md:h-16 flex-[2] md:max-w-[320px] rounded-[18px] md:rounded-[24px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base min-[960px]:text-[25px] md:text-lg shadow-lg active:scale-95 transition-all"
               onClick={handleAccept}
               disabled={isCapturing}
             >
