@@ -17,8 +17,8 @@ export default async function Page({ searchParams }: PageProps) {
   const token = await getServerToken();
   
   // En Next.js 15+ searchParams es una Promise, por eso usamos await
-  const params = await searchParams;
-  const storeCode = typeof params.store === 'string' ? params.store : null;
+  //const params = await searchParams;
+  //const storeCode = typeof params.store === 'string' ? params.store : null;
 
   // Carga de datos
   const [
@@ -48,7 +48,7 @@ export default async function Page({ searchParams }: PageProps) {
         initialCases={initialCases}
         initialCatalog={initialCatalog}
         token={token} 
-        storeCode={storeCode} 
+       // storeCode={storeCode} 
       />
     </Suspense>
   );
