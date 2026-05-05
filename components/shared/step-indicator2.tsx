@@ -21,10 +21,10 @@ export function StepIndicator() {
   const globalIndex = stepsPath.indexOf(currentStep)
 
   return (
-    <div className="relative flex justify-between items-center px-12 py-2 bg-[#f8fafc] shrink-0 overflow-hidden">
+    <div className="relative flex justify-between items-center px-12 py-2  min-[960px]:px-40 bg-[#f8fafc] shrink-0 overflow-hidden">
       
       {/* Línea conectora de fondo */}
-      <div className="absolute top-1/2 left-[10%] right-[10%] h-[1px] bg-slate-200 -translate-y-1/2 z-0" />
+      <div className="absolute top-1/2 min-[960px]:top-14 left-[10%] right-[10%] h-[1px] bg-slate-200 -translate-y-1/2 z-0" />
 
       {visibleSteps.map((step) => {
         const stepIndexInPath = stepsPath.indexOf(step.id as any)
@@ -35,7 +35,7 @@ export function StepIndicator() {
           <div 
             key={step.id} 
             className={`
-              relative z-10 flex items-center mt-1.5 gap-1.5 px-2 py-0 rounded-full border transition-all duration-300
+              relative z-10 flex items-center mt-1.5 min-[960px]:mt-8 gap-1.5 px-2 py-0 min-[960px]:px-4 rounded-full border transition-all duration-300
               ${isActive 
                 ? "bg-white border-black shadow-sm" 
                 : "bg-[#f8fafc] border-slate-200"
@@ -51,7 +51,7 @@ export function StepIndicator() {
             )}
 
             <span className={`
-              text-[13px] font-medium transition-colors
+              text-[13px]  min-[960px]:text-[25px] font-medium transition-colors
               ${isActive ? "text-black" : "text-slate-300"}
             `}>
               {step.label}

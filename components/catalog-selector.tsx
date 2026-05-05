@@ -77,7 +77,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
   const [mounted, setMounted] = useState(false);
 
   const offerings = initialCatalog;
-  
+
   const [selectedBrand, setSelectedBrand] = useState<CatalogOffering | null>(null);
   const [editorTarget, setEditorTarget] = useState<{
     url: string;
@@ -88,7 +88,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Al lado de tus otros estados
-const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -119,8 +119,8 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
   ) => {
     const colorData = selection.availableColors.find((c) => c.caseId === caseId);
 
-    const newBrandPrice = editorTarget?.type === "brand" 
-      ? (parseFloat(selectedBrand?.price || "0")) 
+    const newBrandPrice = editorTarget?.type === "brand"
+      ? (parseFloat(selectedBrand?.price || "0"))
       : 0;
 
     const currentTotalUv = selection.config?.prices?.uv || 0;
@@ -134,7 +134,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
       colourHex: newColorHex,
       colourId: colorData ? colourId : selection.colourId,
       imageSourceType: editorTarget?.type,
-      imageBrandPrice: newBrandPrice, 
+      imageBrandPrice: newBrandPrice,
       config: {
         ...selection.config,
         prices: {
@@ -174,7 +174,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
     const previewToDisplay = isBrand
       ? selection.capturedBrandPreview
       : selection.capturedCustomPreview;
-    
+
     const sourceUrl = isBrand
       ? selection.catalog_image
         ? getImageUrl(selection.catalog_image)
@@ -184,7 +184,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
     return (
       <div className="p-3">
         <div className="flex items-start gap-6">
-          <div className="p-4 w-1/2 flex justify-center items-center overflow-hidden rounded-xl">
+          <div className="p-4 min-[960px]:px-32 w-1/2 flex justify-center items-center overflow-hidden rounded-xl">
             {previewToDisplay ? (
               <img
                 src={previewToDisplay}
@@ -204,9 +204,9 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
             )}
           </div>
 
-          <div className="w-1/2 flex flex-col justify-center gap-3">
+          <div className="w-1/2 flex flex-col justify-center gap-3 min-[960px]:pr-8">
             <div className="mt-8 mb-1 text-left">
-              <p className="text-[20px] leading-[1.1em] font-semibold text-black">
+              <p className="text-[20px] min-[960px]:text-[35px] leading-[1.1em] font-semibold text-black">
                 {title}
               </p>
             </div>
@@ -214,7 +214,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold px-2"
+                className="h-11 min-[960px]:h-20 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] min-[960px]:text-[25px] font-semibold px-2"
                 onClick={() => {
                   if (sourceUrl) {
                     setEditorTarget({ url: sourceUrl, type });
@@ -222,12 +222,12 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
                   }
                 }}
               >
-                <Pencil className="w-3.5 h-3.5" /> Editar
+                <Pencil className="w-3.5 h-3.5 min-[960px]:w-8 min-[960px]:h-8" /> Editar
               </Button>
 
               <Button
                 variant="outline"
-                className="h-11 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] font-semibold text-red-500 px-2"
+                className="h-11 min-[960px]:h-20 rounded-xl gap-2 border-slate-100 bg-slate-50 text-[13px] min-[960px]:text-[25px] font-semibold text-red-500 px-2"
                 onClick={() => {
                   const currentUv = selection.config?.prices?.uv || 0;
                   const currentLicense = selection.imageBrandPrice || 0;
@@ -253,54 +253,54 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
                   }
                 }}
               >
-                <Trash2 className="w-3.5 h-3.5" /> Borrar
+                <Trash2 className="w-3.5 h-3.5 min-[960px]:w-8 min-[960px]:h-8" /> Borrar
               </Button>
             </div>
 
-           {isBrand && (
-  <motion.div
-    initial={{ opacity: 0, y: 5 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="mt-1 flex gap-3 items-start py-2 select-none"
-  >
-    {/* Contenedor del Checkbox con área de clic optimizada */}
-    <div 
-      onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
-      className="group flex cursor-pointer items-start pt-0.5"
-    >
-      <div className={`
-        shrink-0 w-5 h-5 rounded-[4px] border-2 flex items-center justify-center transition-all duration-200
-        ${selection.acceptedTerms 
-          ? "bg-[#722296] border-[#722296] shadow-[0_0_8px_rgba(114,34,150,0.4)]" 
-          : "bg-white border-[#722296] group-hover:border-[#722296]/50 shadow-[0_0_8px_rgba(114,34,150,0.4)]"
-        }
+            {isBrand && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-1 flex gap-3 items-start py-2 min-[960px]:py-8 select-none"
+              >
+                {/* Contenedor del Checkbox con área de clic optimizada */}
+                <div
+                  onClick={() => updateSelection({ acceptedTerms: !selection.acceptedTerms })}
+                  className="group flex cursor-pointer items-start pt-0.5"
+                >
+                  <div className={`
+        shrink-0 w-5 h-5 min-[960px]:w-8 min-[960px]:h-8 rounded-[4px] border-2 flex items-center justify-center transition-all duration-200
+        ${selection.acceptedTerms
+                      ? "bg-[#722296] border-[#722296] shadow-[0_0_8px_rgba(114,34,150,0.4)]"
+                      : "bg-white border-[#722296] group-hover:border-[#722296]/50 shadow-[0_0_8px_rgba(114,34,150,0.4)]"
+                    }
       `}>
-        {selection.acceptedTerms && (
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            <Check className="w-3.5 h-3.5 text-white stroke-[3px]" />
-          </motion.div>
-        )}
-      </div>
-    </div>
+                    {selection.acceptedTerms && (
+                      <motion.div
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                      >
+                        <Check className="w-3.5 h-3.5 min-[960px]:w-6 min-[960px]:h-6 text-white stroke-[3px]" />
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
 
-    {/* Texto con stopPropagation en el link para evitar conflictos de clic */}
-    <p className="text-[14px] leading-tight text-slate-500 font-normal">
-      Acepto los{" "}<br/>
-      <span 
-        onClick={(e) => {
-          e.stopPropagation(); // IMPORTANTE: evita que el check cambie al tocar el link
-          setIsTermsOpen(true);
-        }} 
-        className="font-semibold text-[#722296] cursor-pointer hover:underline decoration-1 underline-offset-2 transition-all"
-      >
-        Términos de Licencia
-      </span>
-    </p>
-  </motion.div>
-)}
+                {/* Texto con stopPropagation en el link para evitar conflictos de clic */}
+                <p className="text-[14px] min-[960px]:text-[25px] leading-tight text-slate-500 font-normal">
+                  Acepto los{" "}<br />
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation(); // IMPORTANTE: evita que el check cambie al tocar el link
+                      setIsTermsOpen(true);
+                    }}
+                    className="font-semibold text-[#722296] cursor-pointer hover:underline decoration-1 underline-offset-2 transition-all"
+                  >
+                    Términos de Licencia
+                  </span>
+                </p>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
@@ -308,7 +308,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full min-[960px]:mt-12 overflow-hidden">
       <div className="shrink-0 border-b flex z-10">
         {[
           { id: "brand", label: "Licencias" },
@@ -317,9 +317,8 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
           <button
             key={t.id}
             onClick={() => handleTabChange(t.id as any)}
-            className={`flex-1 py-2 text-[14px] font-semibold relative transition-colors ${
-              activeTab === t.id ? "text-[#722296]" : "text-slate-400"
-            }`}
+            className={`flex-1 py-2 text-[14px] min-[960px]:text-[32px] font-semibold relative transition-colors ${activeTab === t.id ? "text-[#722296]" : "text-slate-400"
+              }`}
           >
             {t.label}
             {activeTab === t.id && (
@@ -331,7 +330,7 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
 
       <div className="flex-1 bg-white overflow-y-hidden no-scrollbar">
         <AnimatePresence mode="wait">
-          <motion.div 
+          <motion.div
             key={activeTab}
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -341,19 +340,41 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
             {activeTab === "brand" ? (
               <div key="brand-content">
                 {selection.catalog_image ? renderPreviewState("brand") : (
-                  <div className="grid gap-3 p-6">
+                  <div className="grid gap-3 p-3 min-[960px]:p-8">
                     {offerings.map((brand) => (
                       <button
                         key={brand.id}
-                        onClick={() => { setSelectedBrand(brand); setFlowView("gallery"); }}
-                        className="w-full bg-white p-5 rounded-[14px] flex justify-between items-center border border-slate-50 shadow-sm active:scale-[0.98]"
-                      >
-                        <div className="relative h-8 w-24">
-                          <Image src={getImageUrl(brand.icon || "")} alt={brand.name} fill className="object-contain" unoptimized />
+                        onClick={() => {
+                          setSelectedBrand(brand);
+                          setFlowView("gallery");
+                        }}
+                        className="w-full bg-white p-3 min-[960px]:p-8 rounded-[14px] flex justify-between items-center border border-slate-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)] min-[960px]:shadow-[0_10px_30px_rgba(114,34,150,0.12)] transition-all duration-200 active:scale-[0.98]"    >
+                        <div className="relative h-8 w-24 min-[960px]:h-20 min-[960px]:w-100">
+                          <Image
+                            src={getImageUrl(brand.icon || "")}
+                            alt={brand.name}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[14px] font-semibold uppercase text-slate-600">+ {brand.price}</span>
-                          <ChevronIcon size={18} className="text-slate-300" />
+
+                        <div className="flex items-center gap-3">
+                          {/* Precio: Conversión de string a número y validación */}
+                          {Number(brand.price) > 0 && (
+                            <span className="text-[14px] font-semibold uppercase text-slate-600">
+                              + {brand.price}
+                            </span>
+                          )}
+
+                          {/* Botón visual con el color solicitado */}
+                          <div
+                            className="flex items-center gap-2 px-4 py-2 text-white text-[12px] min-[960px]:text-[25px] font-medium rounded-[8px]"
+                            style={{ backgroundColor: '#722296' }}
+                          >
+                            <ImageIcon className="w-4 h-4 min-[960px]:w-8 min-[960px]:h-8"/> {/* Icono de imagen en lugar de la flecha */}
+                            <span>Elegir imagen</span>
+                          </div>
                         </div>
                       </button>
                     ))}
@@ -366,10 +387,10 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
                   <div className="flex flex-col gap-6 p-6">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full aspect-video rounded-[14px] bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400"
+                      className="w-full aspect-video rounded-[14px] bg-white border-2 min-[960px]:border-6 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-slate-400"
                     >
                       <ImageIcon size={32} />
-                      <span className="text-[14px] font-semibold">Subir Foto o Imagen</span>
+                      <span className="text-[14px] min-[960px]:text-[28px]  font-semibold">Subir Foto o Imagen</span>
                     </button>
                     <input
                       type="file" ref={fileInputRef} className="hidden" accept="image/*"
@@ -392,80 +413,78 @@ const [isTermsOpen, setIsTermsOpen] = useState(false);
       </div>
 
       {/* Renderizado del Popup de Términos */}
-      <TermsPopup 
-        isOpen={isTermsOpen} 
-        onOpenChange={setIsTermsOpen} 
+      <TermsPopup
+        isOpen={isTermsOpen}
+        onOpenChange={setIsTermsOpen}
       />
 
-{mounted && createPortal(
-  <>
-    {/* 1. GALERÍA (Slide-in suave con Tailwind) */}
-    <div 
-      className={`fixed inset-0 z-[100] bg-white flex flex-col transition-transform duration-300 ease-in-out ${
-        flowView === "gallery" ? "translate-x-0" : "translate-x-full"
-      }`}
-    >
-      <div className="px-3 py-2 border-b flex items-center gap-4">
-        <button onClick={() => setFlowView("idle")} className="p-2">
-          <ArrowLeft />
-        </button>
-        <h3 className="text-[16px] font-semibold flex-1 text-center pr-12 text-slate-900">
-          {selectedBrand?.name}
-        </h3>
-      </div>
-      <div className="flex-col p-4 grid grid-cols-3 gap-3">
-        {currentGalleryImages.map((img: any) => (
-          <button
-            key={img.id}
-            onClick={() => {
-              setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
-              setIsEditorOpen(true);
-            }}
-            className="aspect-[3/4] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
+      {mounted && createPortal(
+        <>
+          {/* 1. GALERÍA (Slide-in suave con Tailwind) */}
+          <div
+            className={`fixed inset-0 z-[100] bg-white flex flex-col transition-transform duration-300 ease-in-out ${flowView === "gallery" ? "translate-x-0" : "translate-x-full"
+              }`}
           >
-            <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
-          </button>
-        ))}
-      </div>
-    </div>
+            <div className="px-3 py-2 min-[960px]:p-8 border-b flex items-center gap-4">
+              <button onClick={() => setFlowView("idle")} className="p-2">
+                <ArrowLeft className="min-[960px]:w-10 min-[960px]:h-10" />
+              </button>
+              <h3 className="text-[16px] min-[960px]:text-[32px] font-semibold flex-1 text-center pr-12 text-slate-900">
+                {selectedBrand?.name}
+              </h3>
+            </div>
+            <div className="flex-col p-4 min-[960px]:p-8 grid grid-cols-3 gap-3 min-[960px]:gap-8">
+              {currentGalleryImages.map((img: any) => (
+                <button
+                  key={img.id}
+                  onClick={() => {
+                    setEditorTarget({ url: img.url, type: "brand", tag: selectedBrand?.name });
+                    setIsEditorOpen(true);
+                  }}
+                  className="aspect-[3/4] relative rounded-xl overflow-hidden shadow-sm bg-slate-50"
+                >
+                  <Image src={`${img.url}?width=200`} alt="option" fill className="object-cover" unoptimized />
+                </button>
+              ))}
+            </div>
+          </div>
 
-    {/* 2. EDITOR CON PROTECCIÓN DE TRANSFORMACIONES CRUZADAS */}
-    <div 
-      className={`fixed inset-0 z-[150] bg-white transition-transform duration-300 ease-in-out ${
-        isEditorOpen ? "translate-x-0" : "translate-x-full"
-      }`}
-    >
-      {isEditorOpen && editorTarget && (
-        <PhoneCaseEditor
-          // La key fuerza a React a destruir y crear el editor al cambiar de imagen o tipo
-          key={`${editorTarget.type}-${editorTarget.url}`} 
-          image={editorTarget.url}
-          isOpen={isEditorOpen}
-          onClose={() => setIsEditorOpen(false)}
-          onAccept={handleEditorAccept}
-          availableColors={selection.availableColors}
-          initialCaseId={selection.caseId}
-          /* 
-             SOLUCIÓN: Solo cargamos la transformación guardada si existe una preview ya capturada.
-             Si no hay preview (es selección nueva), forzamos DEFAULT_TRANSFORM para no heredar basura.
-          */
-          initialTransform={
-            editorTarget.type === "brand" 
-              ? (selection.capturedBrandPreview ? selection.brandTransform : DEFAULT_TRANSFORM) 
-              : (selection.capturedCustomPreview ? selection.customTransform : DEFAULT_TRANSFORM)
-          }
-          camera={
-            editorTarget.type === "brand" 
-              ? (selection.brandCameraStyle || "normal") 
-              : (selection.customCameraStyle || "normal")
-          }
-          allowClose={true}
-        />
+          {/* 2. EDITOR CON PROTECCIÓN DE TRANSFORMACIONES CRUZADAS */}
+          <div
+            className={`fixed inset-0 z-[150] bg-white transition-transform duration-300 ease-in-out ${isEditorOpen ? "translate-x-0" : "translate-x-full"
+              }`}
+          >
+            {isEditorOpen && editorTarget && (
+              <PhoneCaseEditor
+                // La key fuerza a React a destruir y crear el editor al cambiar de imagen o tipo
+                key={`${editorTarget.type}-${editorTarget.url}`}
+                image={editorTarget.url}
+                isOpen={isEditorOpen}
+                onClose={() => setIsEditorOpen(false)}
+                onAccept={handleEditorAccept}
+                availableColors={selection.availableColors}
+                initialCaseId={selection.caseId}
+                /* 
+                   SOLUCIÓN: Solo cargamos la transformación guardada si existe una preview ya capturada.
+                   Si no hay preview (es selección nueva), forzamos DEFAULT_TRANSFORM para no heredar basura.
+                */
+                initialTransform={
+                  editorTarget.type === "brand"
+                    ? (selection.capturedBrandPreview ? selection.brandTransform : DEFAULT_TRANSFORM)
+                    : (selection.capturedCustomPreview ? selection.customTransform : DEFAULT_TRANSFORM)
+                }
+                camera={
+                  editorTarget.type === "brand"
+                    ? (selection.brandCameraStyle || "normal")
+                    : (selection.customCameraStyle || "normal")
+                }
+                allowClose={true}
+              />
+            )}
+          </div>
+        </>,
+        document.body
       )}
-    </div>
-  </>,
-  document.body
-)}
     </div>
   );
 }

@@ -147,7 +147,7 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
     <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; }` }} />
 
-      <main className="flex-1 flex flex-col justify-center min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col justify-center min-[960px]:justify-start min-[960px]:mt-8 min-h-0 overflow-hidden">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
@@ -172,7 +172,7 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
                   ${isActive ? "border-[#6b21a8] scale-105 z-10 shadow-lg" : "border-transparent scale-90 opacity-60 grayscale"}`}>
                   
                   {isActive && (
-                    <div className="absolute top-4 right-4 bg-[#6b21a8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
+                    <div className="absolute top-4 right-8 min-[960px]:top-12 min-[960px]:right-12 min-[960px]:scale-[2.8] bg-[#6b21a8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
                       <Check className="w-4 h-4" strokeWidth={3} />
                     </div>
                   )}
@@ -192,31 +192,31 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
                     )}
                   </div>
 
-                  <div className="p-4 flex flex-col">
+                  <div className="p-4 min-[960px]:p-8 flex flex-col">
                     <div className="flex justify-between items-baseline mb-0.5">
-                      <h3 className="text-[18px] font-semibold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
-                      <span className="text-[22px] font-semibold text-[#1d1d1f]">{priceLabel}</span>
+                      <h3 className="text-[18px] min-[960px]:text-[42px] font-semibold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
+                      <span className="text-[22px] min-[960px]:text-[50px] font-semibold text-[#1d1d1f]">{priceLabel}</span>
                     </div>
                     
-                    <p className="text-[12px] text-slate-500 mb-3 leading-tight">
+                    <p className="text-[12px] min-[960px]:text-[28px] text-slate-500 mb-3 leading-tight">
                       {isPrivacy ? "Protección lateral a 30°." : "Cristal templado de máxima transparencia."}
                     </p>
 
                     <div className="flex items-center gap-2 mb-3">
                       <div className="text-[#0D51A1]">
-                        {isPrivacy ? <EyeOff className="w-4 h-4" /> : isPremium ? <Zap className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+                        {isPrivacy ? <EyeOff className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" /> : isPremium ? <Zap className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" /> : <Shield className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" />}
                       </div>
                       <div className="flex flex-col leading-none">
-                        <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
+                        <span className="text-[10px] min-[960px]:text-[22px] font-black text-slate-800 uppercase tracking-tight">
                           {isPrivacy ? "FILTRO ANTIESPÍA" : isPremium ? "MÁXIMA RESISTENCIA" : "PROTECCIÓN 9H"}
                         </span>
-                        <span className="text-[8px] font-medium text-slate-400 uppercase">Tecnología Japonesa</span>
+                        <span className="text-[8px] min-[960px]:text-[18px] font-medium text-slate-400 uppercase">Tecnología Japonesa</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 text-[#0D51A1]">
-                      <Info className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-black uppercase">Instalación Incluida</span>
+                      <Info className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" />
+                      <span className="text-[9px] min-[960px]:text-[22px] font-black uppercase">Instalación Incluida</span>
                     </div>
                   </div>
                 </div>
@@ -225,15 +225,19 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
           })}
         </div>
 
-        <div className="flex justify-center gap-2 py-2">
-          {micas.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => centerCard(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-6 bg-[#6b21a8]" : "w-1.5 bg-slate-300"}`}
-            />
-          ))}
-        </div>
+       
+
+          <div className="flex justify-center gap-3 py-2 min-[960px]:pt-8">
+            {micas.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => centerCard(i)}
+                className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#6b21a8]" : "w-2.5 bg-slate-300"
+                  }`}
+              />
+            ))}
+          </div>
+        
       </main>
     </div>
   );

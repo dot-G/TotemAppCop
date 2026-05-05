@@ -151,32 +151,90 @@ export default function ComboSelector() {
 
          
           
-         {combosApi
-  .filter((combo) => {
-    // 1. Si el combo ofrece CASE, el modelo debe soportar CASE
-    if (combo.includes_case && !selection.model.has_case) return false;
-
-    // 2. Si el combo ofrece MICA, el modelo debe soportar MICA
-    if (combo.includes_mica && !selection.model.has_mica) return false;
-
-    return true; // Pasa el filtro
-  })
-  .map((combo, idx) => {
-    // ... tu lógica de cálculo de precio e UI se mantiene igual
-    const totalPrice = (
-      parseFloat(String(combo.mica_combo_content?.price || 0)) +
-      parseFloat(String(combo.case_combo_content?.price || 0)) +
-      parseFloat(String(combo.uv_print_combo_content?.price || 0))
-    ).toFixed(0);
-
-    const isActive = activeIdx === idx;
-    
-    return (
-      <div key={combo.id} /* ... resto de tus props ... */>
-        {/* Tu componente de Card de combo */}
-      </div>
-    );
-})}
+          {combosApi.map((combo, idx) => {
+            combo.includes_case
+            const totalPrice = (
+              parseFloat(String(combo.mica_combo_content?.price || 0)) +
+              parseFloat(String(combo.case_combo_content?.price || 0)) +
+              parseFloat(String(combo.uv_print_combo_content?.price || 0))
+            ).toFixed(0);
+            const isActive = activeIdx === idx;
+            return (
+              <div
+                key={combo.id}
+                ref={(el) => {
+                  cardsRef.current[idx] = el;
+                }}
+                className="min-w-[95%] flex flex-col px-2 snap-center cursor-pointer"
+                onClick={() => centerCard(idx)}
+              >
+                <div
+                  className={`relative w-full flex-1 bg-white rounded-[8px] p-2 transition-all duration-500 flex flex-col shadow-purple-500 ${
+                    isActive
+                      ? "border-[#6b21a8] scale-105 z-10 shadow-purple-200"
+                      : "border-transparent scale-90 opacity-40 grayscale"
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute top-5 right-5 bg-[#0D51A1] text-white rounded-full p-2 shadow-xl animate-in zoom-in duration-300 z-20">
+                      <Check className="w-5 h-5" strokeWidth={2} />
+                    </div>
+                  )}
+                  <div className="relative aspect-[16/10] w-full bg-slate-100 rounded-[8px] mb-3 overflow-hidden shrink-0 border border-slate-100">
+                    {combo.featured_image ? (
+                      <Image
+                        src={`${getImageUrl(combo.featured_image)}?width=400`}
+                        alt={combo.name}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                        priority={idx === 0}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ImageIcon className="text-slate-300 w-12 h-12" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="px-2 pb-2 flex-1 flex flex-col">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="text-[12px] min-[960px]:text-[35px] font-semibold leading-tight text-[#1d1d1f] tracking-tight">
+                        {combo.name}
+                      </h3>
+                      <span className="text-[22px] font-semibold text-[#1d1d1f]">
+                        ${totalPrice}
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-slate-500 leading-snug mb-1 font-normal">
+                      {combo.description ||
+                        "Selección premium diseñada para la máxima protección de tu dispositivo."}
+                    </p>
+                    <div className="space-y-1">
+                      <span className="text-[13px]">Incluye:</span>
+                      {combo.includes_mica && (
+                        <BenefitItem
+                          icon={<ShieldCheck className="w-5 h-5" />}
+                          label="Mica de Protección"
+                        />
+                      )}
+                      {combo.includes_case && (
+                        <BenefitItem
+                          icon={<Smartphone className="w-5 h-5" />}
+                          label="Case a Medida"
+                        />
+                      )}
+                      {combo.includes_uv_print && (
+                        <BenefitItem
+                          icon={<ImageIcon className="w-5 h-5" />}
+                          label="Personalización UV"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
         <div className="flex justify-center gap-3 py-2">
           {combosApi.map((_, i) => (

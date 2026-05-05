@@ -40,12 +40,25 @@ export default function LoginPage() {
         throw new Error(result?.errors?.[0]?.message || 'Credenciales inválidas')
       }
 
-      // Guardar token en Cookie (Cliente)
+      // 1. Guardar el Token de acceso
+      // Usamos sameSite: 'lax' para que el middleware lo vea correctamente tras el redirect
       Cookies.set('access_token', result.data.access_token, { 
         expires: 1, 
         path: '/',
-        sameSite: 'strict' 
+        sameSite: 'lax' 
       })
+
+      // 2. IDENTIFICAR TIPO DE USUARIO
+      // Esto le dice al middleware que somos "operator" y no un kiosko automático
+      Cookies.set('type_user', 'operator', { 
+        expires: 1, 
+        path: '/',
+        sameSite: 'lax'
+      })
+
+      // 3. LIMPIEZA
+      // Borramos cualquier rastro de tienda previa para evitar inconsistencias en la UI
+      Cookies.remove('current_store')
 
       router.push('/')
       router.refresh()
@@ -58,7 +71,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f8fafc] relative overflow-hidden p-4">
-      {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-100 rounded-full blur-[120px] opacity-60" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100 rounded-full blur-[120px] opacity-60" />
 

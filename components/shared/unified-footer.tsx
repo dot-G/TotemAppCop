@@ -66,7 +66,7 @@ export function UnifiedFooter() {
   const isContactForm = currentStep === "contact-form"
   const buttonText = isContactForm ? "Confirmar Pedido" : "Siguiente"
   const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model.id
-  
+
   // Lógica para el label dinámico del precio
   const priceLabel = ["mica-selector", "combo-selector"].includes(currentStep) ? "Desde" : "Total"
 
@@ -82,10 +82,10 @@ export function UnifiedFooter() {
             transition={{ duration: 0.2 }}
           >
             {selection.brand && currentStep !== "phone-selector" && (
-              <div className="bg-white border border-[#3E3E3E] rounded-[14px] px-3 py-2 flex justify-between items-center mb-3">
+              <div className="bg-white border border-[#3E3E3E] rounded-[14px] px-3 min-[960px]:p-8 py-2 flex justify-between items-center mb-3">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-slate-900 text-[14px] mb-0.5">Detalle para {selection.brand} {selection.model.name}</h4>
-                  <p className="text-[#606166] font-normal text-[14px] leading-tight">
+                  <h4 className="font-semibold text-slate-900 text-[14px] min-[960px]:text-[28px]  mb-0.5 truncate min-[960px]:max-w-[900px] max-w-[240px]">Detalle para {selection.brand} {selection.model.name}</h4>
+                  <p className="text-[#606166] font-normal text-[14px] min-[960px]:text-[28px] leading-tight">
                     {selection.micaName && `${selection.micaName}`}
                     {selection.caseName && ` • Case ${selection.caseName}`}
                     {selection.config?.includes_uv_print && (
@@ -100,10 +100,10 @@ export function UnifiedFooter() {
 
                 {shouldShowPrice && (
                   <div className="text-right pb-0 pt-0 pl-4 border-l border-slate-200 flex flex-col justify-center">
-                    <p className="text-[12px] font-semibold mb-[0px] leading-[tight] text-slate-500 tracking-wider">
+                    <p className="text-[12px] min-[960px]:text-[22px] font-semibold mb-[0px] leading-[tight] text-slate-500 tracking-wider">
                       {priceLabel}
                     </p>
-                    <p className="text-2xl font-semibold text-slate-900 leading-none">
+                    <p className="text-2xl min-[960px]:text-[50px] font-semibold text-slate-900 leading-none">
                       ${totalPrice.toLocaleString('es-AR')}
                     </p>
                   </div>
@@ -114,8 +114,8 @@ export function UnifiedFooter() {
             <Button
               disabled={!canContinue}
               onClick={handleMainAction}
-              className={`w-full h-14 rounded-[14px] text-[20px] font-semibold transition-all duration-300
-                ${canContinue
+              className={`w-full h-14 rounded-[14px] text-[20px] min-[960px]:text-[35px] min-[960px]:h-28 font-semibold transition-all duration-300
+    ${canContinue
                   ? "bg-[#6b21a8] text-white shadow-xl shadow-purple-100 active:scale-[0.97]"
                   : "bg-slate-100 text-slate-300"}`}
             >
@@ -134,7 +134,7 @@ export function UnifiedFooter() {
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>Sincronizando Orden...</span>
             </div>
-            <p className="text-[20px] font-semibold mt-2 text-slate-900">
+            <p className="text-[12px] font-semibold mt-2 text-slate-900">
               Por favor, no cierres esta pantalla
             </p>
           </motion.div>
