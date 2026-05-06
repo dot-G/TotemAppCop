@@ -6,7 +6,7 @@ import { ColorSelector } from "../shared/color-selector";
 import { ColorSelectorVertical } from "../shared/color-selector-vertical";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, X } from "lucide-react"; 
+import { Loader2, X } from "lucide-react";
 import html2canvas from 'html2canvas';
 import { set as setIDB } from "idb-keyval";
 
@@ -69,7 +69,7 @@ export function PhoneCaseEditor({
   const [selectedCase, setSelectedCase] = useState<AvailableColor | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
-  
+
   // NUEVO: Estado para manejar el ancho real del componente sin usar scale de CSS
   const [componentWidth, setComponentWidth] = useState(280);
 
@@ -107,57 +107,57 @@ export function PhoneCaseEditor({
       }
     }
   }, [isOpen, initialTransform, initialCaseId, availableColors, camera]);
-const handleAccept = useCallback(async () => {
-  if (!smartphoneRef.current || !selectedCase) return;
-  setIsCapturing(true);
+  const handleAccept = useCallback(async () => {
+    if (!smartphoneRef.current || !selectedCase) return;
+    setIsCapturing(true);
 
-  try {
-    // 1. Pequeño delay para asegurar que el SVG escalado se renderice bien
-    await new Promise(r => setTimeout(r, 300));
-    const element = smartphoneRef.current;
+    try {
+      // 1. Pequeño delay para asegurar que el SVG escalado se renderice bien
+      await new Promise(r => setTimeout(r, 300));
+      const element = smartphoneRef.current;
 
-    // 2. Captura con fondo blanco (necesario para JPG)
-    const canvas = await html2canvas(element, {
-      useCORS: true,
-      backgroundColor: "#ffffff", // Fondo sólido para evitar artefactos en el JPG
-      scale: 2,                   // Calidad Retina
-      logging: false,
-      width: element.offsetWidth,
-      height: element.offsetHeight,
-    });
+      // 2. Captura con fondo blanco (necesario para JPG)
+      const canvas = await html2canvas(element, {
+        useCORS: true,
+        backgroundColor: "#ffffff", // Fondo sólido para evitar artefactos en el JPG
+        scale: 2,                   // Calidad Retina
+        logging: false,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+      });
 
-    /**
-     * 3. Generar JPG comprimido
-     * "image/jpeg" -> Define el formato
-     * 0.8 -> Calidad de 0 a 1 (80% es excelente para web)
-     */
-    const compressedJpg = canvas.toDataURL("image/jpeg", 0.8);
+      /**
+       * 3. Generar JPG comprimido
+       * "image/jpeg" -> Define el formato
+       * 0.8 -> Calidad de 0 a 1 (80% es excelente para web)
+       */
+      const compressedJpg = canvas.toDataURL("image/jpeg", 0.8);
 
-    // 4. Persistencia en IndexedDB
-    const storageKey = `case-design-${Date.now()}`;
-    await setIDB(storageKey, compressedJpg);
+      // 4. Persistencia en IndexedDB
+      const storageKey = `case-design-${Date.now()}`;
+      await setIDB(storageKey, compressedJpg);
 
-    // 5. Callback final
-    onAccept(
-      compressedJpg, 
-      selectedCase.hex, 
-      { 
-        x: imageOffset.x, 
-        y: imageOffset.y, 
-        scale: imageScale[0], 
-        rotation: imageRotation 
-      }, 
-      selectedCase.caseId, 
-      selectedCase.colourId, 
-      currentCamera
-    );
+      // 5. Callback final
+      onAccept(
+        compressedJpg,
+        selectedCase.hex,
+        {
+          x: imageOffset.x,
+          y: imageOffset.y,
+          scale: imageScale[0],
+          rotation: imageRotation
+        },
+        selectedCase.caseId,
+        selectedCase.colourId,
+        currentCamera
+      );
 
-  } catch (err) {
-    console.error("Error en el proceso de captura JPG:", err);
-  } finally {
-    setIsCapturing(false);
-  }
-}, [onAccept, selectedCase, imageOffset, imageScale, imageRotation, currentCamera]);
+    } catch (err) {
+      console.error("Error en el proceso de captura JPG:", err);
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [onAccept, selectedCase, imageOffset, imageScale, imageRotation, currentCamera]);
   if (!isOpen) return null;
 
   return (
@@ -178,8 +178,8 @@ const handleAccept = useCallback(async () => {
               CAMBIO: Se eliminan las clases scale-90 / scale-80. 
               El tamaño ahora es controlado por la prop width que recibe SmartphoneCaseSimple.
           */}
-          <div 
-            ref={smartphoneRef} 
+          <div
+            ref={smartphoneRef}
             className="w-fit h-fit bg-transparent flex justify-center transition-all duration-300"
           >
             <SmartphoneCaseSimple
@@ -200,21 +200,22 @@ const handleAccept = useCallback(async () => {
 
           </div>
 
-            <div className="absolute top-46 left-10 w-16 h-16 hidden min-[960px]:flex min-[960px]:w-40 min-[960px]:h-40 flex flex-col items-center">
-  <img
-    src="/pinch2.gif" 
-    alt="Gestos"
-    className="object-contain w-full h-full"
-  />
-  <p className="min-[960px]:text-[22px] leading-[1.2em] text-center w-full">
-    Pinch para<br/>modificar
-  </p>
-</div>
+          <div className="absolute top-46 left-10 w-16 h-16 hidden min-[960px]:flex min-[960px]:w-40 min-[960px]:h-40 flex flex-col items-center">
+            <img
+              src="/pinch.gif"
+              alt="Gestos"
+              className="object-contain w-full h-full"
+            />
+            <p className="min-[960px]:text-[22px] leading-[1.2em] text-center w-full">
+                               Usa los dedos para mover, zoom y rotar
 
-             
+            </p>
+          </div>
+
+
           <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-55 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
-            
-         
+
+
             <div className="flex flex-col gap-2">
               <span className="text-[10px] min-[960px]:text-[12px] font-semibold uppercase text-slate-400">Color</span>
               <ColorSelectorVertical
@@ -244,47 +245,47 @@ const handleAccept = useCallback(async () => {
 
         {/* Controles Inferiores */}
         <div className="bg-white px-5 pt-0 pb-6">
-       
 
-         <div className="grid items-center min-[960px]:hidden w-full">
-  <div className="grid grid-cols-2 w-full items-center">
-    
-    {/* COLUMNA 1: Gesto Pinch (Alineado a la izquierda) */}
-    <div className="flex flex-row items-center shrink-0">
-    <div className="w-[200px]">
-      <img
-        src="/pinch2.gif" 
-        alt="Gestos"
-        className="object-contain w-full h-full"
-      />
-    </div>
-    <p className="text-[12px] min-[960px]:text-[20px] leading-tight text-left text-slate-500 font-medium mt-2">
-     Usa los dedos para mover, zoom y rotar<br/>
-    </p>
-  </div>
 
-    {/* COLUMNA 2: Selector de Colores (Alineado a la derecha) */}
-    <div className="flex justify-end items-center">
-      <ColorSelector
-        casesApi={availableColors.map(c => ({
-          id: c.caseId, 
-          colourId: c.colourId, 
-          colour: { name: c.name, hex_code: c.hex }
-        }))}
-        selectedCaseId={selectedCase?.caseId || null}
-        onCaseChange={(item) =>
-          setSelectedCase({
-            caseId: item.id, 
-            colourId: item.colourId, 
-            name: item.colour.name, 
-            hex: item.colour.hex_code,
-          })
-        }
-      />
-    </div>
+          <div className="grid items-center min-[960px]:hidden w-full">
+            <div className="grid grid-cols-2 w-full items-center">
 
-  </div>
-</div>
+              {/* COLUMNA 1: Gesto Pinch (Alineado a la izquierda) */}
+              <div className="flex flex-row items-center shrink-0">
+                <div className="w-[200px]">
+                  <img
+                    src="/pinch.gif"
+                    alt="Gestos"
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+                <p className="text-[12px] min-[960px]:text-[20px] leading-tight text-left text-slate-500 font-medium mt-2">
+                  Usa los dedos para mover, zoom y rotar
+                </p>
+              </div>
+
+              {/* COLUMNA 2: Selector de Colores (Alineado a la derecha) */}
+              <div className="flex justify-end items-center">
+                <ColorSelector
+                  casesApi={availableColors.map(c => ({
+                    id: c.caseId,
+                    colourId: c.colourId,
+                    colour: { name: c.name, hex_code: c.hex }
+                  }))}
+                  selectedCaseId={selectedCase?.caseId || null}
+                  onCaseChange={(item) =>
+                    setSelectedCase({
+                      caseId: item.id,
+                      colourId: item.colourId,
+                      name: item.colour.name,
+                      hex: item.colour.hex_code,
+                    })
+                  }
+                />
+              </div>
+
+            </div>
+          </div>
 
           <div className="mt-6 flex items-center justify-center gap-2 w-full max-w-[500px] mx-auto">
             {allowClose && (
@@ -332,8 +333,8 @@ const handleAccept = useCallback(async () => {
                   setCameraDialogOpen(false);
                 }}
                 className={`flex flex-col items-center gap-3 p-4 rounded-2xl transition-all ${currentCamera === style.value
-                    ? "bg-indigo-50 ring-2 ring-indigo-500"
-                    : "hover:bg-slate-50"
+                  ? "bg-indigo-50 ring-2 ring-indigo-500"
+                  : "hover:bg-slate-50"
                   }`}
               >
                 <div className="w-10 h-16 bg-slate-800 rounded-lg relative overflow-hidden shadow-md">
