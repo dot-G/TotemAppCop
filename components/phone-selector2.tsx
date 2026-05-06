@@ -103,7 +103,8 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
           name: m.name,
           logo: null,
           has_case: m.has_case,
-          has_mica: m.has_mica
+          has_mica: m.has_mica,
+          camera_layout: m.camera_layout,
         })) : [];
     }
     return humanSearch(search, source);
@@ -146,7 +147,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
         ...selection,
         brand: item.name,
         brandId: item.id,
-        model: { id: null, name: null, has_case: false, has_mica: false } // Reset model
+        model: { id: null, name: null, has_case: false, has_mica: false, camera_layout: null } // Reset model
       });
       setTimeout(() => {
         setSearch("");
@@ -162,7 +163,8 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
           id: item.id,
           name: item.name,
           has_case: !!item.has_case,
-          has_mica: !!item.has_mica
+          has_mica: !!item.has_mica,
+          camera_layout: item.camera_layout
         }
       });
       setTimeout(() => {
@@ -218,7 +220,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
                   ...selection,
                   brand: null,
                   brandId: "",
-                  model: { id: null, name: null, has_case: false, has_mica: false }
+                  model: { id: null, name: null, has_case: false, has_mica: false, camera_layout: null }
                 });
               }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488] min-[960px]:w-8 min-[960px]:h-8" /></button>
             </div>
@@ -243,7 +245,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
               <span className="font-normal text-[14px] min-[960px]:text-[28px]">{modelSelected}</span>
               <button onClick={(e) => {
                 e.stopPropagation();
-                setSelection({ ...selection, model: { id: null, name: null, has_case: false, has_mica: false } });
+                setSelection({ ...selection, model: { id: null, name: null, has_case: false, has_mica: false, camera_layout: null } });
               }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488] min-[960px]:w-8 min-[960px]:h-8" /></button>
             </div>
           )}

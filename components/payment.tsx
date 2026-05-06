@@ -170,7 +170,7 @@ export default function Payment() {
               <Loader2 className="animate-spin w-5 h-5 text-white" />
             ) : (
               <>
-                <span className="text-[16px] font-bold text-white">Enviar</span>
+                <span className="text-[16px] font-bold text-white">Compartir</span>
                 <Share2 className="w-5 h-5 text-white" />
               </>
             )}
