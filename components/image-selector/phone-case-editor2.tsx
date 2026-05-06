@@ -202,7 +202,7 @@ const handleAccept = useCallback(async () => {
 
             <div className="absolute top-46 left-10 w-16 h-16 hidden min-[960px]:flex min-[960px]:w-40 min-[960px]:h-40 flex flex-col items-center">
   <img
-    src="/pinch.jpg" 
+    src="/pinch2.gif" 
     alt="Gestos"
     className="object-contain w-full h-full"
   />
@@ -253,13 +253,13 @@ const handleAccept = useCallback(async () => {
     <div className="flex flex-row items-center shrink-0">
     <div className="w-[200px]">
       <img
-        src="/pinch.jpg" 
+        src="/pinch2.gif" 
         alt="Gestos"
         className="object-contain w-full h-full"
       />
     </div>
     <p className="text-[12px] min-[960px]:text-[20px] leading-tight text-left text-slate-500 font-medium mt-2">
-     Usa los dedos (pinch) para mover y editar<br/>
+     Usa los dedos para mover, zoom y rotar<br/>
     </p>
   </div>
 
