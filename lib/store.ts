@@ -74,6 +74,7 @@ export interface SelectedModel {
   name: string | null;
   has_case: boolean;
   has_mica: boolean;
+  camera_layout: string | null;
 }
 
 // --- 2. INTERFAZ DEL ESTADO DE SELECCIÓN ---
@@ -141,6 +142,7 @@ export const initialSelection: SelectionState = {
     name: null,
     has_case: false,
     has_mica: false,
+    camera_layout: null,
   },
   comboId: "",
   config: {

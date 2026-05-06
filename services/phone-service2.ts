@@ -8,6 +8,7 @@ export interface PhoneModel {
   sort: number | null;
   has_mica: boolean;
   has_case: boolean;
+  camera_layout: string;
 }
 
 export interface Brand {
@@ -29,7 +30,7 @@ export const getBrandsAndModels = async (serverToken?: string): Promise<Brand[]>
     throw new Error('No se encontró sesión activa');
   }
 
-  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment,models.has_mica,models.has_case,models.status,models.sort`;
+  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment,models.has_mica,models.has_case,models.camera_layout,models.status,models.sort`;
 
   const response = await fetch(endpoint, {
     method: 'GET',

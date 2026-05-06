@@ -81,7 +81,7 @@ export function PhoneCaseEditor({
       if (window.innerWidth < 640) {
         setComponentWidth(220); // Tamaño más pequeño para móviles
       } else {
-        setComponentWidth(300); // Tamaño para desktop
+        setComponentWidth(500); // Tamaño para desktop
       }
     };
     handleResize();
@@ -161,7 +161,7 @@ const handleAccept = useCallback(async () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[120] p-0 md:p-6 backdrop-blur-xl">
+    <div className="fixed inset-0 bg-black/60 flex items-center min-[960px]:items-start justify-center z-[120] p-0 md:p-6 backdrop-blur-xl">
       <div className="bg-white md:rounded-[32px] shadow-2xl overflow-hidden w-full max-w-5xl flex flex-col h-full md:h-auto border-none relative">
 
         {allowClose && (
@@ -173,7 +173,7 @@ const handleAccept = useCallback(async () => {
           </button>
         )}
 
-        <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0  min-[960px]:p-16 overflow-hidden min-h-[320px]">
+        <div className="flex-1 bg-white flex flex-col items-center justify-center relative p-0  min-[960px]:p-16 overflow-hidden min-h-[320px] min-[960px]:min-h-[50vh]">
           {/* 
               CAMBIO: Se eliminan las clases scale-90 / scale-80. 
               El tamaño ahora es controlado por la prop width que recibe SmartphoneCaseSimple.
@@ -197,14 +197,25 @@ const handleAccept = useCallback(async () => {
               enablePinchZoom={true}
               enablePinchRotation={true}
             />
-          </div>
-        </div>
 
-        {/* Controles Inferiores */}
-        <div className="bg-white px-5 pt-4 pb-6 border-t border-slate-50">
-          
-          <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-1/2 -translate-y-1/2 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
-            <div className="flex flex-col items-center gap-2">
+          </div>
+
+            <div className="absolute top-46 left-10 w-16 h-16 hidden min-[960px]:flex min-[960px]:w-40 min-[960px]:h-40 flex flex-col items-center">
+  <img
+    src="/pinch.jpg" 
+    alt="Gestos"
+    className="object-contain w-full h-full"
+  />
+  <p className="min-[960px]:text-[22px] leading-[1.2em] text-center w-full">
+    Pinch para<br/>modificar
+  </p>
+</div>
+
+             
+          <div className="hidden w-[50px] min-[960px]:flex fixed right-10 top-55 flex-col items-center gap-6 bg-white/90 p-5 z-[130] border border-slate-100 rounded-full shadow-sm">
+            
+         
+            <div className="flex flex-col gap-2">
               <span className="text-[10px] min-[960px]:text-[12px] font-semibold uppercase text-slate-400">Color</span>
               <ColorSelectorVertical
                 casesApi={availableColors.map(c => ({
@@ -218,8 +229,8 @@ const handleAccept = useCallback(async () => {
                 }
               />
             </div>
-            <div className="w-8 h-[1px] bg-slate-100" />
-            <div className="flex flex-col items-center gap-2">
+            <div className="hidden w-8 h-[1px] bg-slate-100" />
+            <div className="hidden flex flex-col items-center gap-2">
               <span className="text-[10px] min-[960px]:text-[12px] font-semibold uppercase text-slate-400">Cámara</span>
               <button
                 onClick={() => setCameraDialogOpen(true)}
@@ -229,34 +240,51 @@ const handleAccept = useCallback(async () => {
               </button>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-[7fr_3fr] items-center gap-3 min-[960px]:hidden">
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center justify-center w-full">
-                <ColorSelector
-                  casesApi={availableColors.map(c => ({
-                    id: c.caseId, colourId: c.colourId, colour: { name: c.name, hex_code: c.hex }
-                  }))}
-                  selectedCaseId={selectedCase?.caseId || null}
-                  onCaseChange={(item) =>
-                    setSelectedCase({
-                      caseId: item.id, colourId: item.colourId, name: item.colour.name, hex: item.colour.hex_code,
-                    })
-                  }
-                />
-              </div>
-            </div>
+        {/* Controles Inferiores */}
+        <div className="bg-white px-5 pt-0 pb-6">
+       
 
-            <div className="flex flex-col items-center gap-1 border-l border-slate-100 pl-2">
-              <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-tighter">Disposición</span>
-              <button
-                onClick={() => setCameraDialogOpen(true)}
-                className="w-8 h-12 bg-slate-800 rounded-[5px] relative overflow-hidden shadow-sm active:scale-95 transition-transform"
-              >
-                <div className={`absolute bg-slate-400 ${getMiniCutoutClass(currentCamera)}`} />
-              </button>
-            </div>
-          </div>
+         <div className="grid items-center min-[960px]:hidden w-full">
+  <div className="grid grid-cols-2 w-full items-center">
+    
+    {/* COLUMNA 1: Gesto Pinch (Alineado a la izquierda) */}
+    <div className="flex flex-row items-center shrink-0">
+    <div className="w-[200px]">
+      <img
+        src="/pinch.jpg" 
+        alt="Gestos"
+        className="object-contain w-full h-full"
+      />
+    </div>
+    <p className="text-[12px] min-[960px]:text-[20px] leading-tight text-left text-slate-500 font-medium mt-2">
+     Usa los dedos (pinch) para mover y editar<br/>
+    </p>
+  </div>
+
+    {/* COLUMNA 2: Selector de Colores (Alineado a la derecha) */}
+    <div className="flex justify-end items-center">
+      <ColorSelector
+        casesApi={availableColors.map(c => ({
+          id: c.caseId, 
+          colourId: c.colourId, 
+          colour: { name: c.name, hex_code: c.hex }
+        }))}
+        selectedCaseId={selectedCase?.caseId || null}
+        onCaseChange={(item) =>
+          setSelectedCase({
+            caseId: item.id, 
+            colourId: item.colourId, 
+            name: item.colour.name, 
+            hex: item.colour.hex_code,
+          })
+        }
+      />
+    </div>
+
+  </div>
+</div>
 
           <div className="mt-6 flex items-center justify-center gap-2 w-full max-w-[500px] mx-auto">
             {allowClose && (

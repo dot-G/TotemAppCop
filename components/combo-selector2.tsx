@@ -193,7 +193,7 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
 
                   <div className="px-2 pb-2 flex-1 flex flex-col">
                     <div className="flex justify-between items-baseline mb-0">
-                      <h3 className="text-[17px] min-[960px]:text-[42px] font-semibold leading-[tight] text-[#1d1d1f] tracking-tight">
+                      <h3 className="text-[17px] min-[960px]:text-[42px] font-semibold leading-[1.1em] mb-2 text-[#1d1d1f] tracking-tight">
                         {combo.name}
                       </h3>
                       <span className="text-[22px] min-[960px]:text-[50px] font-semibold text-[#1d1d1f]">

@@ -473,11 +473,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                     ? (selection.capturedBrandPreview ? selection.brandTransform : DEFAULT_TRANSFORM)
                     : (selection.capturedCustomPreview ? selection.customTransform : DEFAULT_TRANSFORM)
                 }
-                camera={
-                  editorTarget.type === "brand"
-                    ? (selection.brandCameraStyle || "normal")
-                    : (selection.customCameraStyle || "normal")
-                }
+                camera={(selection.model.camera_layout as CameraCutoutStyle) || "normal"}
                 allowClose={true}
               />
             )}

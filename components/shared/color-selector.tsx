@@ -17,7 +17,7 @@ export const ColorSelector = ({
   const currentCase = casesApi.find(c => c.id === selectedCaseId) || casesApi[0];
 
   return (
-    <div className="pt-6 border-t border-slate-50">
+    <div>
       <div className="flex flex-col gap-[10px]">
 
         {/* TEXTO INFORMATIVO */}
