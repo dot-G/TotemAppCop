@@ -14,9 +14,32 @@ const sourceSans = Source_Sans_3({
 export const metadata: Metadata = {
   title: 'Telcel | Personaliza tu Protector de Celular',
   description: 'Diseña la protección perfecta para tu equipo. Crea un protector único que combine estilo premium y seguridad total para tu smartphone.',
-  // Opción A: Definición explícita en metadatos
+  //generator: 'v0.app',
   icons: {
     icon: '/favicon.jpg',
+  },
+  // --- IMAGEN DESTACADA (OG Image) ---
+  openGraph: {
+    title: 'Telcel | Personaliza tu Protector de Celular',
+    description: 'Diseña la protección perfecta para tu equipo.',
+    //url: 'https://tu-dominio.com', // Reemplaza por tu URL real
+    siteName: 'Telcel Personalización',
+    images: [
+      {
+        url: '/case.jpg', // Ruta a la imagen en /public
+        width: 1200,
+        height: 630,
+        alt: 'Personaliza tu Case',
+      },
+    ],
+    locale: 'es_ES',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Telcel | Personaliza tu Protector de Celular',
+    description: 'Diseña la protección perfecta para tu equipo.',
+    images: ['/image.jpg'],
   },
 }
 
