@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie';
+import axios from 'axios';
 
 export interface DirectusFileResponse {
   id: string;
@@ -14,42 +14,45 @@ export interface DirectusFileResponse {
 }
 
 /**
- * Sube un archivo a la biblioteca de medios de Directus
+ * Sube un archivo a Directus usando Axios.
+ * @param file Archivo binario de la imagen
+ * @param token Token de acceso recibido del componente padre
  */
-export const uploadImageToDirectus = async (file: File): Promise<DirectusFileResponse | null> => {
-  const token = Cookies.get('access_token');
+export const uploadImageToDirectus = async (
+  file: File,
+  token: string | null
+): Promise<DirectusFileResponse | null> => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const FOLDER_ID = process.env.NEXT_PUBLIC_DIRECTUS_CUSTOM_IMAGES_FOLDER;
 
-  // Creamos el FormData necesario para el envío de archivos
+  // FormData equivale a los flags -F de un comando CURL
   const formData = new FormData();
-  formData.append('file', file);
-  
-  // Opcional: puedes añadir un título o carpeta específica
-  // formData.append('title', `Upload-${Date.now()}`);
-  // formData.append('folder', 'ID-DE-TU-CARPETA');
+
+
+  // Si existe el ID de la carpeta en el .env, lo adjuntamos
+  if (FOLDER_ID) {
+    formData.append("folder", FOLDER_ID);
+  }
+ formData.append("file", file);
 
   try {
-    const response = await fetch(`${API_URL}/files`, {
-      method: 'POST',
+    const response = await axios.post(`${API_URL}/files`, formData, {
       headers: {
-        // Importante: No setear 'Content-Type', el navegador lo hace 
-        // automáticamente con el boundary correcto para FormData
-        ...(token && { 'Authorization': `Bearer ${token}` })
+        // Inyectamos el token recibido por parámetro
+        ...(token && { Authorization: `Bearer ${token}` }),
+        
+        // Importante: No definir Content-Type manualmente.
+        // Axios y el navegador gestionarán el boundary para el FormData.
       },
-      body: formData
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error Directus Upload:', errorData);
-      throw new Error('No se pudo subir la imagen');
-    }
-
-    const { data } = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error en uploadImage service:", error);
+    // Directus devuelve el objeto dentro de la propiedad 'data'
+    return response.data.data;
+  } catch (error: any) {
+    console.error(
+      "Error Directus Upload:",
+      error.response?.data || error.message
+    );
     return null;
   }
 };
-

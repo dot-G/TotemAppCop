@@ -35,7 +35,7 @@ export const getOnboardingSlides = async (token?: string): Promise<OnboardSlide[
         ...(token && { 'Authorization': `Bearer ${token}` })
       },
       // Cache de Next.js: útil para que el tótem no pegue a la API en cada refresh
-      next: { revalidate: 3600 } 
+      //next: { revalidate: 3600 } 
     });
 
     if (!response.ok) {

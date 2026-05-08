@@ -22,7 +22,7 @@ import { getImageUrl } from "@/lib/image-directus";
 
 // --- Servicios ---
 import { trackMissingBrand, trackMissingModel } from "@/services/track-service";
-import { Brand } from "@/services/phone-service2";
+import { Brand } from "@/services/phone-service";
 
 // --- Algoritmo de Búsqueda ---
 const SMART_ALIASES: Record<string, string> = {
