@@ -1,33 +1,30 @@
-import Cookies from 'js-cookie';
-
-// --- Interfaces ---
-
+// --- Interfaces --- (Se mantienen igual)
 export interface CaseOffering {
-  id: string; // UUID
+  id: string;
   code: string;
   name: string;
-  price: string; // "50.00"
+  price: string;
 }
 
 export interface CaseCutType {
-  id: string; // UUID
+  id: string;
   name: string;
   offerings: CaseOffering[];
 }
 
 export interface CaseColour {
-  id: string;       // Agregado para coincidir con la respuesta
-  code: string;     // COL-RED
-  name: string;     // Red
-  hex_code: string; // #FF0000
+  id: string;
+  code: string;
+  name: string;
+  hex_code: string;
 }
 
 export interface CaseImage {
-  directus_files_id: string; // UUID del archivo
+  directus_files_id: string;
 }
 
 export interface CaseCut {
-  id: string; // UUID
+  id: string;
   code: string;
   name: string;
   description: string;
@@ -44,14 +41,14 @@ export interface CaseCut {
 
 /**
  * Obtiene la lista de cortes de funda (Case Cuts) activos
+ * @param token Token de acceso (obligatorio para llamadas desde el servidor)
  */
-export const getCaseCuts = async (): Promise<CaseCut[]> => {
-  const token = Cookies.get('access_token');
+export const getCaseCuts = async (token?: string): Promise<CaseCut[]> => {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   
   const fields = [
     'id', 'code', 'name', 'description', 'featured_image', 'status', 'sort', 'selected',
-    'colour.id', 'colour.code', 'colour.name', 'colour.hex_code', // Incluimos colour.id
+    'colour.id', 'colour.code', 'colour.name', 'colour.hex_code',
     'case_cut_type.id', 'case_cut_type.name',
     'case_cut_type.offerings.id', 'case_cut_type.offerings.code', 
     'case_cut_type.offerings.name', 'case_cut_type.offerings.price',
@@ -66,11 +63,13 @@ export const getCaseCuts = async (): Promise<CaseCut[]> => {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
-      }
+      },
+      // Importante para Next.js 13+: 
+      // Si quieres que se refresque, puedes usar { next: { revalidate: 3600 } }
     });
 
     if (!response.ok) {
-      throw new Error('Error al obtener los diseños de fundas');
+      throw new Error(`Error ${response.status}: No se pudieron obtener los diseños de fundas`);
     }
 
     const json = await response.json();
@@ -85,7 +84,6 @@ export const getCaseCuts = async (): Promise<CaseCut[]> => {
  * Helper para obtener el precio de un CaseCut.
  */
 export const getCasePrice = (caseCut: CaseCut): number => {
-  // Según tu JSON, el precio está en case_cut_type.offerings[0].price
   const price = caseCut.case_cut_type?.offerings?.[0]?.price;
   return price ? parseFloat(price) : 0;
 };

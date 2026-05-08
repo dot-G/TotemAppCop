@@ -1,271 +1,230 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { useApp } from "@/hooks/use-app";
 import { Button } from "@/components/ui/button";
-import { useOnboarding } from "@/hooks/use-onboarding"; // Importamos el hook
-import { getAssetUrl } from "@/lib/directus";
+import { OnboardSlide } from "@/services/onboarding";
 import { getImageUrl } from '@/lib/image-directus';
 import { Loader2 } from "lucide-react";
 
-// Eliminamos el array slides estático que estaba aquí arriba
+// Configuración del Layout del Carrusel
+const CARD_W_PERCENT = 63.15; 
+const CARD_GAP_PERCENT = 4.21; 
+const STEP_PERCENT = CARD_W_PERCENT + CARD_GAP_PERCENT;
 
-const CARD_W = 240;
-const CARD_GAP = 16;
-const STEP = CARD_W + CARD_GAP;
+const clampVal = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+const mod = (n: number, m: number) => ((n % m) + m) % m;
 
-function clamp(v: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, v));
-}
-
-function mod(n: number, m: number) {
-  return ((n % m) + m) % m;
-}
-
-function ringDist(a: number, b: number, m: number) {
-  const d = mod(a - b, m);
-  return d > m / 2 ? d - m : d;
-}
-
-export function Onboarding() {
+export function Onboarding({ initialSlides = [] }: OnboardingProps) {
   const { setStep, isHydrated } = useApp();
-
-  // 1. Consumimos los datos de Directus
-  const { data: slides = [], isLoading, isError } = useOnboarding();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const slides = initialSlides;
   const COUNT = slides.length;
 
+  // Estados de Navegación
   const [virtualIndex, setVirtualIndex] = useState(0);
-  const [dragDelta, setDragDelta] = useState(0);
+  const [dragDelta, setDragDelta] = useState(0); 
   const [isDragging, setIsDragging] = useState(false);
   const [animating, setAnimating] = useState(false);
 
-  const pointerOrigin = useRef(0);
-  const velocityRef = useRef(0);
-  const lastX = useRef(0);
-  const lastTime = useRef(0);
-  const hasMoved = useRef(false);
+  // Estados de Animación de Texto
+  const [textOpacity, setTextOpacity] = useState(1);
+  const [displayIndex, setDisplayIndex] = useState(0);
 
-  // El realIndex ahora depende del tamaño dinámico del array de la API
-  const realIndex = COUNT > 0 ? mod(virtualIndex, COUNT) : 0;
+  const gesture = useRef({ origin: 0, hasMoved: false }).current;
+  const realIndex = useMemo(() => (COUNT > 0 ? mod(virtualIndex, COUNT) : 0), [virtualIndex, COUNT]);
+
+  // Sincronización suave del texto con el cambio de slide
+  useEffect(() => {
+    if (realIndex !== displayIndex) {
+      setTextOpacity(0); 
+      const timeout = setTimeout(() => {
+        setDisplayIndex(realIndex);
+        setTextOpacity(1);
+      }, 250); // El texto cambia justo cuando la card nueva está cubriendo el centro
+      return () => clearTimeout(timeout);
+    }
+  }, [realIndex, displayIndex]);
 
   const moveBySteps = useCallback((steps: number) => {
-    if (steps === 0) return;
+    if (steps === 0 || animating) return;
     setAnimating(true);
     setVirtualIndex((prev) => prev + steps);
-    setTimeout(() => setAnimating(false), 450);
-  }, []);
+    setTimeout(() => setAnimating(false), 500);
+  }, [animating]);
 
-  const goToSlide = (targetReal: number) => {
-    const diff = ringDist(targetReal, realIndex, COUNT);
-    moveBySteps(diff);
-  };
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (animating || COUNT === 0) return;
-    setIsDragging(true);
-    setDragDelta(0);
-    hasMoved.current = false;
-    pointerOrigin.current = e.clientX;
-    lastX.current = e.clientX;
-    lastTime.current = Date.now();
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - pointerOrigin.current;
-    if (Math.abs(dx) > 5) {
-      hasMoved.current = true;
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    }
-    setDragDelta(-dx);
-    const now = Date.now();
-    const dt = now - lastTime.current;
-    if (dt > 0) velocityRef.current = (e.clientX - lastX.current) / dt;
-    lastX.current = e.clientX;
-    lastTime.current = now;
-  };
-
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (!hasMoved.current) {
-      setDragDelta(0);
-      return;
-    }
-    const rawSteps = dragDelta / STEP;
-    const velocityBias = clamp(-velocityRef.current * 0.4, -0.5, 0.5);
-    const snapped = Math.round(rawSteps + velocityBias);
-    setDragDelta(0);
-    moveBySteps(snapped);
-  };
-
-  const handleStart = () => {
-    setStep("phone-selector");
-  };
-
-  // Estado de Carga / Hidratación
-  if (!isHydrated || isLoading) {
+  if (!isHydrated || slides.length === 0) {
     return (
-      <div className="h-screen bg-[#4a1a8a] flex items-center justify-center">
+      <div className="h-[100dvh] bg-[#4a1a8a] flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-[#71E5FF]" />
       </div>
     );
   }
 
-  // Si hay error o no hay slides
-  if (isError || slides.length === 0) {
-    return (
-      <div className="h-screen bg-[#4a1a8a] flex items-center justify-center p-6 text-center text-white">
-        <p>
-          No pudimos cargar la configuración del Kiosko. Por favor contacta a
-          soporte.
-        </p>
-      </div>
-    );
-  }
-
-  const currentSlide = slides[realIndex];
+  const currentSlide = slides[displayIndex];
 
   return (
     <div
-      className="relative flex flex-col h-screen max-h-screen bg-[#4a1a8a] overflow-hidden select-none"
-      style={{
-        backgroundImage: 'url("/background.jpg")',
+      ref={containerRef}
+      className="relative flex flex-col h-[100dvh] w-full bg-[#4a1a8a] overflow-hidden select-none @container/main"
+      style={{ 
+        backgroundImage: 'url("/background.jpg")', 
         backgroundSize: "cover",
-      }}
+        backgroundPosition: "center",
+        /* 
+           Lógica de escala: Si la pantalla es horizontal, limitamos el ancho 
+           del contenido a un ratio 9:16 para que no se deforme.
+        */
+        "--max-content-w": "min(100cqw, 100cqh * 0.56)", 
+        "--u": "calc(var(--max-content-w) / 100)",
+        "--t-size": "calc(var(--u) * 7.2)",
+        "--d-size": "calc(var(--u) * 4.2)",
+        "--logo-w": "calc(var(--u) * 22)",
+        "--btn-h": "8.5dvh"
+      } as React.CSSProperties}
     >
-      <header className="relative z-10 flex justify-center pt-10 pb-4 shrink-0">
-        <img
-          src="/logo-telcel.svg"
-          alt="Telcel Logo"
-          width={100} // Ajustado a un tamaño real
-          height={40}
-          className="h-auto w-auto"
+      {/* Header */}
+      <header className="relative z-10 flex justify-center pt-[7dvh] shrink-0">
+        <img 
+            src="/logo-telcel.svg" 
+            alt="Telcel" 
+            style={{ width: "var(--logo-w)" }} 
+            className="h-auto max-w-[280px]" 
         />
       </header>
 
-      {/* Contenedor del Carrusel */}
-      <div
-        className="relative z-10 shrink-0 touch-none overflow-hidden cursor-grab active:cursor-grabbing"
-        style={{ height: 380 }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
-      >
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          {[-2, -1, 0, 1, 2].map((offset) => {
-            const slideIdx = mod(virtualIndex + offset, COUNT);
-            const slide = slides[slideIdx];
-            const pos = offset - dragDelta / STEP;
-            const dist = Math.abs(pos);
+      {/* Carousel */}
+     <div
+  className="relative mt-[4dvh] z-10 shrink-0 touch-none overflow-hidden"
+  style={{ height: "38dvh" }} 
+  onPointerDown={(e) => { 
+    if (animating) return; 
+    setIsDragging(true); 
+    gesture.origin = e.clientX; 
+    gesture.hasMoved = false;
+  }}
+  onPointerMove={(e) => {
+    if (!isDragging || !containerRef.current) return;
+    const dx = e.clientX - gesture.origin;
+    if (Math.abs(dx) > 5) gesture.hasMoved = true;
+    setDragDelta(-(dx / containerRef.current.offsetWidth) * 100);
+  }}
+  onPointerUp={() => {
+    setIsDragging(false);
+    if (gesture.hasMoved) {
+      moveBySteps(Math.round(dragDelta / STEP_PERCENT));
+    }
+    setDragDelta(0);
+  }}
+>
+  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    {[-2, -1, 0, 1, 2].map((offset) => {
+      const slideIdx = mod(virtualIndex + offset, COUNT);
+      const pos = offset - dragDelta / STEP_PERCENT;
+      const dist = Math.abs(pos);
+      
+      // Solo renderizamos lo que está cerca para optimizar
+      if (dist > 2.2) return null;
 
-            const opacity = dist < 0.1 ? 1 : clamp(1 - dist * 0.5, 0.3, 0.7);
-            const translateX = pos * STEP;
-            const zIndex = 10 - Math.round(dist);
+      return (
+        <div
+          key={`slide-${virtualIndex + offset}`}
+          onClick={() => { if (!gesture.hasMoved) moveBySteps(offset); }}
+          className="absolute rounded-[calc(var(--u)*5)] overflow-hidden pointer-events-auto cursor-pointer"
+          style={{
+            width: `${CARD_W_PERCENT}%`,
+            height: "100%",
+            maxWidth: "500px",
+            // Quitamos la opacidad general y usamos transformaciones puras
+            transform: `translateX(${pos * STEP_PERCENT}%) scale(${1 - dist * 0.12})`,
+            zIndex: 10 - Math.round(dist * 2), // Multiplicamos para que el centro gane siempre
+            transition: !isDragging ? "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
+            backgroundColor: "#4a1a8a", // Fondo sólido para que no se vea a través
+          }}
+        >
+          <Image 
+            src={`${getImageUrl(slides[slideIdx].image.id)}?width=800`} 
+            alt="" 
+            fill 
+            className="object-cover pointer-events-none" 
+            priority={offset === 0}
+          />
+          
+          {/* Overlay Dinámico: Se oscurece a medida que se aleja del centro */}
+          <div 
+            className="absolute inset-0 transition-colors duration-500"
+            style={{ 
+              backgroundColor: `rgba(0, 0, 0, ${clampVal(dist * 0.6, 0, 1)})`,
+              // Un degradado extra para el texto siempre visible abajo
+              backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%)'
+            }} 
+          />
 
-            const safeImageUrl = getImageUrl(slide.image.id);
-            //const safeImageUrl = getAssetUrl(slide.image.id, { width: 600, quality: 75 });
-
-
-            return (
-              <div
-                key={`slide-${virtualIndex + offset}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!hasMoved.current) moveBySteps(offset);
-                }}
-                className="absolute rounded-3xl overflow-hidden cursor-pointer pointer-events-auto"
-                style={{
-                  width: CARD_W,
-                  height: 360,
-                  transform: `translateX(${translateX}px) scale(${
-                    1 - dist * 0.05
-                  })`,
-                  opacity,
-                  zIndex,
-                  transition: !isDragging
-                    ? "transform 0.45s cubic-bezier(.25,.85,.35,1), opacity 0.45s ease"
-                    : "none",
-                }}
-              >
-                {/* Cargamos imagen desde Directus */}
-                {safeImageUrl ? (
-                 
-                    <Image
-                      src={`${safeImageUrl}?width=400`}
-                     
-                      alt={slide.image_caption || "Slide image"}
-                      fill
-                      sizes={`${CARD_W}px`}
-                      priority={offset === 0}
-                      className="object-cover pointer-events-none"
-                      draggable={false}
-                    />
-                 
-                ) : (
-                  <div className="w-full h-full bg-slate-200 animate-pulse flex items-center justify-center">
-                    {/* Placeholder mientras carga o si no hay imagen */}
-                    <span className="text-slate-400">No image available</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-                <span className="absolute bottom-6 left-0 right-0 text-white text-center font-semibold pointer-events-none text-[28px] tracking-[-1px] leading-[1em] px-4">
-                  {slide.image_caption}
-                </span>
-              </div>
-            );
-          })}
+          <span 
+            className="absolute bottom-[10%] left-0 right-0 text-white text-center font-semibold text-[calc(var(--u)*5.5)] px-6 leading-tight transition-opacity duration-300"
+            style={{ 
+              // El texto de las tarjetas laterales se desvanece un poco para no distraer
+              opacity: clampVal(1 - dist, 0, 1) 
+            }}
+          >
+            {slides[slideIdx].image_caption}
+          </span>
         </div>
-      </div>
+      );
+    })}
+  </div>
+</div>
 
-      {/* Indicadores Dinámicos */}
-      <div className="flex justify-center gap-2 py-2 shrink-0">
+      {/* Dots */}
+      <div className="flex justify-center gap-[1.5dvh] pt-[4dvh] pb-[2dvh] shrink-0">
         {slides.map((_, index) => (
-          <button
-            key={`dot-${index}`}
-            onClick={() => goToSlide(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === realIndex ? "w-8 bg-[#71E5FF]" : "w-2 bg-white/40"
-            }`}
+          <div 
+            key={index} 
+            onClick={() => {
+                const diff = ((index - realIndex + (COUNT / 2)) % COUNT) - (COUNT / 2);
+                moveBySteps(Math.round(diff));
+            }}
+            className={`h-[1dvh] cursor-pointer rounded-full transition-all duration-300 ${index === realIndex ? "w-[4dvh] bg-[#71E5FF]" : "w-[1dvh] bg-white/30"}`} 
           />
         ))}
       </div>
 
-      {/* Textos Informativos Dinámicos */}
-      <div
-        key={`content-${realIndex}`}
-        className="relative z-10 flex-1 flex flex-col items-center text-center min-h-0 mt-4 px-6"
-        style={{ animation: "fadeInUp 0.5s ease-out forwards" }}
-      >
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-          @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `,
-          }}
-        />
+     {/* Text Content: Con transición de opacidad y posición manual */}
+<div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-8 min-[960px]:px-16 overflow-hidden">  <div
+    style={{
+      opacity: textOpacity,
+      transform: `translateY(${textOpacity === 0 ? '15px' : '0px'})`,
+      transition: "opacity 0.5s ease-in-out, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)",
+      willChange: "opacity, transform"
+    }}
+  >
+    <h1 className="text-white font-semibold leading-[1.1] text-balance" style={{ fontSize: "var(--t-size)" }}>
+      {currentSlide.title}
+    </h1>
+    <p className="text-white/80 leading-[1.3em] mt-[2.5dvh] max-w-[100%]" style={{ fontSize: "var(--d-size)" }}>
+      {currentSlide.description}
+    </p>
+  </div>
+</div>
 
-        <h1 className="text-white font-semibold text-[36px] leading-[1.1em] text-balance">
-          {currentSlide.title}
-        </h1>
-        <p className="text-white/70 text-[15px] leading-[1.4em] max-w-xs mt-4">
-          {currentSlide.description}
-        </p>
-      </div>
-
-      <div className="relative z-10 flex gap-4 px-6 pb-[30px] pt-4 shrink-0">
+      {/* Button */}
+      <div className="relative z-10 flex px-10 pb-[7dvh] pt-4 shrink-0">
         <Button
-          onClick={handleStart}
-          className="flex-1 h-16 rounded-[18px] bg-[#71E5FF] text-[#012B5D] text-[20px] font-semibold hover:bg-white transition-colors border-none shadow-xl active:scale-95"
+          onClick={() => setStep("phone-selector")}
+          className="flex-1 rounded-[calc(var(--u)*4)] bg-[#71E5FF] text-[#012B5D] font-semibold shadow-2xl active:scale-95 transition-all max-w-[450px] mx-auto"
+          style={{ 
+            height: "var(--btn-h)", 
+            fontSize: "calc(var(--t-size) * 0.7)" 
+          }}
         >
           Empezar
         </Button>
       </div>
     </div>
   );
+}
+
+interface OnboardingProps {
+  initialSlides?: OnboardSlide[];
 }

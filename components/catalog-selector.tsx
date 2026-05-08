@@ -19,12 +19,12 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 // Tipos y Helpers
-import { CatalogOffering } from "@/services/image-service2";
+import { CatalogOffering } from "@/services/image-service";
 import { getImageUrl } from "@/lib/image-directus";
 import {
   PhoneCaseEditor,
   EditorTransform,
-} from "./image-selector/phone-case-editor2";
+} from "./image-selector/phone-case-editor";
 
 import { TermsPopup } from "./image-selector/terms-popup"; // Ajusta la ruta según donde lo guardaste
 

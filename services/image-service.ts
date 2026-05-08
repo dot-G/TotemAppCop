@@ -31,13 +31,16 @@ export interface CatalogOffering {
 // --- Service ---
 
 /**
- * Obtiene la lista de catálogos de imágenes activos
+ * Obtiene la lista de catálogos de imágenes activos.
+ * @param token Opcional. Si se provee (en Server Components), se usa para la petición. 
+ * Si no se provee, intenta obtenerlo de las cookies (Client Side).
  */
-export const getCatalogOfferings = async (): Promise<CatalogOffering[]> => {
-  const token = Cookies.get('access_token');
+export const getCatalogOfferings = async (token?: string): Promise<CatalogOffering[]> => {
+  // 1. Prioridad al token pasado por parámetro, sino buscamos en cookies
+  const accessToken = token || Cookies.get('access_token');
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Definición de campos basada en tu query específica
+  // Definición de campos para traer la data necesaria de Directus incluyendo imágenes relacionadas
   const fields = [
     'id',
     'type',
@@ -56,7 +59,7 @@ export const getCatalogOfferings = async (): Promise<CatalogOffering[]> => {
     'images.directus_files_id.id'
   ].join(',');
 
-  // Construcción del endpoint con filtros y ordenamiento profundo para las imágenes
+  // Filtramos por tipo catalog_image y estado activo
   const endpoint = `${API_URL}/items/offerings?filter[type][_eq]=catalog_image&filter[status][_eq]=active&sort=sort&fields=${fields}&deep[images][_sort]=sort`;
 
   try {
@@ -64,25 +67,34 @@ export const getCatalogOfferings = async (): Promise<CatalogOffering[]> => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
-      }
-    });
+        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+      },
+      // Cache opcional: 3600 segundos (1 hora) si estás en Next.js App Router
+      //next: { revalidate: 3600 } 
+    } as any);
 
     if (!response.ok) {
-      throw new Error('Error al obtener los catálogos de imágenes');
+      const errorData = await response.json().catch(() => ({}));
+      console.error("Error Response:", errorData);
+      throw new Error(`Error ${response.status} al obtener los catálogos de imágenes`);
     }
 
     const json = await response.json();
+    
+    // Aseguramos que siempre retorne un array
     return json.data || [];
+    
   } catch (error) {
     console.error("Error en getCatalogOfferings service:", error);
+    // Retornamos array vacío para no romper el flujo de Promise.all
     return [];
   }
 };
 
 /**
- * Helper para obtener el precio formateado del catálogo
+ * Helper para obtener el precio formateado del catálogo como número
  */
 export const getOfferingPrice = (offering: CatalogOffering): number => {
-  return offering.price ? parseFloat(offering.price) : 0;
+  if (!offering || !offering.price) return 0;
+  return parseFloat(offering.price);
 };

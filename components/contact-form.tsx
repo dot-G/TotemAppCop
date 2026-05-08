@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, AlertCircle, Smartphone, ChevronDown, ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/hooks/use-app";
-import { uploadImageToDirectus } from "@/services/upload2";
+import { uploadImageToDirectus } from "@/services/upload";
 import { createOrder } from "@/services/order";
 import { createOrderImage } from "@/services/order-image";
 import Cookies from "js-cookie";

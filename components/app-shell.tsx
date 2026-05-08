@@ -2,17 +2,17 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useApp } from "@/hooks/use-app";
-import { useQueryClient } from "@tanstack/react-query";
-import { BRANDS_KEY } from "@/hooks/use-brands";
+//import { useQueryClient } from "@tanstack/react-query";
+//import { BRANDS_KEY } from "@/hooks/use-brands";
 import { AnimatePresence, motion } from "framer-motion";
 
 // --- Types ---
 import { OnboardSlide } from "@/services/onboarding";
-import { Brand } from "@/services/phone-service2";
-import { Combo } from "@/services/combo-service2";
-import { Mica } from "@/services/mica-service2";
-import { CaseCut } from "@/services/case-service2";
-import { CatalogOffering } from "@/services/image-service2";
+import { Brand } from "@/services/phone-service";
+import { Combo } from "@/services/combo-service";
+import { Mica } from "@/services/mica-service";
+import { CaseCut } from "@/services/case-service";
+import { CatalogOffering } from "@/services/image-service";
 import { StepType } from "@/lib/store";
 
 // --- UI Components ---
@@ -24,11 +24,11 @@ import { ExitModal } from "@/components/shared/exit-modal";
 import { StepIndicator } from "@/components/shared/step-indicator2";
 
 // --- Steps ---
-import { Onboarding } from "./onboarding2";
-import PhoneSelectorPage from "./phone-selector2";
-import ComboSelector from "./combo-selector2";
-import MicaSelector from "./mica-selector2";
-import CaseSelector from "./case-selector2";
+import { Onboarding } from "./onboarding";
+import PhoneSelectorPage from "./phone-selector";
+import ComboSelector from "./combo-selector";
+import MicaSelector from "./mica-selector";
+import CaseSelector from "./case-selector";
 import ImageSelector from "./catalog-selector";
 import ContactForm from "./contact-form";
 import FinalSummary from "./final-summary";
@@ -92,7 +92,7 @@ export function AppShell2({
   } = useApp();
   
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-  const queryClient = useQueryClient();
+  //const queryClient = useQueryClient();
 
   useEffect(() => {
     if (storeCode) {
@@ -100,23 +100,23 @@ export function AppShell2({
     }
   }, [storeCode, setStoreCode]);
 
-  useMemo(() => {
-    if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
-    if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
-    if (initialMicas?.length) queryClient.setQueryData(MICAS_KEY, initialMicas);
-    if (initialCases?.length) queryClient.setQueryData(CASES_KEY, initialCases);
-    if (initialCatalog?.length) queryClient.setQueryData(CATALOG_KEY, initialCatalog);
-  }, [initialBrands, initialCombos, initialMicas, initialCases, initialCatalog, queryClient]);
+  //useMemo(() => {
+   // if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
+   // if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
+   // if (initialMicas?.length) queryClient.setQueryData(MICAS_KEY, initialMicas);
+  //  if (initialCases?.length) queryClient.setQueryData(CASES_KEY, initialCases);
+  //  if (initialCatalog?.length) queryClient.setQueryData(CATALOG_KEY, initialCatalog);
+  //}, [initialBrands, initialCombos, initialMicas, initialCases, initialCatalog, queryClient]);
 
-  const handleFullReset = useCallback(() => {
+ const handleFullReset = useCallback(() => {
     setIsExitModalOpen(false);
     resetApp();
-    queryClient.invalidateQueries({ queryKey: BRANDS_KEY });
-    queryClient.invalidateQueries({ queryKey: COMBOS_KEY });
-    queryClient.invalidateQueries({ queryKey: MICAS_KEY });
-    queryClient.invalidateQueries({ queryKey: CASES_KEY });
-    queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
-  }, [resetApp, queryClient]);
+  //  queryClient.invalidateQueries({ queryKey: BRANDS_KEY });
+  //  queryClient.invalidateQueries({ queryKey: COMBOS_KEY });
+  //  queryClient.invalidateQueries({ queryKey: MICAS_KEY });
+  //  queryClient.invalidateQueries({ queryKey: CASES_KEY });
+  //  queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
+  }, [resetApp/*, queryClient*/]);
 
   const renderStep = () => {
     switch (currentStep) {

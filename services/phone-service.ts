@@ -1,6 +1,5 @@
 import Cookies from 'js-cookie';
 
-// Definición de tipos para tener autocompletado total
 export interface PhoneModel {
   id: string;
   name: string;
@@ -9,6 +8,7 @@ export interface PhoneModel {
   sort: number | null;
   has_mica: boolean;
   has_case: boolean;
+  camera_layout: string;
 }
 
 export interface Brand {
@@ -22,15 +22,15 @@ export interface Brand {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const getBrandsAndModels = async (): Promise<Brand[]> => {
-  const token = Cookies.get('access_token');
+export const getBrandsAndModels = async (serverToken?: string): Promise<Brand[]> => {
+  // Prioriza el token del servidor, si no, busca en cookies (cliente)
+  const token = serverToken || Cookies.get('access_token');
 
-  // Si no hay token, lanzamos error antes de la petición
   if (!token) {
     throw new Error('No se encontró sesión activa');
   }
 
-  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment, models.has_mica,models.has_case ,models.status,models.sort`;
+  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment,models.has_mica,models.has_case,models.camera_layout,models.status,models.sort`;
 
   const response = await fetch(endpoint, {
     method: 'GET',
@@ -38,23 +38,17 @@ export const getBrandsAndModels = async (): Promise<Brand[]> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    // React Query manejará el cache en el cliente, 
-    // pero dejamos esto para optimización de Next.js
-    next: { revalidate: 3600 } 
+   // next: { revalidate: 3600 } 
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      // En un Kiosko, si falla el token, lo mandamos a limpiar sesión
+    if (response.status === 401 && typeof window !== 'undefined') {
       window.location.href = '/logout';
       return [];
     }
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody?.errors?.[0]?.message || 'Error al obtener el catálogo');
+    throw new Error('Error al obtener el catálogo');
   }
 
   const json = await response.json();
-  
-  // Siempre es bueno validar que recibimos un array para evitar errores de .map()
   return json.data || [];
 };

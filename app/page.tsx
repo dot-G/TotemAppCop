@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { AppShell2 } from "@/components/app-shell2";
+import { AppShell2 } from "@/components/app-shell";
 import { getServerToken } from "@/lib/session";
 import { getOnboardingSlides } from "@/services/onboarding";
-import { getBrandsAndModels } from "@/services/phone-service2";
-import { getCombos } from "@/services/combo-service2"; 
-import { getMicas } from "@/services/mica-service2";
-import { getCaseCuts } from "@/services/case-service2";
-import { getCatalogOfferings } from "@/services/image-service2";
+import { getBrandsAndModels } from "@/services/phone-service";
+import { getCombos } from "@/services/combo-service"; 
+import { getMicas } from "@/services/mica-service";
+import { getCaseCuts } from "@/services/case-service";
+import { getCatalogOfferings } from "@/services/image-service";
 
 // Definimos correctamente los tipos de Next.js para searchParams
 interface PageProps {

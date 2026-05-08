@@ -11,13 +11,19 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useApp } from "@/hooks/use-app";
-import { useMicas } from "@/hooks/use-mica";
 import { getImageUrl } from "@/lib/image-directus";
+import { Mica } from "@/services/mica-service";
 import Image from "next/image";
 
-export default function MicaSelector() {
+interface MicaSelectorProps {
+  initialMicas: Mica[]; // Obligatorio ahora que viene del padre
+}
+
+export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
   const { selection, updateSelection, isHydrated } = useApp();
-  const { data: micasApi = [], isLoading } = useMicas();
+  
+  // Usamos directamente las props enviadas desde el AppShell2
+  const micas = initialMicas;
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
@@ -29,15 +35,17 @@ export default function MicaSelector() {
 
   const micaDefault = selection.config?.prices?.micaDefault || 0;
 
+  /**
+   * Actualiza el estado global (Zustand) con la mica seleccionada
+   */
   const handleMicaChange = useCallback(
     (index: number, forceUpdate = false) => {
-      const mica = micasApi[index];
+      const mica = micas[index];
       if (!mica || !selection.config) return;
 
       const currentMicaPrice = parseFloat(mica.price) || 0;
       const storeMicaPrice = selection.config.prices?.mica;
 
-      // Solo actualizamos si realmente hay un cambio para evitar re-renders innecesarios
       const isDifferentId = String(selection.micaId) !== String(mica.id);
       const isDifferentPrice = storeMicaPrice !== currentMicaPrice;
 
@@ -57,9 +65,12 @@ export default function MicaSelector() {
         });
       }
     },
-    [micasApi, updateSelection, selection.config, selection.micaId]
+    [micas, updateSelection, selection.config, selection.micaId]
   );
 
+  /**
+   * Centra visualmente la tarjeta en el scroll horizontal
+   */
   const centerCard = useCallback(
     (index: number, behavior: ScrollBehavior = "smooth") => {
       const container = scrollRef.current;
@@ -73,20 +84,19 @@ export default function MicaSelector() {
         setActiveIdx(index);
         handleMicaChange(index);
 
-        // Bloqueamos el listener de scroll un momento para que la animación termine limpia
         setTimeout(() => { isInternalScrolling.current = false; }, 500);
       }
     },
     [handleMicaChange]
   );
 
+  // Efecto inicial: Posiciona el scroll en la mica ya seleccionada o la primera
   useEffect(() => {
-    if (isHydrated && !isLoading && micasApi.length > 0) {
-      const savedIdx = micasApi.findIndex((m) => String(m.id) === String(selection.micaId));
+    if (isHydrated && micas.length > 0) {
+      const savedIdx = micas.findIndex((m) => String(m.id) === String(selection.micaId));
       const targetIdx = savedIdx === -1 ? 0 : savedIdx;
       
       setActiveIdx(targetIdx);
-      // Forzamos actualización por si el combo reseteó el precio
       handleMicaChange(targetIdx, true); 
       
       const timer = setTimeout(() => {
@@ -94,10 +104,10 @@ export default function MicaSelector() {
       }, 50);
       return () => clearTimeout(timer);
     }
-  }, [isHydrated, isLoading, micasApi.length, selection.micaId === null]);
+  }, [isHydrated, micas.length]); // Solo depende de la hidratación y los datos iniciales
 
   const handleScroll = () => {
-    if (!scrollRef.current || micasApi.length === 0 || isInternalScrolling.current) return;
+    if (!scrollRef.current || micas.length === 0 || isInternalScrolling.current) return;
 
     const container = scrollRef.current;
     const centerPoint = container.scrollLeft + container.offsetWidth / 2;
@@ -117,10 +127,7 @@ export default function MicaSelector() {
     });
 
     if (closestIdx !== activeIdx) {
-      // Solo actualizamos el índice visual inmediatamente para el feedback táctil
       setActiveIdx(closestIdx);
-      
-      // Debounceamos la actualización del store (el pesado) para evitar saltos de precio
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
       debounceTimer.current = setTimeout(() => {
         handleMicaChange(closestIdx);
@@ -128,24 +135,25 @@ export default function MicaSelector() {
     }
   };
 
-  if (!isHydrated || isLoading)
+  if (!isHydrated || micas.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center bg-[#f8fafc]">
         <Loader2 className="w-10 h-10 animate-spin text-[#0D51A1]" />
       </div>
     );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; }` }} />
 
-      <main className="flex-1 flex flex-col justify-center min-h-0 overflow-hidden">
+      <main className="flex-1 flex flex-col justify-center min-[960px]:justify-start min-[960px]:mt-8 min-h-0 overflow-hidden">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
           className="flex-none flex overflow-x-auto snap-x snap-mandatory hide-scrollbar items-center px-[12%] py-8 scroll-smooth"
         >
-          {micasApi.map((mica, idx) => {
+          {micas.map((mica, idx) => {
             const isActive = activeIdx === idx;
             const priceVal = parseFloat(mica.price) || 0;
             const priceDifference = priceVal - micaDefault;
@@ -157,26 +165,25 @@ export default function MicaSelector() {
               <div
                 key={mica.id}
                 ref={(el) => { cardsRef.current[idx] = el; }}
-                className="min-w-[95%] flex flex-col px-2 snap-center cursor-pointer"
+                className="min-w-[92%] mt-4 flex flex-col px-0 snap-center cursor-pointer"
                 onClick={() => centerCard(idx)}
               >
-                {/* Agregamos transform-gpu para que el renderizado sea por hardware y más fluido */}
-                <div className={`relative w-full bg-white rounded-[14px] p-3 transition-all duration-500 ease-in-out transform-gpu flex flex-col
-                  ${isActive ? "border-[#6b21a8] scale-105 z-10 shadow-lg" : "border-transparent scale-90 opacity-40 grayscale"}`}>
+                <div className={`relative w-full bg-white rounded-[14px] transition-all duration-500 ease-in-out transform-gpu flex flex-col
+                  ${isActive ? "border-[#6b21a8] scale-105 z-10 shadow-lg" : "border-transparent scale-90 opacity-60 grayscale"}`}>
                   
                   {isActive && (
-                    <div className="absolute top-4 right-4 bg-[#6b21a8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
+                    <div className="absolute top-4 right-8 min-[960px]:top-12 min-[960px]:right-12 min-[960px]:scale-[2.8] bg-[#6b21a8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
                       <Check className="w-4 h-4" strokeWidth={3} />
                     </div>
                   )}
 
-                  <div className="relative aspect-[4/3] w-full bg-slate-100 rounded-[8px] mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="relative aspect-[16/9] w-full bg-slate-100 rounded-[8px] mb-2 overflow-hidden flex items-center justify-center">
                     {(mica.featured_image || mica.icon) ? (
                       <Image
                         src={getImageUrl(mica.featured_image || mica.icon || "")}
                         alt={mica.name}
                         fill
-                        className={`object-contain transition-opacity duration-500 ${loadingImages[mica.id] === false ? "opacity-100" : "opacity-0"}`}
+                        className={`object-cover transition-opacity duration-500 ${loadingImages[mica.id] === false ? "opacity-100" : "opacity-0"}`}
                         onLoadingComplete={() => setLoadingImages(prev => ({ ...prev, [mica.id]: false }))}
                         unoptimized
                       />
@@ -185,30 +192,31 @@ export default function MicaSelector() {
                     )}
                   </div>
 
-                  <div className="px-1 flex flex-col">
+                  <div className="p-4 min-[960px]:p-8 flex flex-col">
                     <div className="flex justify-between items-baseline mb-0.5">
-                      <h3 className="text-[18px] font-semibold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
-                      {/* El precio ahora es estable gracias al debounce y validación de ID */}
-                      <span className="text-[22px] font-semibold text-[#1d1d1f]">{priceLabel}</span>
+                      <h3 className="text-[18px] min-[960px]:text-[42px] font-semibold text-[#1d1d1f] truncate mr-2">{mica.name}</h3>
+                      <span className="text-[22px] min-[960px]:text-[50px] font-semibold text-[#1d1d1f]">{priceLabel}</span>
                     </div>
-                    {/* ... Resto de la UI igual ... */}
-                    <p className="text-[12px] text-slate-500 mb-3 leading-tight">
+                    
+                    <p className="text-[12px] min-[960px]:text-[28px] text-slate-500 mb-3 leading-tight">
                       {isPrivacy ? "Protección lateral a 30°." : "Cristal templado de máxima transparencia."}
                     </p>
+
                     <div className="flex items-center gap-2 mb-3">
                       <div className="text-[#0D51A1]">
-                        {isPrivacy ? <EyeOff className="w-4 h-4" /> : isPremium ? <Zap className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+                        {isPrivacy ? <EyeOff className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" /> : isPremium ? <Zap className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" /> : <Shield className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" />}
                       </div>
                       <div className="flex flex-col leading-none">
-                        <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
+                        <span className="text-[10px] min-[960px]:text-[22px] font-black text-slate-800 uppercase tracking-tight">
                           {isPrivacy ? "FILTRO ANTIESPÍA" : isPremium ? "MÁXIMA RESISTENCIA" : "PROTECCIÓN 9H"}
                         </span>
-                        <span className="text-[8px] font-medium text-slate-400 uppercase">Tecnología Japonesa</span>
+                        <span className="text-[8px] min-[960px]:text-[18px] font-medium text-slate-400 uppercase">Tecnología Japonesa</span>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-1.5 text-[#0D51A1]">
-                      <Info className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-black uppercase">Instalación Incluida</span>
+                      <Info className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" />
+                      <span className="text-[9px] min-[960px]:text-[22px] font-black uppercase">Instalación Incluida</span>
                     </div>
                   </div>
                 </div>
@@ -217,15 +225,19 @@ export default function MicaSelector() {
           })}
         </div>
 
-        <div className="flex justify-center gap-2 py-2">
-          {micasApi.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => centerCard(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-6 bg-[#6b21a8]" : "w-1.5 bg-slate-300"}`}
-            />
-          ))}
-        </div>
+       
+
+          <div className="flex justify-center gap-3 py-2 min-[960px]:pt-8">
+            {micas.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => centerCard(i)}
+                className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#6b21a8]" : "w-2.5 bg-slate-300"
+                  }`}
+              />
+            ))}
+          </div>
+        
       </main>
     </div>
   );
