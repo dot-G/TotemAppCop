@@ -13,6 +13,9 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function Page({ searchParams }: PageProps) {
   const token = await getServerToken();
   

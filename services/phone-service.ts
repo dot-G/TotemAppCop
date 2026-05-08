@@ -30,7 +30,7 @@ export const getBrandsAndModels = async (serverToken?: string): Promise<Brand[]>
     throw new Error('No se encontró sesión activa');
   }
 
-  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment,models.has_mica,models.has_case,models.camera_layout,models.status,models.sort`;
+  const endpoint = `${API_URL}/items/brands?filter[status][_eq]=active&sort=sort&fields=id,name,logo,status,sort,models.id,models.name,models.segment,models.has_mica,models.has_case,models.camera_layout,models.status,models.sort&deep[models][_filter][status][_eq]=active&deep[models][_sort]=sort`;
 
   const response = await fetch(endpoint, {
     method: 'GET',
@@ -49,6 +49,10 @@ export const getBrandsAndModels = async (serverToken?: string): Promise<Brand[]>
     throw new Error('Error al obtener el catálogo');
   }
 
+
+
   const json = await response.json();
+
+  console.log(json)
   return json.data || [];
 };
