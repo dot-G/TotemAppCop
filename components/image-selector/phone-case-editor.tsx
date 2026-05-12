@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { SmartphoneCaseSimple } from "./smartphone-case-simple2";
+import { SmartphoneCircle } from "./smartphone-circle";
 import { ColorSelector } from "../shared/color-selector";
 import { ColorSelectorVertical } from "../shared/color-selector-vertical";
 import { Button } from "@/components/ui/button";
@@ -182,7 +182,7 @@ export function PhoneCaseEditor({
             ref={smartphoneRef}
             className="w-fit h-fit bg-transparent flex justify-center transition-all duration-300"
           >
-            <SmartphoneCaseSimple
+            <SmartphoneCircle
               width={componentWidth} // <--- Prop de ancho dinámico
               frameColor={selectedCase?.hex || "#000000"}
               caseImage={safeImage}
