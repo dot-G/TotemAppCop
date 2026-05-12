@@ -61,7 +61,7 @@ export const getMicas = async (serverToken?: string): Promise<Mica[]> => {
     }
 
     const json = await response.json();
-    console.log(json)
+
     return json.data || [];
   } catch (error) {
     console.error("Error en getMicas service:", error);

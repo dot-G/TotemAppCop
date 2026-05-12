@@ -53,6 +53,5 @@ export const getBrandsAndModels = async (serverToken?: string): Promise<Brand[]>
 
   const json = await response.json();
 
-  console.log(json)
   return json.data || [];
 };

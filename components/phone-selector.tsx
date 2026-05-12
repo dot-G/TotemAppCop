@@ -85,7 +85,6 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
   const brandSelected = selection.brand;
   const modelSelected = selection.model.name;
 
-  console.log(initialBrands)
 
   // --- 1. Filtrado de Resultados ---
   const filteredResults = useMemo(() => {
