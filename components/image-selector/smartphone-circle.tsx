@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react"; // Asegúrate de tener lucide-react instalado
 
 export type CameraCutoutStyle = 
   | "horizontal-top" | "square-left" | "vertical-pill" 
@@ -54,17 +54,10 @@ export function SmartphoneCircle({
   const [isPinching, setIsPinching] = useState(false);
   const [internalShowWheel, setInternalShowWheel] = useState(false);
   
-  // --- Lógica Anti-Parpadeo Síncrona ---
+  // Estados para el Loading
   const [isLoading, setIsLoading] = useState(false);
-  const [lastImage, setLastImage] = useState<string | undefined>(caseImage);
-
-  // Si la prop caseImage cambió, activamos loading ANTES de renderizar el siguiente frame
-  if (caseImage !== lastImage) {
-    setLastImage(caseImage);
-    setIsLoading(true);
-  }
-
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const dragStartRef = useRef({ x: 0, y: 0 });
   const offsetStartRef = useRef({ x: 0, y: 0 });
   const pinchStartDistanceRef = useRef(0);
@@ -77,12 +70,19 @@ export function SmartphoneCircle({
   const offset = externalOffset ?? internalOffset;
   const setOffset = onImageOffsetChange ?? setInternalOffset;
 
+  // Efecto para activar el loading cuando cambia la imagen
+  useEffect(() => {
+    if (caseImage) {
+      setIsLoading(true);
+    }
+  }, [caseImage]);
+
   const handleImageLoad = () => {
     if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
-    // Un pequeño delay (300ms) asegura que el navegador haya decodificado bien el PNG
+    // Garantizamos al menos 1 segundo de loading
     loadingTimeoutRef.current = setTimeout(() => {
       setIsLoading(false);
-    }, 300);
+    }, 1000);
   };
 
   const snapToAngle = useCallback((angle: number): number => {
@@ -134,9 +134,11 @@ export function SmartphoneCircle({
     const pos = getMousePosition(clientX, clientY);
     const dx = pos.x - dragStartRef.current.x;
     const dy = pos.y - dragStartRef.current.y;
+
     const rad = (imageRotation * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
+
     setOffset({
       x: offsetStartRef.current.x + (dx * cos + dy * sin),
       y: offsetStartRef.current.y + (-dx * sin + dy * cos),
@@ -238,6 +240,8 @@ export function SmartphoneCircle({
 
   const normalizedRotation = ((imageRotation % 360) + 360) % 360;
   const isSnapped = isNearSnapAngle(imageRotation);
+  const isVertical = normalizedRotation === 0 || normalizedRotation === 180;
+  const isHorizontal = normalizedRotation === 90 || normalizedRotation === 270;
   const displayWheel = (showRotationWheel || internalShowWheel) && !isLoading;
 
   return (
@@ -271,17 +275,27 @@ export function SmartphoneCircle({
             <stop offset="0%" stopColor="white" stopOpacity="0.3" />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </linearGradient>
+          <linearGradient id={`sideRef-${uniqueId}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="black" stopOpacity="0.05" />
+          </linearGradient>
         </defs>
 
-        {/* Estructura del teléfono */}
         <rect width={width} height={height} rx={borderRadius} fill={`url(#frameGrad-${uniqueId})`} />
+        <rect x="1" y="1" width={width-2} height={height-2} rx={borderRadius-1} fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="1" />
+
+        <rect x="-2" y={height * 0.18} width="3" height={width * 0.06} rx="1" fill={frameColor} />
+        <rect x="-2" y={height * 0.26} width="3" height={width * 0.12} rx="1" fill={frameColor} />
+        <rect x={width-1} y={height * 0.23} width="3" height={width * 0.14} rx="1" fill={frameColor} />
+
         <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={frameColor} />
 
-        {/* Área de Imagen */}
         <g clipPath={`url(#clip-${uniqueId})`}>
+          {/* Fondo para el área de imagen */}
+          <rect x={printArea.x} y={printArea.y} width={printArea.width} height={printArea.height} fill="transparent" />
+          
           {caseImage && (
             <image
-              key={caseImage} // Forzar reset de elemento al cambiar URL
               href={caseImage}
               {...({ crossOrigin: "anonymous" } as any)}
               x={printArea.x + (printArea.width - scaledWidth) / 2 + offset.x}
@@ -292,41 +306,100 @@ export function SmartphoneCircle({
               opacity={isLoading ? 0 : 1}
               transform={`rotate(${imageRotation} ${printAreaCenterX} ${printAreaCenterY})`}
               style={{ 
-                transition: isDragging || isPinching ? "none" : "opacity 0.3s ease-in-out",
-                willChange: "opacity, transform"
+                transition: isDragging || isPinching ? "none" : "transform 0.1s ease-out, opacity 0.4s ease-in-out",
+                willChange: "transform"
               }}
               preserveAspectRatio="xMidYMid slice"
             />
           )}
         </g>
 
-        {/* Brillo realista sobre la carcasa e imagen */}
+        {/* Capas de brillo */}
         <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={`url(#shine-${uniqueId})`} pointerEvents="none" />
+        <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={`url(#sideRef-${uniqueId})`} pointerEvents="none" />
         <rect x={framePadding + 10} y={framePadding + 2} width={width - framePadding*2 - 20} height={height * 0.1} rx={borderRadius} fill={`url(#topShine-${uniqueId})`} pointerEvents="none" />
 
-        {/* Módulo de Cámara */}
+        {/* Cámara */}
         {camera && (
           <g>
             <rect x={camera.x - 1} y={camera.y - 1} width={camera.width + 2} height={camera.height + 2} rx={camera.rx + 1} fill="#0a0a0a" />
             <rect x={camera.x} y={camera.y} width={camera.width} height={camera.height} rx={camera.rx} fill="#000000" />
+            <rect x={camera.x} y={camera.y} width={camera.width} height={camera.height} rx={camera.rx} fill="none" stroke="white" strokeOpacity="0.08" strokeWidth="0.5" />
           </g>
         )}
 
-        {/* Spinner (solo visible mientras carga la nueva imagen) */}
+        {/* Indicador de Loading */}
         {isLoading && caseImage && (
           <g transform={`translate(${printAreaCenterX}, ${printAreaCenterY})`}>
-            <circle r="20" fill="rgba(0,0,0,0.3)" />
+            <circle r="24" fill="rgba(0,0,0,0.6)" />
             <foreignObject x="-12" y="-12" width="24" height="24">
-              <Loader2 className="w-6 h-6 text-white/70 animate-spin" />
+              <Loader2 className="w-6 h-6 text-white animate-spin" />
             </foreignObject>
           </g>
         )}
 
-        {/* Rueda de Rotación */}
+        {/* Rotation Wheel */}
         {displayWheel && caseImage && (
-          <g transform={`translate(${printAreaCenterX}, ${printAreaCenterY})`} style={{ pointerEvents: 'none' }}>
-            <circle r={Math.min(printArea.width, printArea.height) * 0.38} fill="none" stroke={isSnapped ? "#22c55e" : "rgba(255,255,255,0.3)"} strokeWidth={isSnapped ? 3 : 2} />
-            <text y={Math.min(printArea.width, printArea.height) * 0.38 + 40} fill="white" fontSize={18} fontWeight="bold" textAnchor="middle">{Math.round(normalizedRotation)}°</text>
+          <g style={{ pointerEvents: 'none' }}>
+            {(() => {
+              const wheelRadius = Math.min(printArea.width, printArea.height) * 0.38;
+              const tickLength = 8;
+              const majorTickLength = 14;
+              return (
+                <g transform={`translate(${printAreaCenterX}, ${printAreaCenterY})`}>
+                  <circle r={wheelRadius} fill="none" stroke={isSnapped ? "#22c55e" : "rgba(255,255,255,0.3)"} strokeWidth={isSnapped ? 3 : 2} />
+                  <circle r={wheelRadius - 20} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1} />
+                  {Array.from({ length: 24 }, (_, i) => i * 15).map((angle) => {
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const isMajor = angle % 90 === 0;
+                    const len = isMajor ? majorTickLength : tickLength;
+                    const x1 = Math.cos(rad) * (wheelRadius - len);
+                    const y1 = Math.sin(rad) * (wheelRadius - len);
+                    const x2 = Math.cos(rad) * wheelRadius;
+                    const y2 = Math.sin(rad) * wheelRadius;
+                    const isCurrentSnap = Math.abs(normalizedRotation - angle) <= SNAP_THRESHOLD || (angle === 0 && normalizedRotation >= 360 - SNAP_THRESHOLD);
+                    return (
+                      <line key={angle} x1={x1} y1={y1} x2={x2} y2={y2} stroke={isCurrentSnap ? "#22c55e" : isMajor ? "white" : "rgba(255,255,255,0.4)"} strokeWidth={isMajor ? 2.5 : 1.5} />
+                    );
+                  })}
+                  {[0, 90, 180, 270].map((angle) => {
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const labelRadius = wheelRadius + 18;
+                    const x = Math.cos(rad) * labelRadius;
+                    const y = Math.sin(rad) * labelRadius;
+                    const isCurrentSnap = Math.abs(normalizedRotation - angle) <= SNAP_THRESHOLD || (angle === 0 && normalizedRotation >= 360 - SNAP_THRESHOLD);
+                    return (
+                      <text key={angle} x={x} y={y} fill={isCurrentSnap ? "#22c55e" : "white"} fontSize={12} fontWeight={isCurrentSnap ? "bold" : "normal"} textAnchor="middle" dominantBaseline="middle">
+                        {angle}°
+                      </text>
+                    );
+                  })}
+                  {(() => {
+                    const currentRad = (normalizedRotation - 90) * Math.PI / 180;
+                    const needleLength = wheelRadius - 5;
+                    const x = Math.cos(currentRad) * needleLength;
+                    const y = Math.sin(currentRad) * needleLength;
+                    return (
+                      <>
+                        <line x1={0} y1={0} x2={x} y2={y} stroke="black" strokeWidth={5} strokeLinecap="round" strokeOpacity={0.3} />
+                        <line x1={0} y1={0} x2={x} y2={y} stroke={isSnapped ? "#22c55e" : "#f97316"} strokeWidth={3} strokeLinecap="round" />
+                        <circle cx={x} cy={y} r={4} fill={isSnapped ? "#22c55e" : "#f97316"} />
+                      </>
+                    );
+                  })()}
+                  <circle r={8} fill={isSnapped ? "#22c55e" : "#f97316"} />
+                  <circle r={4} fill="white" />
+                  <text y={wheelRadius + 45} fill="white" fontSize={18} fontWeight="bold" textAnchor="middle" dominantBaseline="middle">
+                    {Math.round(normalizedRotation)}°
+                  </text>
+                  {isSnapped && (
+                    <text y={wheelRadius + 62} fill="#22c55e" fontSize={12} fontWeight="600" textAnchor="middle" dominantBaseline="middle">
+                      {isVertical ? "Vertical" : isHorizontal ? "Horizontal" : ""}
+                    </text>
+                  )}
+                </g>
+              );
+            })()}
           </g>
         )}
       </svg>
