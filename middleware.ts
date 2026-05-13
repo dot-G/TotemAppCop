@@ -54,15 +54,11 @@ export function middleware(request: NextRequest) {
 
   // --- REGLA 2: LOGIN CON AUTO-LOGOUT ---
   if (pathname.startsWith('/login')) {
-    // Si ya tiene un token y entra a /login, forzamos limpieza total antes de dejarlo seguir
     if (token) {
       const response = NextResponse.next()
-      
-      // Borramos cookies de sesión previa para "forzar" el logout silencioso
       response.cookies.delete('access_token')
       response.cookies.delete('type_user')
       response.cookies.delete('current_store')
-      
       return response
     }
     return NextResponse.next()
