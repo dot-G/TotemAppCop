@@ -21,9 +21,9 @@ export const ColorSelector = ({
       <div className="flex flex-col gap-[10px]">
 
         {/* TEXTO INFORMATIVO */}
-        <div className="flex flex-col items-start px-1">
-          <label className="text-[14px] min-[960px]:text-[22px] font-bold text-[#1d1d1f] leading-none">
-            Color: <span className="text-slate-400 font-medium">{currentCase?.colour?.name || "Seleccionar"}</span>
+        <div className="flex flex-col items-start">
+          <label className="text-[12px] min-[960px]:text-[22px] font-medium text-[#1d1d1f] leading-none">
+            Color: <span className="text-slate-600 font-medium">{currentCase?.colour?.name || "Seleccionar"}</span>
           </label>
         </div>
 
