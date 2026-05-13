@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useApp } from "@/hooks/use-app";
-//import { useQueryClient } from "@tanstack/react-query";
-//import { BRANDS_KEY } from "@/hooks/use-brands";
 import { AnimatePresence, motion } from "framer-motion";
 
 // --- Types ---
@@ -35,14 +33,7 @@ import ContactForm from "./contact-form";
 import FinalSummary from "./final-summary";
 import Payment from "./payment";
 
-// --- Constantes de Caché ---
-export const COMBOS_KEY = ["combos"];
-export const MICAS_KEY = ["offerings", "mica"];
-export const CASES_KEY = ["offerings", "cases"];
-export const CATALOG_KEY = ["offerings", "catalog"];
-export const GALLERIES_KEY = ["offerings", "galleries"]; // Mantenemos la clave
-
-// Tipamos los Records con Partial<Record<StepType, ...>> para que acepten los pasos del enum
+// --- Configuración de Títulos ---
 const STEP_CONFIG: Partial<Record<StepType, { title: string }>> = {
   "phone-selector": { title: "Selecciona tu celular" },
   "combo-selector": { title: "Elige tu combo" },
@@ -91,39 +82,29 @@ export function AppShell2({
     currentStep, 
     isHydrated, 
     progress, 
-    resetApp, 
+    resetApp,       // Método que limpia localStorage (telcel_selection, store_code, etc.)
     setStoreCode 
   } = useApp();
   
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-  //const queryClient = useQueryClient();
 
+  // --- LOGICA DE LIMPIEZA E INICIALIZACIÓN ---
   useEffect(() => {
+    // Si estamos en el inicio, reseteamos todo el localStorage y estados de Jotai
+    if (currentStep === 'onboarding') {
+      resetApp();
+    }
+
+    // Seteamos el storeCode que viene del servidor (después del reset para que no se borre)
     if (storeCode) {
       setStoreCode(storeCode);
     }
-  }, [storeCode, setStoreCode]);
+  }, [storeCode, setStoreCode, resetApp, currentStep]);
 
-  // Al igual que con los otros initialData, si usaras React Query, aquí sincronizamos las galerías
-  // useMemo(() => {
-  //   if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
-  //   if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
-  //   if (initialMicas?.length) queryClient.setQueryData(MICAS_KEY, initialMicas);
-  //   if (initialCases?.length) queryClient.setQueryData(CASES_KEY, initialCases);
-  //   if (initialCatalog?.length) queryClient.setQueryData(CATALOG_KEY, initialCatalog);
-  //   if (initialGalleries?.length) queryClient.setQueryData(GALLERIES_KEY, initialGalleries);
-  // }, [initialBrands, initialCombos, initialMicas, initialCases, initialCatalog, initialGalleries, queryClient]);
-
- const handleFullReset = useCallback(() => {
+  const handleFullReset = useCallback(() => {
     setIsExitModalOpen(false);
     resetApp();
-  //  queryClient.invalidateQueries({ queryKey: BRANDS_KEY });
-  //  queryClient.invalidateQueries({ queryKey: COMBOS_KEY });
-  //  queryClient.invalidateQueries({ queryKey: MICAS_KEY });
-  //  queryClient.invalidateQueries({ queryKey: CASES_KEY });
-  //  queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
-  //  queryClient.invalidateQueries({ queryKey: GALLERIES_KEY }); // Importante invalidar también las galerías
-  }, [resetApp/*, queryClient*/]);
+  }, [resetApp]);
 
   const renderStep = () => {
     switch (currentStep) {
@@ -136,12 +117,7 @@ export function AppShell2({
       case "mica-selector":  
         return <MicaSelector initialMicas={initialMicas} />;
       case "case-selector":  
-        return (
-          <CaseSelector 
-            initialCases={initialCases} 
-            initialGalleries={initialGalleries} // Inyectamos la data para que el selector pueda elegir la foto correcta por modelo
-          />
-        );
+        return <CaseSelector initialCases={initialCases} initialGalleries={initialGalleries} />;
       case "image-selector": 
         return <ImageSelector initialCatalog={initialCatalog} />;
       case "contact-form":   
@@ -166,20 +142,11 @@ export function AppShell2({
     <div className="w-full h-[100dvh] bg-[#0f172a] flex justify-center items-center overflow-hidden font-sans">
       <div className="
         relative h-full w-full 
-        /* Comportamiento base (móvil) */
-        aspect-auto 
-        
-        /* A partir de 1100px: Aspecto, límites y escalado */
         min-[1100px]:aspect-[9/16] 
-        min-[1100px]:w-full 
         min-[1100px]:max-w-[960px] 
-        min-[1100px]:mx-auto
-        
-        /* Escalado al 50% */
         min-[1100px]:scale-70
         min-[1100px]:origin-center
-        
-        bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300"
+        bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden"
       >
         <AnimatePresence mode="wait">
           {!isOnboarding && (
@@ -231,12 +198,6 @@ export function AppShell2({
               initial={{ opacity: 0, x: isOnboarding ? 0 : 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isOnboarding ? 0 : -20 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 400, 
-                damping: 35, 
-                opacity: { duration: 0.2 } 
-              }}
               className="absolute inset-0 w-full h-full"
             >
               <div className="h-full w-full overflow-y-auto no-scrollbar overscroll-contain">
