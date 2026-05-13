@@ -13,6 +13,7 @@ import { Combo } from "@/services/combo-service";
 import { Mica } from "@/services/mica-service";
 import { CaseCut } from "@/services/case-service";
 import { CatalogOffering } from "@/services/image-service";
+import { PhoneCaseGallery } from "@/services/phone-case-service"; 
 import { StepType } from "@/lib/store";
 
 // --- UI Components ---
@@ -39,6 +40,7 @@ export const COMBOS_KEY = ["combos"];
 export const MICAS_KEY = ["offerings", "mica"];
 export const CASES_KEY = ["offerings", "cases"];
 export const CATALOG_KEY = ["offerings", "catalog"];
+export const GALLERIES_KEY = ["offerings", "galleries"]; // Mantenemos la clave
 
 // Tipamos los Records con Partial<Record<StepType, ...>> para que acepten los pasos del enum
 const STEP_CONFIG: Partial<Record<StepType, { title: string }>> = {
@@ -69,6 +71,7 @@ interface AppShell2Props {
   initialMicas?: Mica[];
   initialCases?: CaseCut[];
   initialCatalog?: CatalogOffering[];
+  initialGalleries?: PhoneCaseGallery[]; 
   token?: string;
   storeCode?: string | null;
 }
@@ -80,6 +83,7 @@ export function AppShell2({
   initialMicas = [],
   initialCases = [],
   initialCatalog = [],
+  initialGalleries = [], 
   token,
   storeCode
 }: AppShell2Props) {
@@ -100,13 +104,15 @@ export function AppShell2({
     }
   }, [storeCode, setStoreCode]);
 
-  //useMemo(() => {
-   // if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
-   // if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
-   // if (initialMicas?.length) queryClient.setQueryData(MICAS_KEY, initialMicas);
-  //  if (initialCases?.length) queryClient.setQueryData(CASES_KEY, initialCases);
-  //  if (initialCatalog?.length) queryClient.setQueryData(CATALOG_KEY, initialCatalog);
-  //}, [initialBrands, initialCombos, initialMicas, initialCases, initialCatalog, queryClient]);
+  // Al igual que con los otros initialData, si usaras React Query, aquí sincronizamos las galerías
+  // useMemo(() => {
+  //   if (initialBrands?.length) queryClient.setQueryData(BRANDS_KEY, initialBrands);
+  //   if (initialCombos?.length) queryClient.setQueryData(COMBOS_KEY, initialCombos);
+  //   if (initialMicas?.length) queryClient.setQueryData(MICAS_KEY, initialMicas);
+  //   if (initialCases?.length) queryClient.setQueryData(CASES_KEY, initialCases);
+  //   if (initialCatalog?.length) queryClient.setQueryData(CATALOG_KEY, initialCatalog);
+  //   if (initialGalleries?.length) queryClient.setQueryData(GALLERIES_KEY, initialGalleries);
+  // }, [initialBrands, initialCombos, initialMicas, initialCases, initialCatalog, initialGalleries, queryClient]);
 
  const handleFullReset = useCallback(() => {
     setIsExitModalOpen(false);
@@ -116,6 +122,7 @@ export function AppShell2({
   //  queryClient.invalidateQueries({ queryKey: MICAS_KEY });
   //  queryClient.invalidateQueries({ queryKey: CASES_KEY });
   //  queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
+  //  queryClient.invalidateQueries({ queryKey: GALLERIES_KEY }); // Importante invalidar también las galerías
   }, [resetApp/*, queryClient*/]);
 
   const renderStep = () => {
@@ -129,7 +136,12 @@ export function AppShell2({
       case "mica-selector":  
         return <MicaSelector initialMicas={initialMicas} />;
       case "case-selector":  
-        return <CaseSelector initialCases={initialCases} />;
+        return (
+          <CaseSelector 
+            initialCases={initialCases} 
+            initialGalleries={initialGalleries} // Inyectamos la data para que el selector pueda elegir la foto correcta por modelo
+          />
+        );
       case "image-selector": 
         return <ImageSelector initialCatalog={initialCatalog} />;
       case "contact-form":   
@@ -152,25 +164,23 @@ export function AppShell2({
 
   return (
     <div className="w-full h-[100dvh] bg-[#0f172a] flex justify-center items-center overflow-hidden font-sans">
-    <div className="
-    relative h-full w-full 
-    /* Comportamiento base (móvil) */
-    aspect-auto 
-    
-    /* A partir de 1100px: Aspecto, límites y escalado */
-    min-[1100px]:aspect-[9/16] 
-    min-[1100px]:w-full 
-    min-[1100px]:max-w-[960px] 
-    min-[1100px]:mx-auto
-    
-    /* Escalado al 50% */
-    min-[1100px]:scale-70
-    min-[1100px]:origin-center
-    
-    bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300"
->
-
-
+      <div className="
+        relative h-full w-full 
+        /* Comportamiento base (móvil) */
+        aspect-auto 
+        
+        /* A partir de 1100px: Aspecto, límites y escalado */
+        min-[1100px]:aspect-[9/16] 
+        min-[1100px]:w-full 
+        min-[1100px]:max-w-[960px] 
+        min-[1100px]:mx-auto
+        
+        /* Escalado al 50% */
+        min-[1100px]:scale-70
+        min-[1100px]:origin-center
+        
+        bg-[#f8fafc] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300"
+      >
         <AnimatePresence mode="wait">
           {!isOnboarding && (
             <motion.header
