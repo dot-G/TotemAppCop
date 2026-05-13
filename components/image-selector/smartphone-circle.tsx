@@ -53,7 +53,7 @@ export function SmartphoneCircle({
   const [isPinching, setIsPinching] = useState(false);
   const [internalShowWheel, setInternalShowWheel] = useState(false);
   
-  // Estados para la transición suave
+  // Estados de carga y visibilidad
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   
@@ -69,21 +69,22 @@ export function SmartphoneCircle({
   const offset = externalOffset ?? internalOffset;
   const setOffset = onImageOffsetChange ?? setInternalOffset;
 
-  // Manejo de la carga y fade suave
+  // Lógica de carga: 1s de delay, imagen estática (fade in)
   useEffect(() => {
-    if (!caseImage) return;
+    if (!caseImage) {
+      setIsVisible(false);
+      return;
+    }
 
     setIsVisible(false);
     setIsLoading(true);
 
-    // Simula la precarga de la imagen
-    const img = new Image();
-    img.src = caseImage;
-    img.onload = () => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
-      // Pequeño timeout para asegurar que el navegador renderice el cambio de estado antes de la transición
-      setTimeout(() => setIsVisible(true), 50);
-    };
+      setIsVisible(true);
+    }, 1000); 
+
+    return () => clearTimeout(timer);
   }, [caseImage]);
 
   const snapToAngle = useCallback((angle: number): number => {
@@ -244,6 +245,7 @@ export function SmartphoneCircle({
   const isVertical = normalizedRotation === 0 || normalizedRotation === 180;
   const isHorizontal = normalizedRotation === 90 || normalizedRotation === 270;
   const displayWheel = showRotationWheel || internalShowWheel;
+  const loaderSize = width * 0.08;
 
   return (
     <div className={cn("relative inline-block select-none touch-none", className)}>
@@ -258,6 +260,18 @@ export function SmartphoneCircle({
         onMouseUp={() => setIsDragging(false)}
         onMouseLeave={() => setIsDragging(false)}
       >
+        <style>{`
+          @keyframes pure-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .loader-spin {
+            animation: pure-spin 1s linear infinite;
+            transform-origin: center;
+            transform-box: fill-box;
+          }
+        `}</style>
+
         <defs>
           <clipPath id={`clip-${uniqueId}`}>
             <rect x={printArea.x} y={printArea.y} width={printArea.width} height={printArea.height} rx={borderRadius * 0.5} />
@@ -286,15 +300,19 @@ export function SmartphoneCircle({
           </linearGradient>
         </defs>
 
+        {/* Frame Base */}
         <rect width={width} height={height} rx={borderRadius} fill={`url(#frameGrad-${uniqueId})`} />
         <rect x="1" y="1" width={width-2} height={height-2} rx={borderRadius-1} fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="1" />
 
+        {/* Botones laterales */}
         <rect x="-2" y={height * 0.18} width="3" height={width * 0.06} rx="1" fill={frameColor} />
         <rect x="-2" y={height * 0.26} width="3" height={width * 0.12} rx="1" fill={frameColor} />
         <rect x={width-1} y={height * 0.23} width="3" height={width * 0.14} rx="1" fill={frameColor} />
 
+        {/* Fondo interior */}
         <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={frameColor} />
 
+        {/* Imagen del case con Fade Estático */}
         <g clipPath={`url(#clip-${uniqueId})`}>
           {caseImage && (
             <image
@@ -307,7 +325,7 @@ export function SmartphoneCircle({
               transform={`rotate(${imageRotation} ${printAreaCenterX} ${printAreaCenterY})`}
               style={{ 
                 opacity: isVisible ? 1 : 0,
-                transition: isDragging || isPinching ? "none" : "opacity 0.6s ease-in-out",
+                transition: "opacity 0.6s ease-in-out",
                 willChange: "opacity"
               }}
               preserveAspectRatio="xMidYMid slice"
@@ -315,10 +333,12 @@ export function SmartphoneCircle({
           )}
         </g>
 
+        {/* Brillos y reflejos */}
         <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={`url(#shine-${uniqueId})`} pointerEvents="none" />
         <rect x={framePadding} y={framePadding} width={width - framePadding*2} height={height - framePadding*2} rx={borderRadius - framePadding/2} fill={`url(#sideRef-${uniqueId})`} pointerEvents="none" />
         <rect x={framePadding + 10} y={framePadding + 2} width={width - framePadding*2 - 20} height={height * 0.1} rx={borderRadius} fill={`url(#topShine-${uniqueId})`} pointerEvents="none" />
 
+        {/* Cámara */}
         {camera && (
           <g>
             <rect x={camera.x - 1} y={camera.y - 1} width={camera.width + 2} height={camera.height + 2} rx={camera.rx + 1} fill="#0a0a0a" />
@@ -327,21 +347,21 @@ export function SmartphoneCircle({
           </g>
         )}
 
-        {/* Simple Loader Overlay */}
+        {/* Loader Corregido (Estático en centro) */}
         {isLoading && (
-          <g transform={`translate(${printAreaCenterX}, ${printAreaCenterY})`}>
-             <circle
-              r={width * 0.08}
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeDasharray={`${width * 0.1} ${width * 0.1}`}
-              className="animate-spin"
-              style={{ transformOrigin: 'center', opacity: 0.5 }}
-            />
-          </g>
+          <circle
+            cx={printAreaCenterX}
+            cy={printAreaCenterY}
+            r={loaderSize}
+            fill="none"
+            stroke="white"
+            strokeWidth="3"
+            strokeDasharray={`${loaderSize * 1.5} ${loaderSize}`}
+            className="loader-spin"
+          />
         )}
 
+        {/* Rueda de rotación interactiva */}
         {displayWheel && caseImage && !isLoading && (
           <g style={{ pointerEvents: 'none' }}>
             {(() => {
