@@ -16,6 +16,53 @@ interface CaseSelectorProps {
   initialGalleries?: PhoneCaseGallery[];
 }
 
+// --- SUB-COMPONENTE PARA CARGA SEGURA CON FADE-IN ---
+const SafeImage = ({ src, alt, className, fill, priority = false, sizes = "100vw", quality = 75 }: any) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Resetear el estado si cambia el src
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [src]);
+
+  return (
+    <div className="relative w-full h-full">
+      {/* Loader centrado */}
+      <AnimatePresence>
+        {!isLoaded && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-0 flex items-center justify-center bg-slate-50"
+          >
+            <Loader2 className="w-8 h-8 animate-spin text-slate-300" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Imagen con Fade-in */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full h-full"
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill={fill}
+          priority={priority}
+          className={className}
+          onLoad={() => setIsLoaded(true)}
+          sizes={sizes}
+          quality={quality}
+        />
+      </motion.div>
+    </div>
+  );
+};
+
 const extractId = (file: any): string | null => {
   if (!file) return null;
   return typeof file === 'object' ? (file.id || file.directus_files_id) : file;
@@ -35,12 +82,10 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
 
   useEffect(() => { setMounted(true) }, [])
 
-  // 1. Identificar el Case base seleccionado
   const selectedCase = useMemo(() => {
     return casesApi.find(c => String(c.id) === String(selection.caseId)) || casesApi[0]
   }, [casesApi, selection.caseId])
 
-  // 2. Galería Dinámica
   const gallery = useMemo(() => {
     if (!selectedCase) return []
     const currentModelId = String(selection.model?.id);
@@ -67,10 +112,8 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
     return Array.from(new Set(finalImages.filter((id): id is string => Boolean(id))));
   }, [selectedCase, initialGalleries, selection.model?.id]);
 
-  // --- FUNCIÓN PARA ACTUALIZAR LA SELECCIÓN ---
   const handleCaseChange = useCallback((caseItem: CaseCut) => {
     if (!caseItem) return
-
     const currentModelId = String(selection.model?.id);
     const currentColorId = String(caseItem.colour?.id);
 
@@ -83,8 +126,6 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
     const galleryImage = specificGallery ? extractId(specificGallery.featured_image) : null;
     const caseImage = extractId(caseItem.featured_image);
     const finalImageToSave = galleryImage || caseImage;
-
-    console.log("imagen que guarda: ",finalImageToSave)
 
     const rawPrice = caseItem.case_cut_type?.offerings?.[0]?.price || "0"
     const newCasePrice = parseFloat(rawPrice)
@@ -115,7 +156,6 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
     setSelectedImgIdx(0)
   }, [casesApi, selection.model?.id, selection.config, initialGalleries, updateSelection])
 
-  // --- CRITICAL FIX: Sincronizar imagen de galería cuando cambia el modelo ---
   useEffect(() => {
     if (isHydrated && selectedCase) {
       const currentModelId = String(selection.model?.id);
@@ -129,42 +169,26 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
 
       const matchedFeatured = specificGallery ? extractId(specificGallery.featured_image) : extractId(selectedCase.featured_image);
 
-      // Si la imagen en el store es distinta a la que el match actual dicta, actualizamos.
       if (selection.caseImage !== matchedFeatured) {
         updateSelection({ caseImage: matchedFeatured });
       }
     }
   }, [selection.model?.id, selectedCase?.id, initialGalleries, isHydrated]);
 
-  // Centrar miniatura activa
   useEffect(() => {
     if (isGalleryOpen && thumbnailRefs.current[selectedImgIdx]) {
       thumbnailRefs.current[selectedImgIdx]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center'
+        behavior: 'smooth', block: 'nearest', inline: 'center'
       });
     }
   }, [selectedImgIdx, isGalleryOpen]);
 
-  // Precarga
-  useEffect(() => {
-    if (gallery.length > 0) {
-      gallery.forEach((imgId) => {
-        const img = new window.Image();
-        img.src = `${getImageUrl(imgId)}?width=800`;
-      });
-    }
-  }, [gallery]);
-
-  // Hidratación inicial
   useEffect(() => {
     if (isHydrated && casesApi.length > 0 && !isInitialMounted.current) {
       const savedIdx = casesApi.findIndex(c => String(c.id) === String(selection.caseId))
       if (!selection.caseId || savedIdx === -1) {
         handleCaseChange(casesApi[0])
       } else {
-        // Forzamos verificación de match para el elemento guardado
         handleCaseChange(casesApi[savedIdx])
       }
       isInitialMounted.current = true
@@ -203,7 +227,7 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
               className="w-full h-full relative"
             >
               {gallery[selectedImgIdx] ? (
-                <Image
+                <SafeImage
                   src={`${getImageUrl(gallery[selectedImgIdx])}?width=400`}
                   alt="Case Preview"
                   fill
@@ -271,7 +295,7 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
                   }}
                   className="w-full h-full p-4 flex items-center justify-center cursor-grab active:cursor-grabbing"
                 >
-                  <Image
+                  <SafeImage
                     src={getImageUrl(gallery[selectedImgIdx])}
                     alt="Zoom"
                     fill
@@ -307,7 +331,7 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
                     selectedImgIdx === i ? "border-slate-900 scale-105 shadow-lg" : "border-transparent opacity-40"
                   }`}
                 >
-                  <Image
+                  <SafeImage
                     src={`${getImageUrl(imgId)}?width=150`}
                     alt="Thumb"
                     fill
