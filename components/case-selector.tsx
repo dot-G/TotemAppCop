@@ -253,7 +253,7 @@ export default function CaseSelector({ initialCases = [], initialGalleries = [] 
           <p className="text-[14px] min-[960px]:text-[32px] text-slate-500 leading-relaxed font-normal mb-4">
             {selectedCase?.description || "Diseño ergonómico con corte láser de alta precisión."}
           </p>
-          <div className="text-[12px] min-[960px]:text-[22px] text-slate-600 font-semibold">
+          <div className="text-[12px] min-[960px]:text-[22px] text-slate-600 font-normal mb-4">
             <p>Modelo: <span className="text-slate-700 font-normal">{selectedCase?.case_cut_type?.name}</span></p>
             <p>Compatibilidad: <span className="text-slate-700 font-normal">{selection.brand} {selection.model.name}</span></p>
           </div>
