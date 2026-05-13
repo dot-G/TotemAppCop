@@ -69,14 +69,15 @@ export const getPhoneCaseGalleries = async (
     "case_cut.colour.id", "case_cut.colour.name", "case_cut.colour.hex_code",
     "images.directus_files_id.id", "images.directus_files_id.filename_download", 
     "images.directus_files_id.width", "images.directus_files_id.height",
-    "images.sort"
+    "images.sort",
   ].join(",");
 
   const params = new URLSearchParams({
     "filter[status][_eq]": "active",
     "sort": "sort",
     "fields": fields,
-    "deep[images][_sort]": "sort"
+    "deep[images][_sort]": "sort",
+    "limit": "-1",
   });
 
   // Agregamos filtros solo si vienen informados
