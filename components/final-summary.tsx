@@ -52,8 +52,8 @@ export default function FinalSummary() {
         title: `Case 3D - ${selection.caseColor || 'Standard'}`,
         price: selection.config.prices.case,
         desc: `Diseño para ${selection.brand} ${selection.model.name}.`,
-        preview: selection?.caseImage
-          ? getImageUrl(selection.caseImage)
+        preview: selectedColor?.caseImage
+          ? getImageUrl(selectedColor.caseImage)
           : "/icons/case-placeholder.png"
       })
     }
