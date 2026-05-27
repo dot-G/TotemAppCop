@@ -10,7 +10,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'admin3pa.ai-labs.com.mx',
+        hostname: 'coppel3pa.ai-labs.com.mx',
         pathname: '/assets/**',
       },
     ],
