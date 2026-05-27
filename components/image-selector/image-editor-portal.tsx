@@ -151,7 +151,7 @@ export function ImageEditorPortal({
         <Button 
           disabled={view === 'gallery' && !tempImg} 
           onClick={onConfirm} 
-          className="w-full h-18 bg-[#6b21a8] hover:bg-[#581c87] text-white rounded-[14px] p-4 font-semibold text-[18px] shadow-xl active:scale-[0.98] transition-all"
+          className="w-full h-18 bg-[#1C42E8] hover:bg-[#581c87] text-white rounded-[14px] p-4 font-semibold text-[18px] shadow-xl active:scale-[0.98] transition-all"
         >
           {view === 'gallery' ? 'Continuar Selección' : 'Confirmar Diseño'}
         </Button>

@@ -298,7 +298,7 @@ export function PhoneCaseEditor({
               </Button>
             )}
             <Button
-              className="h-14 md:h-16 flex-[2] md:max-w-[320px] rounded-[18px] md:rounded-[24px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base min-[960px]:text-[25px] md:text-lg shadow-lg active:scale-95 transition-all"
+              className="h-14 md:h-16 flex-[2] md:max-w-[320px] rounded-[18px] md:rounded-[24px] bg-[#1C42E8] hover:bg-indigo-700 text-white font-bold text-base min-[960px]:text-[25px] md:text-lg shadow-lg active:scale-95 transition-all"
               onClick={handleAccept}
               disabled={isCapturing}
             >

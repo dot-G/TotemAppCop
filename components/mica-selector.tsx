@@ -172,7 +172,7 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
                   ${isActive ? "border-[#6b21a8] scale-105 z-10 shadow-lg" : "border-transparent scale-90 opacity-60 grayscale"}`}>
                   
                   {isActive && (
-                    <div className="absolute top-4 right-8 min-[960px]:top-12 min-[960px]:right-12 min-[960px]:scale-[2.8] bg-[#6b21a8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
+                    <div className="absolute top-4 right-8 min-[960px]:top-12 min-[960px]:right-12 min-[960px]:scale-[2.8] bg-[#1C42E8] text-white rounded-full p-1.5 shadow-xl z-50 animate-in zoom-in duration-300">
                       <Check className="w-4 h-4" strokeWidth={3} />
                     </div>
                   )}
@@ -188,7 +188,7 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
                         unoptimized
                       />
                     ) : (
-                      <ShieldCheck className="text-slate-200 w-16 h-16 stroke-[1]" />
+                      <ShieldCheck className="text-[slate-200] w-16 h-16 stroke-[1]" />
                     )}
                   </div>
 
@@ -232,7 +232,7 @@ export default function MicaSelector({ initialMicas = [] }: MicaSelectorProps) {
               <button
                 key={i}
                 onClick={() => centerCard(i)}
-                className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#6b21a8]" : "w-2.5 bg-slate-300"
+                className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#1C42E8]" : "w-2.5 bg-slate-300"
                   }`}
               />
             ))}

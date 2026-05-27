@@ -62,7 +62,7 @@ export function ExitModal({ isOpen, onClose, onConfirm }: ExitModalProps) {
               </button>
               <button 
                 onClick={onClose} 
-                className="w-full h-[60px] rounded-[1.2rem] bg-[#6b21a8] text-white font-bold text-lg shadow-lg shadow-purple-200 active:scale-[0.98] transition-all"
+                className="w-full h-[60px] rounded-[1.2rem] bg-[#1C42E8] text-white font-bold text-lg shadow-lg shadow-purple-200 active:scale-[0.98] transition-all"
               >
                 Continuar
               </button>

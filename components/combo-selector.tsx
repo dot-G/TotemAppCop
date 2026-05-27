@@ -169,7 +169,7 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
                   }`}
                 >
                   {isActive && (
-                    <div className="absolute top-5 right-5 min-[960px]:top-16 min-[960px]:right-16 min-[960px]:scale-[2] bg-[#0D51A1] text-white rounded-full p-2 shadow-xl animate-in zoom-in duration-300 z-20">
+                    <div className="absolute top-5 right-5 min-[960px]:top-16 min-[960px]:right-16 min-[960px]:scale-[2] bg-[#1C42E8] text-white rounded-full p-2 shadow-xl animate-in zoom-in duration-300 z-20">
                       <Check className="w-5 h-5" strokeWidth={2} />
                     </div>
                   )}
@@ -221,7 +221,7 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
               <button
                 key={i}
                 onClick={() => centerCard(i)}
-                className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#0D51A1]" : "w-2.5 bg-slate-300"
+                className={`h-2.5 rounded-full transition-all duration-300 ${activeIdx === i ? "w-10 bg-[#1C42E8]" : "w-2.5 bg-slate-300"
                   }`}
               />
             ))}
@@ -235,7 +235,7 @@ export default function ComboSelector({ initialCombos = [] }: ComboSelectorProps
 function BenefitItem({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <div className="flex items-center transition-all group hover:bg-white">
-      <div className="w-6 h-6 min-[960px]:w-10 min-[960px]:h-10 text-[#0D51A1] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+      <div className="w-6 h-6 min-[960px]:w-10 min-[960px]:h-10 text-[#1C42E8] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
         {icon}
       </div>
       <span className="text-[13px] min-[960px]:text-[28px] font-semibold text-slate-800 px-1">{label}</span>

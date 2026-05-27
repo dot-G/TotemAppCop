@@ -116,7 +116,7 @@ export function UnifiedFooter() {
               onClick={handleMainAction}
               className={`w-full h-14 rounded-[14px] text-[20px] min-[960px]:text-[35px] min-[960px]:h-28 font-semibold transition-all duration-300
     ${canContinue
-                  ? "bg-[#6b21a8] text-white shadow-xl shadow-purple-100 active:scale-[0.97]"
+                  ? "bg-[#1C42E8] text-white shadow-xl shadow-purple-100 active:scale-[0.97]"
                   : "bg-slate-100 text-slate-300"}`}
             >
               {buttonText}
@@ -130,7 +130,7 @@ export function UnifiedFooter() {
             exit={{ opacity: 0 }}
             className="flex flex-col items-center justify-center py-6"
           >
-            <div className="flex items-center gap-3 text-[#6b21a8] font-black text-[11px] tracking-[0.3em] uppercase">
+            <div className="flex items-center gap-3 text-[#1C42E8] font-black text-[11px] tracking-[0.3em] uppercase">
               <Loader2 className="w-5 h-5 animate-spin" />
               <span>Sincronizando Orden...</span>
             </div>

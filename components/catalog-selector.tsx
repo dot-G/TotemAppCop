@@ -271,8 +271,8 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                   <div className={`
         shrink-0 w-5 h-5 min-[960px]:w-8 min-[960px]:h-8 rounded-[4px] border-2 flex items-center justify-center transition-all duration-200
         ${selection.acceptedTerms
-                      ? "bg-[#722296] border-[#722296] shadow-[0_0_8px_rgba(114,34,150,0.4)]"
-                      : "bg-white border-[#722296] group-hover:border-[#722296]/50 shadow-[0_0_8px_rgba(114,34,150,0.4)]"
+                      ? "bg-[#1C42E8] border-[#1C42E8] shadow-[0_0_8px_rgba(114,34,150,0.4)]"
+                      : "bg-white border-[#1C42E8] group-hover:border-[#722296]/50 shadow-[0_0_8px_rgba(114,34,150,0.4)]"
                     }
       `}>
                     {selection.acceptedTerms && (
@@ -294,7 +294,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                       e.stopPropagation(); // IMPORTANTE: evita que el check cambie al tocar el link
                       setIsTermsOpen(true);
                     }}
-                    className="font-semibold text-[#722296] cursor-pointer hover:underline decoration-1 underline-offset-2 transition-all"
+                    className="font-semibold text-[#1C42E8] cursor-pointer hover:underline decoration-1 underline-offset-2 transition-all"
                   >
                     Términos de Licencia
                   </span>
@@ -317,12 +317,12 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
           <button
             key={t.id}
             onClick={() => handleTabChange(t.id as any)}
-            className={`flex-1 py-2 text-[14px] min-[960px]:text-[32px] font-semibold relative transition-colors ${activeTab === t.id ? "text-[#722296]" : "text-slate-400"
+            className={`flex-1 py-2 text-[14px] min-[960px]:text-[32px] font-semibold relative transition-colors ${activeTab === t.id ? "text-[#1C42E8]" : "text-slate-400"
               }`}
           >
             {t.label}
             {activeTab === t.id && (
-              <motion.div layoutId="tabLine" className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#722296] mx-8" />
+              <motion.div layoutId="tabLine" className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1C42E8] mx-8" />
             )}
           </button>
         ))}
@@ -370,7 +370,7 @@ export default function ImageSelector({ initialCatalog = [] }: ImageSelectorProp
                           {/* Botón visual con el color solicitado */}
                           <div
                             className="flex items-center gap-2 px-4 py-2 text-white text-[12px] min-[960px]:text-[25px] font-medium rounded-[8px]"
-                            style={{ backgroundColor: '#722296' }}
+                            style={{ backgroundColor: '#1C42E8' }}
                           >
                             <ImageIcon className="w-4 h-4 min-[960px]:w-8 min-[960px]:h-8"/> {/* Icono de imagen en lugar de la flecha */}
                             <span>Elegir imagen</span>

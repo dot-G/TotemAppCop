@@ -80,15 +80,15 @@ export function Onboarding({ initialSlides = [] }: OnboardingProps) {
         "--u": "calc(var(--max-content-w) / 100)",
         "--t-size": "calc(var(--u) * 7.2)",
         "--d-size": "calc(var(--u) * 4.2)",
-        "--logo-w": "calc(var(--u) * 22)",
+        "--logo-w": "calc(var(--u) * 30)",
         "--btn-h": "8.5dvh"
       } as React.CSSProperties}
     >
       {/* Header */}
       <header className="relative z-10 flex justify-center pt-[7dvh] shrink-0">
         <img 
-            src="/logo-telcel.svg" 
-            alt="Telcel" 
+            src="/logo-coppel.svg" 
+            alt="Coppel" 
             style={{ width: "var(--logo-w)" }} 
             className="h-auto max-w-[280px]" 
         />
@@ -185,7 +185,7 @@ export function Onboarding({ initialSlides = [] }: OnboardingProps) {
                 const diff = ((index - realIndex + (COUNT / 2)) % COUNT) - (COUNT / 2);
                 moveBySteps(Math.round(diff));
             }}
-            className={`h-[1dvh] cursor-pointer rounded-full transition-all duration-300 ${index === realIndex ? "w-[4dvh] bg-[#71E5FF]" : "w-[1dvh] bg-white/30"}`} 
+            className={`h-[1dvh] cursor-pointer rounded-full transition-all duration-300 ${index === realIndex ? "w-[4dvh] bg-[#012B5D]" : "w-[1dvh] bg-[#F0D224]"}`} 
           />
         ))}
       </div>
@@ -212,7 +212,7 @@ export function Onboarding({ initialSlides = [] }: OnboardingProps) {
       <div className="relative z-10 flex px-10 pb-[7dvh] pt-4 shrink-0">
         <Button
           onClick={() => setStep("phone-selector")}
-          className="flex-1 rounded-[calc(var(--u)*4)] bg-[#71E5FF] text-[#012B5D] font-semibold shadow-2xl active:scale-95 transition-all max-w-[450px] mx-auto"
+          className="flex-1 rounded-[calc(var(--u)*4)] bg-[#F0D224] text-[#012B5D] font-semibold shadow-2xl active:scale-95 transition-all max-w-[450px] mx-auto"
           style={{ 
             height: "var(--btn-h)", 
             fontSize: "calc(var(--t-size) * 0.7)" 

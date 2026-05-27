@@ -97,7 +97,7 @@ export default function FinalSummary() {
           {/* Header de Referencia */}
           <div className="p-3 text-center border-b border-dashed border-slate-100 relative">
             <h2 className="text-[16px] min-[960px]:text-[35px] font-semibold text-slate-900 tracking-tight">
-              Referencia: <span className="text-[#6b21a8] uppercase">{reference}</span>
+              Referencia: <span className="text-[#1C42E8] uppercase">{reference}</span>
             </h2>
             <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-[#f8fafc] rounded-full border border-slate-100" />
             <div className="absolute -bottom-3 -right-3 w-6 h-6 bg-[#f8fafc] rounded-full border border-slate-100" />
@@ -143,7 +143,7 @@ export default function FinalSummary() {
 
         <Button
           onClick={() => nextStep()}
-          className="w-full h-14 rounded-[14px] text-[20px] min-[960px]:text-[35px] min-[960px]:h-28"
+          className="w-full h-14 bg-[#1C42E8] rounded-[14px] text-[20px] min-[960px]:text-[35px] min-[960px]:h-28"
         >
           Generar Cupón de pago <ChevronRight size={18} className="min-[960px]:w-40 min-[960px]:h-40" />
         </Button>

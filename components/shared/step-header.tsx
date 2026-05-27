@@ -36,7 +36,7 @@ export function StepHeader({
       {/* Botón Atrás */}
       <button
         onClick={() => setStep(backTo)}
-        className="w-8 h-8 min-[960px]:w-14 min-[960px]:h-14 rounded-full border-2 border-[#0D51A1] flex items-center justify-center text-[#0D51A1] active:scale-90 transition-all shrink-0"
+        className="w-8 h-8 min-[960px]:w-14 min-[960px]:h-14 rounded-full border-2 border-[#1C42E8] flex items-center justify-center text-[#1C42E8] active:scale-90 transition-all shrink-0"
       >
         <ArrowLeft className="w-4 h-4 min-[960px]:w-7 min-[960px]:h-7" />
       </button>
@@ -59,7 +59,7 @@ export function StepHeader({
                   cx="16" cy="16" r="14"
                   fill="none"
                   stroke="currentColor"
-                  className="text-slate-100"
+                  className="text-[#FCF5CE]"
                   strokeWidth="3"
                 />
                 <motion.circle
@@ -70,7 +70,7 @@ export function StepHeader({
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   strokeWidth="3"
                   strokeLinecap="round"
-                  stroke="#71E5FF"
+                  stroke="#1C42E8"
                 />
               </svg>
 
@@ -111,10 +111,10 @@ export function StepHeader({
       {/* Botón Salir */}
       <button
         onClick={onExitClick}
-        className="flex flex-col items-center justify-center min-w-[40px] text-[#0D51A1] transition-colors active:scale-95 shrink-0"
+        className="flex flex-col items-center justify-center min-w-[40px] text-[#1C42E8] transition-colors active:scale-95 shrink-0"
       >
         <LogOut className="w-4 h-4 min-[960px]:w-10 min-[960px]:h-10" />
-        <span className="text-[13px]  text-[#0D51A1] font-normal min-[960px]:text-[18px]">Salir</span>
+        <span className="text-[13px]  text-[#1C42E8] font-normal min-[960px]:text-[18px]">Salir</span>
       </button>
     </div>
   )

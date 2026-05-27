@@ -193,16 +193,16 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
         <div
           onClick={() => { setDirection(1); setActivePanel("brand"); }}
           className={`bg-[#F6F7F9] p-4 rounded-[14px] border transition-all cursor-pointer flex flex-col gap-3 
-          ${brandSelected ? "border-[#0B4488] ring-1 ring-[#0B4488]" : "border-transparent shadow-sm"}`}
+          ${brandSelected ? "border-[#1C42E8] ring-1 ring-[#1C42E8]" : "border-transparent shadow-sm"}`}
         >
           <div className="flex items-center gap-4">
             <Smartphone className="w-5 h-5 text-black min-[960px]:w-10 min-[960px]:h-10" />
             <span className="font-semibold text-black flex-1 text-[16px] min-[960px]:text-[35px]">
               Selecciona la marca
-            </span>            <ChevronRight className={brandSelected ? "text-[#0B4488]" : "text-slate-300"} />
+            </span>            <ChevronRight className={brandSelected ? "text-[#1C42E8]" : "text-slate-300"} />
           </div>
           {brandSelected && (
-            <div className="bg-white text-[#0B4488] px-4 py-2 rounded-3xl text-[13px] font-bold w-fit border border-blue-100 flex items-center gap-3">
+            <div className="bg-[#F0D22433] text-[#0B4488] px-4 py-2 rounded-3xl text-[13px] font-bold w-fit flex items-center gap-3">
               {selectedBrandLogo &&
                 <Image
                   src={getImageUrl(selectedBrandLogo)}
@@ -214,7 +214,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
                   className="object-contain w-[20px] h-[20px] min-[960px]:w-[50px] min-[960px]:h-[50px]"
                   unoptimized
                 />}
-              <span className="font-normal text-[14px] min-[960px]:text-[28px]">{brandSelected}</span>
+              <span className="text-[#685800] font-normal text-[14px] min-[960px]:text-[28px]">{brandSelected}</span>
               <button onClick={(e) => {
                 e.stopPropagation();
                 setSelection({
@@ -223,7 +223,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
                   brandId: "",
                   model: { id: null, name: null, has_case: false, has_mica: false, camera_layout: null }
                 });
-              }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488] min-[960px]:w-8 min-[960px]:h-8" /></button>
+              }} className="p-1"><Trash2 className="w-4 h-4 text-[#685800] min-[960px]:w-8 min-[960px]:h-8" /></button>
             </div>
           )}
         </div>
@@ -232,22 +232,22 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
         <div
           onClick={() => { if (brandSelected) { setDirection(1); setActivePanel("model"); } }}
           className={`bg-[#F6F7F9] p-4 rounded-[14px] border transition-all flex flex-col gap-3 
-          ${modelSelected ? "border-[#0B4488] ring-1 ring-[#0B4488]" : "border-transparent shadow-sm"} 
+          ${modelSelected ? "border-[#1C42E8] ring-1 ring-[#1C42E8]" : "border-transparent shadow-sm"} 
           ${!brandSelected && "opacity-40 grayscale pointer-events-none"}`}
         >
           <div className="flex items-center gap-4">
             <Smartphone className="w-5 h-5 text-black min-[960px]:w-10 min-[960px]:h-10" />
             <span className="font-semibold text-black flex-1 text-[16px] min-[960px]:text-[35px]">
               Selecciona el modelo</span>
-            <ChevronRight className={ modelSelected ? "text-[#0B4488]" : "text-slate-300"}  />
+            <ChevronRight className={ modelSelected ? "text-[#1C42E8]" : "text-slate-300"}  />
           </div>
           {modelSelected && (
-            <div className="bg-white text-[#0B4488] px-4 py-2 rounded-3xl text-[14px] font-normal w-fit border border-blue-100 flex items-center gap-3">
-              <span className="font-normal text-[14px] min-[960px]:text-[28px]">{modelSelected}</span>
+            <div className="bg-[#F0D22433] text-[#0B4488] px-4 py-2 rounded-3xl text-[14px] font-normal w-fit flex items-center gap-3">
+              <span className="text-[#685800] font-normal text-[14px] min-[960px]:text-[28px]">{modelSelected}</span>
               <button onClick={(e) => {
                 e.stopPropagation();
                 setSelection({ ...selection, model: { id: null, name: null, has_case: false, has_mica: false, camera_layout: null } });
-              }} className="p-1"><Trash2 className="w-4 h-4 text-[#0B4488] min-[960px]:w-8 min-[960px]:h-8" /></button>
+              }} className="p-1"><Trash2 className="w-4 h-4 text-[#685800] min-[960px]:w-8 min-[960px]:h-8" /></button>
             </div>
           )}
         </div>
@@ -321,7 +321,7 @@ export default function PhoneSelectorPage({ initialBrands = [], token }: PhoneSe
                           {layer === 0 && <span className="text-[8px] text-purple-600 font-black tracking-[0.2em] uppercase">Sugerencia</span>}
                         </div>
                       </div>
-                      <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-[#0B4488] bg-[#0B4488]" : "border-slate-200"}`}>
+                      <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-[#1C42E8] bg-[#1C42E8]" : "border-[slate-200]"}`}>
                         {isSelected && <Check className="w-4 h-4 text-white stroke-[4]" />}
                       </div>
                     </button>

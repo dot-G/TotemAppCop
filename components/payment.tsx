@@ -106,7 +106,7 @@ export default function Payment() {
             {/* Encabezado Compacto */}
             <div className="pt-5 pb-4 px-8 flex items-center gap-4 border-b border-slate-50">
               <div className="flex-shrink-0 p-2 rounded-xl bg-blue-50/50">
-                <CheckCircle2 size={22} className="text-[#1e62c1]" />
+                <CheckCircle2 size={22} className="text-[#1C42E8]" />
               </div>
               <div className="flex flex-col items-start">
                 <h1 className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] leading-none mb-1">
@@ -132,7 +132,7 @@ export default function Payment() {
                 </div>
                 <div className="text-right space-y-1">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Monto Total</span>
-                  <p className="text-[#1e62c1] font-semibold text-3xl">
+                  <p className="text-[#1C42E8] font-semibold text-3xl">
                     ${selection.orderPrice}
                   </p>
                 </div>
@@ -184,7 +184,7 @@ export default function Payment() {
                 {isGenerating && actionType === "download" ? <Loader2 className="animate-spin w-5 h-5" /> : <><span className="font-bold">Descargar</span><FileDown className="w-5 h-5" /></>}
               </button>
             )}
-            <button onClick={() => handleAction("share")} disabled={isGenerating} className="flex-1 h-[60px] bg-blue-600 rounded-[14px] flex items-center justify-center gap-2 active:scale-95 transition-all">
+            <button onClick={() => handleAction("share")} disabled={isGenerating} className="flex-1 h-[60px] bg-[#1C42E8] rounded-[14px] flex items-center justify-center gap-2 active:scale-95 transition-all">
               {isGenerating && actionType === "share" ? <Loader2 className="animate-spin w-5 h-5 text-white" /> : <><span className="font-bold text-white">Compartir</span><Share2 className="w-5 h-5 text-white" /></>}
             </button>
           </div>
