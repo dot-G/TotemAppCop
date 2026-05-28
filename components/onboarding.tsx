@@ -56,7 +56,7 @@ export function Onboarding({ initialSlides = [] }: OnboardingProps) {
 
   if (!isHydrated || slides.length === 0) {
     return (
-      <div className="h-[100dvh] bg-[#4a1a8a] flex items-center justify-center">
+      <div className="h-[100dvh] bg-[#1533B5] flex items-center justify-center">
         <Loader2 className="w-10 h-10 animate-spin text-[#71E5FF]" />
       </div>
     );
@@ -67,7 +67,7 @@ export function Onboarding({ initialSlides = [] }: OnboardingProps) {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-col h-[100dvh] w-full bg-[#4a1a8a] overflow-hidden select-none @container/main"
+      className="relative flex flex-col h-[100dvh] w-full bg-[#1533B5] overflow-hidden select-none @container/main"
       style={{ 
         backgroundImage: 'url("/background.jpg")', 
         backgroundSize: "cover",
