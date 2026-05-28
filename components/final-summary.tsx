@@ -137,7 +137,7 @@ export default function FinalSummary() {
           {/* Footer del Ticket: Total */}
           <div className="px-6 py-3 min-[960px]:p-8 mt-4 bg-slate-50/50 border-t border-dashed border-slate-100 flex justify-between items-center">
             <span className="text-[16px] min-[960px]:text-[28px] font-semibold text-slate-900">Total a pagar</span>
-            <span className="text-2xl min-[960px]:text-[52px] font-semibold text-[#6b21a8]">${totalPrice}</span>
+            <span className="text-2xl min-[960px]:text-[52px] font-semibold text-[#1C42E8]">${totalPrice}</span>
           </div>
         </div>
 
