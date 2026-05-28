@@ -12,7 +12,7 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: 'Telcel | Personaliza tu Protector de Celular',
+  title: 'Coppel | Personaliza tu Protector de Celular',
   description: 'Diseña la protección perfecta para tu equipo. Crea un protector único que combine estilo premium y seguridad total para tu smartphone.',
   //generator: 'v0.app',
   icons: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   // --- IMAGEN DESTACADA (OG Image) ---
   openGraph: {
-    title: 'Telcel | Personaliza tu Protector de Celular',
+    title: 'Coppel | Personaliza tu Protector de Celular',
     description: 'Diseña la protección perfecta para tu equipo.',
     //url: 'https://tu-dominio.com', // Reemplaza por tu URL real
     siteName: 'Telcel Personalización',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Telcel | Personaliza tu Protector de Celular',
+    title: 'Coppel | Personaliza tu Protector de Celular',
     description: 'Diseña la protección perfecta para tu equipo.',
     images: ['/image.jpg'],
   },
