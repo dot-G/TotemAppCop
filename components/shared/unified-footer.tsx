@@ -65,9 +65,10 @@ export function UnifiedFooter() {
 
   const isContactForm = currentStep === "contact-form"
   const buttonText = isContactForm ? "Confirmar Pedido" : "Siguiente"
-  const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model.id
+  
+  // CORRECCIÓN: Uso de encadenamiento opcional (?.) para evitar que rompa si model es null
+  const shouldShowPrice = currentStep !== "phone-selector" && !!selection.model?.id
 
-  // Lógica para el label dinámico del precio
   const priceLabel = ["mica-selector", "combo-selector"].includes(currentStep) ? "Desde" : "Total"
 
   return (
@@ -84,7 +85,9 @@ export function UnifiedFooter() {
             {selection.brand && currentStep !== "phone-selector" && (
               <div className="bg-white border border-[#3E3E3E] rounded-[14px] px-3 min-[960px]:p-8 py-2 flex justify-between items-center mb-3">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-slate-900 text-[14px] min-[960px]:text-[28px]  mb-0.5 truncate min-[960px]:max-w-[900px] max-w-[240px]">Detalle para {selection.brand} {selection.model.name}</h4>
+                  <h4 className="font-semibold text-slate-900 text-[14px] min-[960px]:text-[28px] mb-0.5 truncate min-[960px]:max-w-[900px] max-w-[240px]">
+                    Detalle para {selection.brand} {selection.model?.name}
+                  </h4>
                   <p className="text-[#606166] font-normal text-[14px] min-[960px]:text-[28px] leading-tight">
                     {selection.micaName && `${selection.micaName}`}
                     {selection.caseName && ` • Case ${selection.caseName}`}
@@ -111,13 +114,15 @@ export function UnifiedFooter() {
               </div>
             )}
 
+            {/* CORRECCIÓN: Clases limpias usando selectores de estado nativos de Tailwind */}
             <Button
               disabled={!canContinue}
               onClick={handleMainAction}
               className={`w-full h-14 rounded-[14px] text-[20px] min-[960px]:text-[35px] min-[960px]:h-28 font-semibold transition-all duration-300
-    ${canContinue
-                  ? "bg-[#1C42E8] text-white shadow-xl shadow-purple-100 active:scale-[0.97]"
-                  : "bg-slate-100 text-slate-300"}`}
+                bg-[#1C42E8] text-white shadow-xl shadow-blue-100 
+                hover:bg-[#1533B5] focus-visible:ring-4 focus-visible:ring-blue-300 focus-visible:outline-none
+                active:scale-[0.97]
+                disabled:bg-[#1C42E8]/10 disabled:text-slate-400 disabled:shadow-none disabled:pointer-events-none disabled:scale-100`}
             >
               {buttonText}
             </Button>

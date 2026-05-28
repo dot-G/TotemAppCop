@@ -81,7 +81,7 @@ export default function Payment() {
         <div className="p-4 bg-white border-2 border-slate-50 rounded-2xl shadow-sm">
           <QRCode value={qrUrl} size={200} viewBox={`0 0 256 256`} />
         </div>
-        <a href={qrUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[13px] text-blue-600 font-semibold mt-6 hover:underline">
+        <a href={qrUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-[13px] text-[#1C42E8] font-semibold mt-6 hover:underline">
           <ExternalLink className="w-4 h-4" />
           Ver Ticket
         </a>
@@ -158,8 +158,8 @@ export default function Payment() {
                 </p>
               </div>
               <img
-                src="/logo-telcel.svg"
-                alt="Telcel Logo"
+                src="/logo-coppel.svg"
+                alt="Coppel Logo"
                 className="w-14 h-auto brightness-0 invert"
               />
             </div>

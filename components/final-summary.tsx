@@ -160,9 +160,9 @@ export default function FinalSummary() {
               {orderStatus === 'processing' ? (
                 <motion.div key="p" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center gap-6">
                   <div className="relative">
-                    <Loader2 className="w-20 h-20 text-[#6b21a8] animate-spin stroke-[1px]" />
+                    <Loader2 className="w-20 h-20 text-[#1C42E8] animate-spin stroke-[1px]" />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-[#6b21a8] rounded-full animate-ping" />
+                      <div className="w-2 h-2 bg-[#1C42E8] rounded-full animate-ping" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -177,7 +177,7 @@ export default function FinalSummary() {
                   </div>
                   <h2 className="text-[28px] leading-none font-semibold text-slate-900 mb-6">¡Pedido enviado!</h2>
                   <p className="text-slate-500 text-lg font-medium leading-tight">
-                    Tu orden <span className="text-[#6b21a8] font-semibold">#{reference}</span> ha sido procesada correctamente.
+                    Tu orden <span className="text-[#1C42E8] font-semibold">#{reference}</span> ha sido procesada correctamente.
                   </p>
                 </motion.div>
               )}

@@ -212,7 +212,7 @@ export function Onboarding({ initialSlides = [] }: OnboardingProps) {
       <div className="relative z-10 flex px-10 pb-[7dvh] pt-4 shrink-0">
         <Button
           onClick={() => setStep("phone-selector")}
-          className="flex-1 rounded-[calc(var(--u)*4)] bg-[#F0D224] text-[#012B5D] font-semibold shadow-2xl active:scale-95 transition-all max-w-[450px] mx-auto"
+          className="flex-1 rounded-[calc(var(--u)*4)] bg-[#F0D224] hover:bg-[#F0D224] text-[#012B5D] font-semibold shadow-2xl active:scale-95 transition-all max-w-[450px] mx-auto"
           style={{ 
             height: "var(--btn-h)", 
             fontSize: "calc(var(--t-size) * 0.7)" 

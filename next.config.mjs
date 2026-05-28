@@ -1,22 +1,24 @@
 /** @type {import('next').NextConfig} */
+
+// 1. Extraemos el host de la variable de entorno
+// Ejemplo: "https://admin3pa.ai-labs.com.mx" -> "admin3pa.ai-labs.com.mx"
+const apiHost = process.env.NEXT_PUBLIC_API_URL 
+  ? new URL(process.env.NEXT_PUBLIC_API_URL).hostname 
+  : 'admin3pa.ai-labs.com.mx'; // Un fallback por si la variable no está definida
+
 const nextConfig = {
   typescript: {
-    // Esto evita que el build falle por errores de tipos, 
-    // útil para desplegar rápido, aunque lo ideal es corregirlos.
     ignoreBuildErrors: true,
   },
- images: {
-    // 1. Autorizamos tu dominio de Directus
+  images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'coppel3pa.ai-labs.com.mx',
+        hostname: apiHost, // <--- Usamos la variable dinámica aquí
         pathname: '/assets/**',
       },
     ],
-    // 2. Permitimos SVGs (Esto corrige el error de "dangerouslyAllowSVG")
     dangerouslyAllowSVG: true,
-    // 3. Recomendado por seguridad al habilitar SVGs
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 }

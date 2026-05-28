@@ -230,12 +230,25 @@ export default function ContactForm({ token }: ContactFormProps) {
         <form className="space-y-3 min-[960px]:space-y-8" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-1">
             <Label className="text-[14px] min-[960px]:text-[28px] font-normal text-slate-700 ml-1">Nombre Completo *</Label>
-            <Input id="name" placeholder="" value={selection.contact.name} onChange={handleChange} className="h-14 min-[960px]:h-20 rounded-[14px] min-[960px]:text-[28px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-[#1C42E8] transition-all" />
+            <Input 
+              id="name" 
+              placeholder="" 
+              value={selection.contact.name} 
+              onChange={handleChange} 
+              className="h-14 min-[960px]:h-20 rounded-[14px] min-[960px]:text-[28px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-[#1C42E8] focus-visible:ring-2 focus-visible:ring-[#1C42E8] focus-visible:ring-offset-0 transition-all" 
+            />
           </div>
 
           <div className="space-y-1">
             <Label className="text-[14px] min-[960px]:text-[28px] font-normal text-slate-800 ml-1">Email *</Label>
-            <Input id="email" type="email" placeholder="" value={selection.contact.email} onChange={handleChange} className="h-14 min-[960px]:h-20 rounded-[14px] border-slate-400 font-semibold text-slate-900 min-[960px]:text-[28px] bg-slate-50/50 px-6 focus:ring-2 focus:ring-[#1C42E8] transition-all" />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="" 
+              value={selection.contact.email} 
+              onChange={handleChange} 
+              className="h-14 min-[960px]:h-20 rounded-[14px] border-slate-400 font-semibold text-slate-900 min-[960px]:text-[28px] bg-slate-50/50 px-6 focus:ring-2 focus:ring-[#1C42E8] focus-visible:ring-2 focus-visible:ring-[#1C42E8] focus-visible:ring-offset-0 transition-all" 
+            />
           </div>
 
           <div className="space-y-1">
@@ -243,7 +256,7 @@ export default function ContactForm({ token }: ContactFormProps) {
             <div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 h-14 min-[960px]:h-20 rounded-[14px] border border-slate-400 bg-slate-50/50 hover:bg-slate-100 transition-all outline-none focus:ring-2 focus:ring-[#1C42E8]">
+                  <button className="flex items-center gap-2 px-3 h-14 min-[960px]:h-20 rounded-[14px] border border-slate-400 bg-slate-50/50 hover:bg-slate-100 transition-all outline-none focus:ring-2 focus:ring-[#1C42E8] focus-visible:ring-2 focus-visible:ring-[#1C42E8]">
                     <span className="text-xl">{selectedCountry.flag}</span>
                     <span className="font-bold text-slate-900 text-sm min-[960px]:text-[22px]">{selectedCountry.prefix}</span>
                     <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -270,7 +283,7 @@ export default function ContactForm({ token }: ContactFormProps) {
                 placeholder="" 
                 value={selection.contact.phone} 
                 onChange={handleChange} 
-                className="h-14 min-[960px]:h-20 flex-1 rounded-[14px] min-[960px]:text-[28px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-purple-100 transition-all" 
+                className="h-14 min-[960px]:h-20 flex-1 rounded-[14px] min-[960px]:text-[28px] border-slate-400 font-semibold text-slate-900 bg-slate-50/50 px-6 focus:ring-2 focus:ring-[#1C42E8] focus-visible:ring-2 focus-visible:ring-[#1C42E8] focus-visible:ring-offset-0 transition-all" 
               />
             </div>
           </div>

@@ -90,7 +90,7 @@ export default function QrOrderPage() {
             {/* Encabezado Compacto */}
             <div className="pt-5 pb-4 px-8 flex items-center gap-4 border-b border-slate-50">
               <div className="flex-shrink-0 p-2 rounded-xl bg-blue-50/50">
-                <CheckCircle2 size={22} className="text-[#1e62c1]" />
+                <CheckCircle2 size={22} className="text-[#1C42E8]" />
               </div>
               <div className="flex flex-col items-start">
                 <h1 className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] leading-none mb-1">
@@ -116,7 +116,7 @@ export default function QrOrderPage() {
                 </div>
                 <div className="text-right space-y-1">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Monto Total</span>
-                  <p className="text-[#1e62c1] font-semibold text-3xl">
+                  <p className="text-[#1C42E8] font-semibold text-3xl">
                     ${order.final_combo_price}
                   </p>
                 </div>
@@ -142,8 +142,8 @@ export default function QrOrderPage() {
                 </p>
               </div>
               <img
-                src="/logo-telcel.svg"
-                alt="Telcel Logo"
+                src="/logo-coppel.svg"
+                alt="Coppel Logo"
                 className="w-14 h-auto brightness-0 invert"
               />
             </div>
@@ -163,7 +163,7 @@ export default function QrOrderPage() {
             <button
               onClick={() => handleAction("share")}
               disabled={isGenerating}
-              className="flex-1 h-14 rounded-xl bg-[#1e62c1] text-white font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
+              className="flex-1 h-14 rounded-xl bg-[#1C42E8] text-white font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
             >
               {isGenerating && actionType === "share" ? <Loader2 className="animate-spin" size={20} /> : <Share2 size={20} />}
               Compartir
